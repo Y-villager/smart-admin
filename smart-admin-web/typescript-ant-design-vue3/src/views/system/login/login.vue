@@ -129,7 +129,7 @@ import {saveTokenToCookie} from '/@/utils/cookie-util';
 
 const loginForm = reactive({
   loginName: 'admin',
-  password: '',
+  password: '123456',
   captchaCode: '',
   captchaUuid: '',
   loginDevice: LOGIN_DEVICE_ENUM.PC.value,

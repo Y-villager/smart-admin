@@ -1,9 +1,9 @@
 spring:
   # 数据库连接信息
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/smart_admin_v3?autoReconnect=true&useServerPreparedStmts=false&rewriteBatchedStatements=true&characterEncoding=UTF-8&useSSL=false&allowMultiQueries=true&serverTimezone=Asia/Shanghai
-    username: root
-    password: SmartAdmin666
+    url: jdbc:mysql://101.34.59.250:3306/smart_admin_v3?autoReconnect=true&useServerPreparedStmts=false&rewriteBatchedStatements=true&characterEncoding=UTF-8&useSSL=false&allowMultiQueries=true&serverTimezone=Asia/Shanghai
+    username: smart
+    password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
     initial-size: 10
     min-idle: 10
@@ -23,10 +23,10 @@ spring:
   # redis 连接池配置信息
   data:
     redis:
-      database: 1
-      host: 127.0.0.1
+      database: 0
+      host: 101.34.59.250
       port: 6379
-      password:
+      password: 123456
       timeout: 10000ms
       lettuce:
         pool:

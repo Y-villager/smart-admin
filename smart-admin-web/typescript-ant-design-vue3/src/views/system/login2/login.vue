@@ -97,7 +97,7 @@ import { saveTokenToCookie } from '/@/utils/cookie-util';
 
 const loginForm = reactive({
   loginName: 'admin',
-  password: '',
+  password: '123456',
   emailCode: '', // 邮箱验证码
   captchaCode: '',
   captchaUuid: '',
