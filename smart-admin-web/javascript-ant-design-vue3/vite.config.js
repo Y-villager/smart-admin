@@ -38,7 +38,14 @@ export default {
   // 服务端渲染
   server: {
     host: '0.0.0.0',
-    port: 8081,
+    port: 8080,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:1024', // 后端服务地址
+        changeOrigin: true, // 可选，控制请求头中的 origin
+        rewrite: (path) => path.replace(/^\/api/, ''), // 可选，重写路径
+      },
+    },
   },
   plugins: [vue()],
   optimizeDeps: {
