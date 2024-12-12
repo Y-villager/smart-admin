@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.lab1024.sa.admin.module.vigorous.salesperson.dao.SalespersonDao">
+
+    <!-- 查询结果列 -->
+    <sql id="base_columns">
+        v_salesperson.id,
+        v_salesperson.salesperson_code,
+        v_salesperson.salesperson_name,
+        v_salesperson.department,
+        v_salesperson.position,
+        v_salesperson.status,
+        v_salesperson.path,
+        v_salesperson.deleted_flag
+    </sql>
+
+    <!-- 分页查询 -->
+    <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.salesperson.domain.vo.SalespersonVO">
+        SELECT
+        <include refid="base_columns"/>
+        FROM v_salesperson
+        <where>
+            <!--业务员名称-->
+            <if test="queryForm.salesperson_name != null and queryForm.salesperson_name != ''">
+                        AND INSTR(v_salesperson.salesperson_name,#{queryForm.salesperson_name})
+            </if>
+            <!--业务员编码-->
+            <if test="queryForm.salesperson_code != null and queryForm.salesperson_code != ''">
+                        AND INSTR(v_salesperson.salesperson_code,#{queryForm.salesperson_code})
+            </if>
+        </where>
+    </select>
+
+    <update id="batchUpdateDeleted">
+        update v_salesperson set deleted_flag = #{deletedFlag}
+        where id in
+        <foreach collection="idList" open="(" close=")" separator="," item="item">
+            #{item}
+        </foreach>
+    </update>
+
+    <update id="updateDeleted">
+        update v_salesperson set deleted_flag = #{deletedFlag}
+        where id = #{id}
+    </update>
+
+</mapper>
