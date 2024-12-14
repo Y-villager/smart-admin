@@ -38,9 +38,9 @@
   import { reactive, ref, nextTick } from 'vue';
   import _ from 'lodash';
   import { message } from 'ant-design-vue';
-  import { SmartLoading } from '/@/components/framework/smart-loading';
-  import { salespersonApi } from '/@/api/vigorous/salesperson/salesperson-api';
-  import { smartSentry } from '/@/lib/smart-sentry';
+  import { SmartLoading } from '/src/components/framework/smart-loading';
+  import { salespersonApi } from '/src/api/vigorous/salesperson/salesperson-api';
+  import { smartSentry } from '/src/lib/smart-sentry';
 
   // ------------------------ 事件 ------------------------
 

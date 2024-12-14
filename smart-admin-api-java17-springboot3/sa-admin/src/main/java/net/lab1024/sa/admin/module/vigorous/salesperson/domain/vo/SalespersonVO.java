@@ -13,7 +13,8 @@ import lombok.Data;
 
 @Data
 public class SalespersonVO {
-
+    @Schema(description = "主键")
+    private String id;
 
     @Schema(description = "业务员编码")
     private String salespersonCode;
