@@ -8,7 +8,7 @@
 <template>
   <a-drawer
       :title="form.id ? '编辑' : '添加'"
-      :width="100"
+      :width="500"
       :open="visibleFlag"
       @close="onClose"
       :maskClosable="false"

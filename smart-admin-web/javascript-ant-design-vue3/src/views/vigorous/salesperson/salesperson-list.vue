@@ -52,6 +52,20 @@
                     </template>
                     批量删除
                 </a-button>
+
+              <a-button @click="showImportModal" type="primary" v-privilege="'salesperson:importSalesperson'">
+                <template #icon>
+                  <ImportOutlined />
+                </template>
+                导入
+              </a-button>
+
+              <a-button @click="onExportSalesperson" type="primary" v-privilege="'salesperson:exportSalesperson'">
+                <template #icon>
+                  <ExportOutlined />
+                </template>
+                导出
+              </a-button>
             </div>
             <div class="smart-table-setting-block">
                 <TableOperator v-model="columns" :tableId="null" :refresh="queryData" />
@@ -113,6 +127,36 @@
 
         <SalespersonForm  ref="formRef" @reloadList="queryData"/>
 
+      <a-modal v-model:open="importModalShowFlag" title="导入" @onCancel="hideImportModal" @ok="hideImportModal">
+        <div style="text-align: center; width: 400px; margin: 0 auto">
+          <a-button @click="downloadExcel">
+            <download-outlined />
+            第一步：下载模板
+          </a-button>
+          <br />
+          <br />
+          <a-upload
+              v-model:fileList="fileList"
+              name="file"
+              :multiple="false"
+              action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
+              accept=".xls,.xlsx"
+              :before-upload="beforeUpload"
+              @remove="handleRemove"
+          >
+            <a-button>
+              <upload-outlined />
+              第二步：选择文件
+            </a-button>
+          </a-upload>
+
+          <br />
+          <a-button @click="onImportSalesperson">
+            <ImportOutlined />
+            第三步：开始导入
+          </a-button>
+        </div>
+      </a-modal>
     </a-card>
 </template>
 <script setup>
@@ -140,13 +184,13 @@
             ellipsis: true,
         },
         {
-            title: '部门编码',
-            dataIndex: 'departmentId',
+            title: '部门名称',
+            dataIndex: 'departmentName',
             ellipsis: true,
         },
         {
-            title: '级别编码',
-            dataIndex: 'salespersonLevelId',
+            title: '业务员级别',
+            dataIndex: 'salespersonLevelName',
             ellipsis: true,
         },
         {
@@ -292,5 +336,59 @@
         } finally {
             SmartLoading.hide();
         }
+    }
+
+    // ------------------------------- 导出和导入 ---------------------------------
+    // 导入弹窗
+    const importModalShowFlag = ref(false);
+
+    const fileList = ref([]);
+
+    // 显示导入
+    function showImportModal() {
+      fileList.value = [];
+      importModalShowFlag.value = true;
+    }
+
+    // 关闭 导入
+    function hideImportModal() {
+      importModalShowFlag.value = false;
+    }
+    // 导入文件
+    async function onImportSalesperson() {
+      const formData = new FormData();
+      fileList.value.forEach((file) => {
+        formData.append('file', file.originFileObj);
+      });
+
+      SmartLoading.show();
+      try {
+        let res = await salespersonApi.importSalesperson(formData);
+        message.success(res.msg);
+      } catch (e) {
+        smartSentry.captureError(e);
+      } finally {
+        SmartLoading.hide();
+      }
+    }
+
+    // 导出excel文件
+    async function onExportSalesperson() {
+      await salespersonApi.exportSalesperson();
+    }
+
+    function handleRemove(file) {
+      const index = fileList.value.indexOf(file);
+      const newFileList = fileList.value.slice();
+      newFileList.splice(index, 1);
+      fileList.value = newFileList;
+    }
+
+    function beforeUpload(file) {
+      fileList.value = [...(fileList.value || []), file];
+      return false;
+    }
+    // 下载模板
+    function downloadExcel() {
     }
 </script>

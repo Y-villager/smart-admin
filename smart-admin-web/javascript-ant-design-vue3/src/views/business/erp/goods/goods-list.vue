@@ -147,7 +147,10 @@
 
     <a-modal v-model:open="importModalShowFlag" title="导入" @onCancel="hideImportModal" @ok="hideImportModal">
       <div style="text-align: center; width: 400px; margin: 0 auto">
-        <a-button @click="downloadExcel"> <download-outlined />第一步：下载模板</a-button>
+        <a-button @click="downloadExcel">
+          <download-outlined />
+          第一步：下载模板
+        </a-button>
         <br />
         <br />
         <a-upload
@@ -172,6 +175,7 @@
         </a-button>
       </div>
     </a-modal>
+
   </a-card>
 </template>
 <script setup>
@@ -207,7 +211,7 @@
     {
       title: '商品状态',
       dataIndex: 'goodsStatus',
-      sorter: true
+      sorter: true,
     },
     {
       title: '产地',
@@ -216,12 +220,12 @@
     {
       title: '商品价格',
       dataIndex: 'price',
-      sorter: true
+      sorter: true,
     },
     {
       title: '上架状态',
       dataIndex: 'shelvesFlag',
-      sorter: true
+      sorter: true,
     },
     {
       title: '备注',
@@ -251,7 +255,7 @@
     goodsType: undefined,
     pageNum: 1,
     pageSize: 10,
-    sortItemList: []
+    sortItemList: [],
   };
   // 查询表单form
   const queryForm = reactive(_.cloneDeep(queryFormState));
@@ -299,6 +303,7 @@
   function addGoods(goodsData) {
     formModal.value.showDrawer(goodsData);
   }
+
   // ---------------------------- 单个删除 ----------------------------
 
   function deleteGoods(goodsData) {
@@ -370,6 +375,7 @@
   const importModalShowFlag = ref(false);
 
   const fileList = ref([]);
+
   // 显示导入
   function showImportModal() {
     fileList.value = [];
@@ -391,6 +397,7 @@
     newFileList.splice(index, 1);
     fileList.value = newFileList;
   }
+
   function beforeUpload(file) {
     fileList.value = [...(fileList.value || []), file];
     return false;
@@ -421,11 +428,11 @@
     await goodsApi.exportGoods();
   }
 
-  function onChange(pagination, filters, sorter, { action }){
+  function onChange(pagination, filters, sorter, { action }) {
     if (action === 'sort') {
       const { order, field } = sorter;
       let column = camelToUnderscore(field);
-      let findIndex = queryForm.sortItemList.findIndex(e => e.column === column);
+      let findIndex = queryForm.sortItemList.findIndex((e) => e.column === column);
       if (findIndex !== -1) {
         queryForm.sortItemList.splice(findIndex, 1);
       }
@@ -433,7 +440,7 @@
         let isAsc = order !== 'ascend';
         queryForm.sortItemList.push({
           column,
-          isAsc
+          isAsc,
         });
       }
       queryData();
@@ -441,6 +448,7 @@
   }
 
   function camelToUnderscore(str) {
-    return str.replace(/([A-Z])/g, "_$1").toLowerCase();
+    return str.replace(/([A-Z])/g, '_$1').toLowerCase();
   }
+
 </script>

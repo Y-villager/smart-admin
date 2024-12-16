@@ -19,5 +19,11 @@
         WHERE parent_id = #{departmentId}
     </select>
 
+    <select id="getDepartmentIdByName" resultType="java.lang.Long">
+        select t_department.department_id
+        from t_department
+        where t_department.name = #{name}
+    </select>
+
 
 </mapper>

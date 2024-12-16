@@ -32,6 +32,9 @@
             <if test="queryForm.salespersonLevel != null and queryForm.salespersonLevel != ''">
                         AND INSTR(v_salesperson.salesperson_level_id,#{queryForm.salespersonLevel})
             </if>
+            <if test="queryForm.deletedFlag != null">
+                AND INSTR(v_salesperson.deleted_flag,#{queryForm.deletedFlag})
+            </if>
         </where>
     </select>
 
@@ -47,5 +50,11 @@
         update v_salesperson set deleted_flag = #{deletedFlag}
         where id = #{id}
     </update>
+
+
+    <select id="getAllSalespersonCodes" resultType="java.lang.String">
+        select salesperson_code
+        from v_salesperson
+    </select>
 
 </mapper>

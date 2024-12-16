@@ -13,7 +13,8 @@ import lombok.Data;
 
 @Data
 public class SalespersonVO {
-
+    @Schema(description = "主键")
+    private String id;
 
     @Schema(description = "业务员编码")
     private String salespersonCode;
@@ -24,8 +25,14 @@ public class SalespersonVO {
     @Schema(description = "部门编码")
     private Long departmentId;
 
+    @Schema(description = "部门名称")
+    private String departmentName;
+
     @Schema(description = "级别编码")
     private Integer salespersonLevelId;
+
+    @Schema(description = "级别名称")
+    private String salespersonLevelName;
 
     @Schema(description = "层级路径")
     private String path;

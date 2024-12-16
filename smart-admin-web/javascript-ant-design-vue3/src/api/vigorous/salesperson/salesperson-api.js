@@ -5,7 +5,7 @@
  * @Date:      2024-12-12 14:42:49
  * @Copyright  (c)2024 yxz
  */
-import { postRequest, getRequest } from '/@/lib/axios';
+import {postRequest, getRequest, getDownload} from '/@/lib/axios';
 
 export const salespersonApi = {
 
@@ -44,5 +44,18 @@ export const salespersonApi = {
   batchDelete: (idList) => {
       return postRequest('/salesperson/batchDelete', idList);
   },
+
+    // 导入
+    importSalesperson : (file) =>{
+        return postRequest('/salesperson/import',file);
+    },
+
+    // 导出
+    exportSalesperson : () =>{
+        return getDownload('/salesperson/export');
+    }
+
+
+
 
 };

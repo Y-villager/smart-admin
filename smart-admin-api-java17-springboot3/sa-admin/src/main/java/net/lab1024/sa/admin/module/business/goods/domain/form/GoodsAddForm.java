@@ -34,7 +34,7 @@ public class GoodsAddForm {
     private String goodsName;
 
     @SchemaEnum(GoodsStatusEnum.class)
-    @CheckEnum(message = "商品状态错误", value = GoodsStatusEnum.class, required = true)
+    @CheckEnum(message = "商品状态", value = GoodsStatusEnum.class, required = true)
     private Integer goodsStatus;
 
     @Schema(description = "产地")

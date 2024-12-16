@@ -1,6 +1,8 @@
 package net.lab1024.sa.admin.module.vigorous.salesperson.dao;
 
 import java.util.List;
+import java.util.Set;
+
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.entity.SalespersonEntity;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.form.SalespersonQueryForm;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.vo.SalespersonVO;
@@ -34,12 +36,16 @@ public interface SalespersonDao extends BaseMapper<SalespersonEntity> {
     /**
      * 更新删除状态
      */
-    long updateDeleted(@Param("id")Long id,@Param("${deletedFlag}")boolean deletedFlag);
+    long updateDeleted(@Param("id")Long id,@Param("deletedFlag")boolean deletedFlag);
 
     /**
      * 批量更新删除状态
      */
-    void batchUpdateDeleted(@Param("idList")List<Long> idList,@Param("${deletedFlag}")boolean deletedFlag);
+    void batchUpdateDeleted(@Param("idList")List<Long> idList,@Param("deletedFlag")boolean deletedFlag);
 
 
+    /*
+    * 获取所有业务员编码
+    * */
+    Set<String> getAllSalespersonCodes();
 }

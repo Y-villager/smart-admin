@@ -33,4 +33,9 @@ public interface DepartmentDao extends BaseMapper<DepartmentEntity> {
      */
     List<DepartmentVO> listAll();
 
+    /*
+    * 根据部门名，获取部门id
+    * */
+    Long getDepartmentIdByName(@Param("name") String name);
+
 }

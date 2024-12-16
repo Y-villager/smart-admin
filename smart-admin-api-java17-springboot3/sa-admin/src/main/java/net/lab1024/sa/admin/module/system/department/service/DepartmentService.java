@@ -1,6 +1,7 @@
 package net.lab1024.sa.admin.module.system.department.service;
 
 import jakarta.annotation.Resource;
+import net.lab1024.sa.admin.module.business.category.domain.entity.CategoryEntity;
 import net.lab1024.sa.admin.module.system.department.dao.DepartmentDao;
 import net.lab1024.sa.admin.module.system.department.domain.entity.DepartmentEntity;
 import net.lab1024.sa.admin.module.system.department.domain.form.DepartmentAddForm;
@@ -185,6 +186,18 @@ public class DepartmentService {
         }
         Collections.reverse(list);
         return list;
+    }
+
+    public String queryDepartmentName(Long departmentId) {
+        DepartmentEntity departmentEntity = departmentDao.selectById(departmentId);
+        if (null == departmentEntity) {
+            return null;
+        }
+        return departmentEntity.getName();
+    }
+
+    public Long getDepartmentIdByName(String departmentName) {
+        return departmentDao.getDepartmentIdByName(departmentName);
     }
 
 }
