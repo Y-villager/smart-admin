@@ -5,7 +5,7 @@
  * @Date:      2024-12-12 14:42:49
  * @Copyright  (c)2024 yxz
  */
-import { postRequest, getRequest } from '/src/lib/axios';
+import { postRequest, getRequest } from '/@/lib/axios';
 
 export const salespersonApi = {
 

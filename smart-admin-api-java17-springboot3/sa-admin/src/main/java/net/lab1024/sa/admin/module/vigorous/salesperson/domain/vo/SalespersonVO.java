@@ -7,14 +7,13 @@ import lombok.Data;
  * 业务员 列表VO
  *
  * @Author yxz
- * @Date 2024-12-12 14:42:49
+ * @Date 2024-12-16 10:56:45
  * @Copyright (c)2024 yxz
  */
 
 @Data
 public class SalespersonVO {
-    @Schema(description = "主键")
-    private String id;
+
 
     @Schema(description = "业务员编码")
     private String salespersonCode;
@@ -22,13 +21,16 @@ public class SalespersonVO {
     @Schema(description = "业务员名称")
     private String salespersonName;
 
-    @Schema(description = "部门")
-    private String department;
+    @Schema(description = "部门编码")
+    private Long departmentId;
 
-    @Schema(description = "职位")
-    private String position;
+    @Schema(description = "级别编码")
+    private Integer salespersonLevelId;
 
-    @Schema(description = "禁用状态")
-    private Integer status;
+    @Schema(description = "层级路径")
+    private String path;
+
+    @Schema(description = "上级id")
+    private Long parentId;
 
 }

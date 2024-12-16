@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
  * 业务员 Dao
  *
  * @Author yxz
- * @Date 2024-12-12 14:42:49
+ * @Date 2024-12-16 10:56:45
  * @Copyright (c)2024 yxz
  */
 
@@ -34,12 +34,12 @@ public interface SalespersonDao extends BaseMapper<SalespersonEntity> {
     /**
      * 更新删除状态
      */
-    long updateDeleted(@Param("id")Long id,@Param("deletedFlag")boolean deletedFlag);
+    long updateDeleted(@Param("id")Long id,@Param("${deletedFlag}")boolean deletedFlag);
 
     /**
      * 批量更新删除状态
      */
-    void batchUpdateDeleted(@Param("idList")List<Long> idList,@Param("deletedFlag")boolean deletedFlag);
+    void batchUpdateDeleted(@Param("idList")List<Long> idList,@Param("${deletedFlag}")boolean deletedFlag);
 
 
 }

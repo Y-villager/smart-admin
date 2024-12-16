@@ -2,18 +2,21 @@
   * 业务员
   *
   * @Author:    yxz
-  * @Date:      2024-12-12 14:42:49
+  * @Date:      2024-12-16 10:56:45
   * @Copyright  (c)2024 yxz
 -->
 <template>
     <!---------- 查询表单form begin ----------->
     <a-form class="smart-query-form">
         <a-row class="smart-query-form-row">
-            <a-form-item label="业务员名称" class="smart-query-form-item">
-                <a-input style="width: 200px" v-model:value="queryForm.salesperson_name" placeholder="业务员名称" />
-            </a-form-item>
             <a-form-item label="业务员编码" class="smart-query-form-item">
-                <a-input style="width: 200px" v-model:value="queryForm.salesperson_code" placeholder="业务员编码" />
+                <a-input style="width: 200px" v-model:value="queryForm.salespersonCode" placeholder="业务员编码" />
+            </a-form-item>
+            <a-form-item label="业务员名称" class="smart-query-form-item">
+                <a-input style="width: 200px" v-model:value="queryForm.salespersonName" placeholder="业务员名称" />
+            </a-form-item>
+            <a-form-item label="业务员级别" class="smart-query-form-item">
+                <a-input style="width: 200px" v-model:value="queryForm.salespersonLevel" placeholder="业务员级别" />
             </a-form-item>
             <a-form-item class="smart-query-form-item">
                 <a-button type="primary" @click="onSearch">
@@ -115,19 +118,19 @@
 <script setup>
     import { reactive, ref, onMounted } from 'vue';
     import { message, Modal } from 'ant-design-vue';
-    import { SmartLoading } from '/src/components/framework/smart-loading';
-    import { salespersonApi } from '/src/api/vigorous/salesperson/salesperson-api';
-    import { PAGE_SIZE_OPTIONS } from '/src/constants/common-const';
-    import { smartSentry } from '/src/lib/smart-sentry';
-    // import TableOperator from '/src/components/support/table-operator/salespeson-form';
+    import { SmartLoading } from '/@/components/framework/smart-loading';
+    import { salespersonApi } from '/@/api/vigorous/salesperson/salesperson-api';
+    import { PAGE_SIZE_OPTIONS } from '/@/constants/common-const';
+    import { smartSentry } from '/@/lib/smart-sentry';
+    import TableOperator from '/@/components/support/table-operator/index.vue';
     import SalespersonForm from './salesperson-form.vue';
-    //import FilePreview from '/@/components/support/file-preview/salespeson-form'; // 图片预览组件
+    //import FilePreview from '/@/components/support/file-preview/index.vue'; // 图片预览组件
 
     // ---------------------------- 表格列 ----------------------------
 
     const columns = ref([
         {
-            title: '业余员编码',
+            title: '业务员编码',
             dataIndex: 'salespersonCode',
             ellipsis: true,
         },
@@ -137,18 +140,23 @@
             ellipsis: true,
         },
         {
-            title: '部门',
-            dataIndex: 'department',
+            title: '部门编码',
+            dataIndex: 'departmentId',
             ellipsis: true,
         },
         {
-            title: '职位',
-            dataIndex: 'position',
+            title: '级别编码',
+            dataIndex: 'salespersonLevelId',
             ellipsis: true,
         },
         {
-            title: '禁用状态',
-            dataIndex: 'status',
+            title: '层级路径',
+            dataIndex: 'path',
+            ellipsis: true,
+        },
+        {
+            title: '上级id',
+            dataIndex: 'parentId',
             ellipsis: true,
         },
         {
@@ -162,8 +170,9 @@
     // ---------------------------- 查询数据表单和方法 ----------------------------
 
     const queryFormState = {
-        salesperson_name: undefined, //业务员名称
-        salesperson_code: undefined, //业务员编码
+        salespersonCode: undefined, //业务员编码
+        salespersonName: undefined, //业务员名称
+        salespersonLevel: undefined, //业务员级别
         pageNum: 1,
         pageSize: 10,
     };

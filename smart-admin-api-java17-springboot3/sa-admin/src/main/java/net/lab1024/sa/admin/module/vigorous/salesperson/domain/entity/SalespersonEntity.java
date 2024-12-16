@@ -9,7 +9,7 @@ import lombok.Data;
  * 业务员 实体类
  *
  * @Author yxz
- * @Date 2024-12-12 14:42:49
+ * @Date 2024-12-16 10:56:45
  * @Copyright (c)2024 yxz
  */
 
@@ -34,19 +34,14 @@ public class SalespersonEntity {
     private String salespersonName;
 
     /**
-     * 部门
+     * 部门编码
      */
-    private String department;
+    private Long departmentId;
 
     /**
-     * 职位
+     * 级别编码
      */
-    private String position;
-
-    /**
-     * 禁用状态
-     */
-    private Integer status;
+    private Integer salespersonLevelId;
 
     /**
      * 层级路径
@@ -54,8 +49,13 @@ public class SalespersonEntity {
     private String path;
 
     /**
-     * 假删除
+     * 删除标识
      */
     private Integer deletedFlag;
+
+    /**
+     * 上级id
+     */
+    private Long parentId;
 
 }

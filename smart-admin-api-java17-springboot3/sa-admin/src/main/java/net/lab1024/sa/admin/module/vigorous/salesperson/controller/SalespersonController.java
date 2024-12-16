@@ -1,33 +1,30 @@
 package net.lab1024.sa.admin.module.vigorous.salesperson.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
-import jakarta.servlet.http.HttpServletResponse;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.form.SalespersonAddForm;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.form.SalespersonQueryForm;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.form.SalespersonUpdateForm;
-import net.lab1024.sa.admin.module.vigorous.salesperson.domain.vo.SalespersonExcelVO;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.vo.SalespersonVO;
 import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
 import net.lab1024.sa.base.common.domain.ValidateList;
-import net.lab1024.sa.base.common.util.SmartExcelUtil;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
 import net.lab1024.sa.base.common.domain.PageResult;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
 
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.util.List;
 
 /**
  * 业务员 Controller
  *
  * @Author yxz
- * @Date 2024-12-12 14:42:49
+ * @Date 2024-12-16 10:56:45
  * @Copyright (c)2024 yxz
  */
 
@@ -71,22 +68,5 @@ public class SalespersonController {
     @SaCheckPermission("salesperson:delete")
     public ResponseDTO<String> batchDelete(@PathVariable Long id) {
         return salespersonService.delete(id);
-    }
-
-    // --------------- 导出和导入 -------------------
-
-    @Operation(summary = "导入")
-    @PostMapping("/salesperson/import")
-//    @SaCheckPermission("salesperson:import")
-    public ResponseDTO<String> importSalesperson(@RequestParam MultipartFile file) {
-        return salespersonService.importSalesPerson(file);
-    }
-
-    @Operation(summary = "导出")
-    @GetMapping("/salesperson/export")
-//    @SaCheckPermission("salesperson:import")
-    public void exportSalesperson(HttpServletResponse response) throws IOException {
-        List<SalespersonExcelVO> goodsList = salespersonService.getAllSalesperson();
-        SmartExcelUtil.exportExcel(response,"salesperson-list.xlsx","业务员",SalespersonExcelVO.class, goodsList);
     }
 }

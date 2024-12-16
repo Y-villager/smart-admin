@@ -7,11 +7,11 @@
         v_salesperson.id,
         v_salesperson.salesperson_code,
         v_salesperson.salesperson_name,
-        v_salesperson.department,
-        v_salesperson.position,
-        v_salesperson.status,
+        v_salesperson.department_id,
+        v_salesperson.salesperson_level_id,
         v_salesperson.path,
-        v_salesperson.deleted_flag
+        v_salesperson.deleted_flag,
+        v_salesperson.parent_id
     </sql>
 
     <!-- 分页查询 -->
@@ -20,13 +20,17 @@
         <include refid="base_columns"/>
         FROM v_salesperson
         <where>
-            <!--业务员名称-->
-            <if test="queryForm.salesperson_name != null and queryForm.salesperson_name != ''">
-                        AND INSTR(v_salesperson.salesperson_name,#{queryForm.salesperson_name})
-            </if>
             <!--业务员编码-->
-            <if test="queryForm.salesperson_code != null and queryForm.salesperson_code != ''">
-                        AND INSTR(v_salesperson.salesperson_code,#{queryForm.salesperson_code})
+            <if test="queryForm.salespersonCode != null and queryForm.salespersonCode != ''">
+                        AND INSTR(v_salesperson.salesperson_code,#{queryForm.salespersonCode})
+            </if>
+            <!--业务员名称-->
+            <if test="queryForm.salespersonName != null and queryForm.salespersonName != ''">
+                        AND INSTR(v_salesperson.salesperson_name,#{queryForm.salespersonName})
+            </if>
+            <!--业务员级别-->
+            <if test="queryForm.salespersonLevel != null and queryForm.salespersonLevel != ''">
+                        AND INSTR(v_salesperson.salesperson_level_id,#{queryForm.salespersonLevel})
             </if>
         </where>
     </select>

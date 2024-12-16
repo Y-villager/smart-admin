@@ -2,15 +2,15 @@
   * 业务员
   *
   * @Author:    yxz
-  * @Date:      2024-12-12 14:42:49
+  * @Date:      2024-12-16 10:56:45
   * @Copyright  (c)2024 yxz
 -->
 <template>
-  <a-modal
+  <a-drawer
       :title="form.id ? '编辑' : '添加'"
-      :width="500"
+      :width="100"
       :open="visibleFlag"
-      @cancel="onClose"
+      @close="onClose"
       :maskClosable="false"
       :destroyOnClose="true"
   >
@@ -21,8 +21,14 @@
         <a-form-item label="业务员名称"  name="salespersonName">
           <a-input style="width: 100%" v-model:value="form.salespersonName" placeholder="业务员名称" />
         </a-form-item>
-        <a-form-item label="职位"  name="position">
-          <a-input style="width: 100%" v-model:value="form.position" placeholder="职位" />
+        <a-form-item label="部门编码"  name="departmentId">
+          <a-input-number style="width: 100%" v-model:value="form.departmentId" placeholder="部门编码" />
+        </a-form-item>
+        <a-form-item label="级别编码"  name="salespersonLevelId">
+          <a-input-number style="width: 100%" v-model:value="form.salespersonLevelId" placeholder="级别编码" />
+        </a-form-item>
+        <a-form-item label="上级id"  name="parentId">
+          <a-input-number style="width: 100%" v-model:value="form.parentId" placeholder="上级id" />
         </a-form-item>
     </a-form>
 
@@ -32,15 +38,15 @@
         <a-button type="primary" @click="onSubmit">保存</a-button>
       </a-space>
     </template>
-  </a-modal>
+  </a-drawer>
 </template>
 <script setup>
   import { reactive, ref, nextTick } from 'vue';
   import _ from 'lodash';
   import { message } from 'ant-design-vue';
-  import { SmartLoading } from '/src/components/framework/smart-loading';
-  import { salespersonApi } from '/src/api/vigorous/salesperson/salesperson-api';
-  import { smartSentry } from '/src/lib/smart-sentry';
+  import { SmartLoading } from '/@/components/framework/smart-loading';
+  import { salespersonApi } from '/@/api/vigorous/salesperson/salesperson-api';
+  import { smartSentry } from '/@/lib/smart-sentry';
 
   // ------------------------ 事件 ------------------------
 
@@ -78,7 +84,9 @@
   const formDefault = {
       salespersonCode: undefined, //业务员编码
       salespersonName: undefined, //业务员名称
-      position: undefined, //职位
+      departmentId: undefined, //部门编码
+      salespersonLevelId: undefined, //级别编码
+      parentId: undefined, //上级id
   };
 
   let form = reactive({ ...formDefault });
@@ -86,7 +94,8 @@
   const rules = {
       salespersonCode: [{ required: true, message: '业务员编码 必填' }],
       salespersonName: [{ required: true, message: '业务员名称 必填' }],
-      position: [{ required: true, message: '职位 必填' }],
+      departmentId: [{ required: true, message: '部门编码 必填' }],
+      salespersonLevelId: [{ required: true, message: '级别编码 必填' }],
   };
 
   // 点击确定，验证表单

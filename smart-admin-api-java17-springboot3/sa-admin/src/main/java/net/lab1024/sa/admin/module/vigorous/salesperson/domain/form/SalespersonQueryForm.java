@@ -9,7 +9,7 @@ import lombok.EqualsAndHashCode;
  * 业务员 分页查询表单
  *
  * @Author yxz
- * @Date 2024-12-12 14:42:49
+ * @Date 2024-12-16 10:56:45
  * @Copyright (c)2024 yxz
  */
 
@@ -17,10 +17,13 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 public class SalespersonQueryForm extends PageParam {
 
-    @Schema(description = "业务员名称")
-    private String salesperson_name;
-
     @Schema(description = "业务员编码")
-    private String salesperson_code;
+    private String salespersonCode;
+
+    @Schema(description = "业务员名称")
+    private String salespersonName;
+
+    @Schema(description = "业务员级别")
+    private String salespersonLevel;
 
 }
