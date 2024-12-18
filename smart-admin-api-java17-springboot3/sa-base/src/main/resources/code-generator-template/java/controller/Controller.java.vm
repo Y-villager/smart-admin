@@ -72,5 +72,20 @@ public class ${name.upperCamel}Controller {
     #end
 #end
 
+    // --------------- 导出和导入 -------------------
+    @Operation(summary = "导入")
+    @PostMapping("/${name.lowerCamel}/import")
+    @SaCheckPermission("${name.lowerCamel}:import")
+    public ResponseDTO<String> import${name.upperCamel}(@RequestParam MultipartFile file) {
+        return ${name.lowerCamel}Service.import${name.upperCamel}(file);
+    }
+
+    @Operation(summary = "导出")
+    @GetMapping("/${name.lowerCamel}/export")
+    @SaCheckPermission("${name.lowerCamel}:export")
+    public void export${name.upperCamel}(HttpServletResponse response) throws IOException {
+        List<${name.upperCamel}VO> goodsList = ${name.lowerCamel}Service.getAll${name.upperCamel}();
+        SmartExcelUtil.exportExcel(response,"${basic.description}.xlsx","${basic.description}",${name.upperCamel}VO.class, goodsList);
+    }
 
 }

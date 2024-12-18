@@ -75,6 +75,10 @@ public class CodeGeneratorTemplateService {
         map.put("js/const.js", new ConstVariableService());
         map.put("js/list.vue", new ListVariableService());
         map.put("js/form.vue", new FormVariableService());
+        // 导入导出
+//        map.put("java/domain/form/ImportForm.java", new QueryFormVariableService());
+//        map.put("java/domain/vo/ExcelVO.java", new VOVariableService());
+
     }
 
     public void zipGeneratedFiles(OutputStream outputStream, String tableName, CodeGeneratorConfigEntity codeGeneratorConfigEntity) {

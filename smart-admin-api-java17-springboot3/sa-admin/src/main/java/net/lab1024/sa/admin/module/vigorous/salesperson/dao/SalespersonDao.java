@@ -1,16 +1,16 @@
 package net.lab1024.sa.admin.module.vigorous.salesperson.dao;
 
-import java.util.List;
-import java.util.Set;
-
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.entity.SalespersonEntity;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.form.SalespersonQueryForm;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.vo.SalespersonVO;
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * 业务员 Dao
@@ -48,4 +48,8 @@ public interface SalespersonDao extends BaseMapper<SalespersonEntity> {
     * 获取所有业务员编码
     * */
     Set<String> getAllSalespersonCodes();
+
+    List<Long> getSalespersonIdByName(@Param("salespersonName") String salespersonName);
+
+    String getSalespersonNameById(@Param("salespersonId") Long salespersonId);
 }

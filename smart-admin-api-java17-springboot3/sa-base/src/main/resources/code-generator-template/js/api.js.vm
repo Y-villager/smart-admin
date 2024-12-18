@@ -75,4 +75,14 @@ export const ${name.lowerCamel}Api = {
     #end
 #end
 
+    // 导入
+    import${name.upperCamel} : (file) =>{
+        return postRequest('/${name.lowerCamel}/import',file);
+    },
+
+    // 导出
+    export${name.upperCamel} : () =>{
+        return getDownload('/${name.lowerCamel}/export');
+    }
+
 };

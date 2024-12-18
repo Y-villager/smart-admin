@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.lab1024.sa.admin.module.vigorous.customer.dao.CustomerDao">
+
+    <!-- 查询结果列 -->
+    <sql id="base_columns">
+        v_customer.customer_id,
+        v_customer.customer_name,
+        v_customer.short_name,
+        v_customer.country,
+        v_customer.customer_group,
+        v_customer.customer_category,
+        v_customer.salesperson_id,
+        v_customer.customer_code,
+        v_customer.first_order_id
+    </sql>
+
+    <!-- 分页查询 -->
+    <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerVO">
+        SELECT
+        <include refid="base_columns"/>
+        FROM v_customer
+        <where>
+            <!--顾客名称-->
+            <if test="queryForm.CustomerName != null and queryForm.CustomerName != ''">
+                        AND INSTR(v_customer.customer_name,#{queryForm.CustomerName})
+            </if>
+            <!--简称-->
+            <if test="queryForm.ShortName != null and queryForm.ShortName != ''">
+                        AND INSTR(v_customer.short_name,#{queryForm.ShortName})
+            </if>
+            <!--业务员-->
+            <if test="queryForm.SalespersonId != null and queryForm.SalespersonId != ''">
+                        AND INSTR(v_customer.salesperson_id,#{queryForm.SalespersonId})
+            </if>
+        </where>
+    </select>
+
+    <select id="queryByCustomerCode"
+            resultType="net.lab1024.sa.admin.module.vigorous.customer.domain.entity.CustomerEntity">
+        select
+            <include refid="base_columns"/>
+            from v_customer
+        where
+            customer_code = #{customerCode}
+    </select>
+
+
+</mapper>

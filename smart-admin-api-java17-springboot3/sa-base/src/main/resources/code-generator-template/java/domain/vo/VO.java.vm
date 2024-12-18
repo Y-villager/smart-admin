@@ -1,4 +1,6 @@
-package ${packageName};
+package
+
+${packageName};
 
 #foreach ($importClass in $importPackageList)
 $importClass
@@ -13,6 +15,7 @@ $importClass
  */
 
 @Data
+@Builder
 public class ${name.upperCamel}VO {
 
 #foreach ($field in $fields)

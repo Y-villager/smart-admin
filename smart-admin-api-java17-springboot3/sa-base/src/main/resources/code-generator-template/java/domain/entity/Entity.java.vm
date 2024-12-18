@@ -1,4 +1,6 @@
-package ${basic.javaPackageName}.domain.entity;
+package
+
+${basic.javaPackageName}.domain.entity;
 
 #foreach ($importClass in $importPackageList)
 $importClass

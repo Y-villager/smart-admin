@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.lab1024.sa.admin.module.vigorous.firstorder.dao.FirstOrderDao">
+
+    <!-- 查询结果列 -->
+    <sql id="base_columns">
+        v_first_order.first_order_id,
+        v_first_order.customer_id,
+        v_first_order.salesperson_id,
+        v_first_order.bill_no,
+        v_first_order.order_date
+    </sql>
+
+    <!-- 分页查询 -->
+    <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.firstorder.domain.vo.FirstOrderVO">
+        SELECT
+        <include refid="base_columns"/>
+        FROM v_first_order
+        <where>
+            <!--客户简称-->
+            <if test="queryForm.CustomerId != null and queryForm.CustomerId != ''">
+                        AND INSTR(v_first_order.customer_id,#{queryForm.CustomerId})
+            </if>
+            <!--业务员-->
+            <if test="queryForm.SalespersonId != null and queryForm.SalespersonId != ''">
+                        AND INSTR(v_first_order.salesperson_id,#{queryForm.SalespersonId})
+            </if>
+        </where>
+    </select>
+
+
+</mapper>

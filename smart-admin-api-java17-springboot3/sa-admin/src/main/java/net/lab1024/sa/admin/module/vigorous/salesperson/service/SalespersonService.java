@@ -1,15 +1,8 @@
 package net.lab1024.sa.admin.module.vigorous.salesperson.service;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import com.alibaba.excel.EasyExcel;
-import com.alibaba.fastjson.JSON;
-import net.lab1024.sa.admin.module.business.goods.domain.entity.GoodsEntity;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import jakarta.annotation.Resource;
 import net.lab1024.sa.admin.module.system.department.service.DepartmentService;
 import net.lab1024.sa.admin.module.vigorous.salesperson.dao.SalespersonDao;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.entity.SalespersonEntity;
@@ -19,20 +12,22 @@ import net.lab1024.sa.admin.module.vigorous.salesperson.domain.form.SalespersonQ
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.form.SalespersonUpdateForm;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.vo.SalespersonExcelVO;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.vo.SalespersonVO;
+import net.lab1024.sa.base.common.domain.PageResult;
+import net.lab1024.sa.base.common.domain.ResponseDTO;
 import net.lab1024.sa.base.common.exception.BusinessException;
 import net.lab1024.sa.base.common.util.SmartBeanUtil;
-import net.lab1024.sa.base.common.util.SmartEnumUtil;
 import net.lab1024.sa.base.common.util.SmartPageUtil;
-import net.lab1024.sa.base.common.domain.ResponseDTO;
-import net.lab1024.sa.base.common.domain.PageResult;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.executor.BatchResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import jakarta.annotation.Resource;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static cn.dev33.satoken.SaManager.log;
 
@@ -162,6 +157,7 @@ public class SalespersonService {
             } else {
                 // 如果转换失败，记录失败信息
                 form.setErrorMessage("找不到部门");
+                log.error(form.getSalespersonName()+" ---找不到部门");
                 failedDataList.add(form);
             }
         }
@@ -170,15 +166,7 @@ public class SalespersonService {
 
         // 如果有失败的数据，导出失败记录到 Excel
         if (!failedDataList.isEmpty()) {
-//            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-//            EasyExcel.write(outputStream, SalespersonImportForm.class)
-//                    .sheet("导入失败记录")
-//                    .doWrite(failedDataList);
-//
-//            // 假设保存导出的失败 Excel 文件的路径
-//            String failedFilePath = saveFailedFile(outputStream);
-
-            return ResponseDTO.okMsg("成功导入" + insert.size() + "条，失败记录已保存至：" );
+            return ResponseDTO.okMsg("成功导入" + insert.get(0).getParameterObjects().size() + "条，导入失败记录有："+failedDataList.size()+"条" );
         }
 
         return ResponseDTO.okMsg("成功导入" + insert.size() + "条数据");
@@ -205,7 +193,7 @@ public class SalespersonService {
     }
 
     /**
-     * 商品导出
+     * 导出
      */
     public List<SalespersonExcelVO> getAllSalesperson() {
         List<SalespersonEntity> goodsEntityList = salespersonDao.selectList(null);
@@ -214,7 +202,6 @@ public class SalespersonService {
                         SalespersonExcelVO.builder()
                                 .salespersonCode(e.getSalespersonCode())
                                 .salespersonName(e.getSalespersonName())
-//                                .salespersonLevel()
                                 .department(departmentService.queryDepartmentName(e.getDepartmentId()))
                                 .build()
                 )
@@ -223,4 +210,14 @@ public class SalespersonService {
     }
 
 
+    /*
+    * 根据名称获取业务员id
+    * */
+    public List<Long> getSalespersonIdByName(String salespersonName) {
+        return salespersonDao.getSalespersonIdByName(salespersonName);
+    }
+
+    public String getSalespersonNameById(Long salespersonId) {
+        return salespersonDao.getSalespersonNameById(salespersonId);
+    }
 }

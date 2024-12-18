@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.lab1024.sa.admin.module.vigorous.sales.outbound.dao.SalesOutboundDao">
+
+    <!-- 查询结果列 -->
+    <sql id="base_columns">
+        v_sales_outbound.sales_bound_id,
+        v_sales_outbound.bill_no,
+        v_sales_outbound.sales_bound_date,
+        v_sales_outbound.customer_code,
+        v_sales_outbound.salesperson_code,
+        v_sales_outbound.amount
+    </sql>
+
+    <!-- 分页查询 -->
+    <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO">
+        SELECT
+        <include refid="base_columns"/>
+        FROM v_sales_outbound
+        <where>
+            <!--客户编码-->
+            <if test="queryForm.customerCode != null and queryForm.customerCode != ''">
+                        AND INSTR(v_sales_outbound.customer_code,#{queryForm.customerCode})
+            </if>
+            <!--业务员-->
+            <if test="queryForm.salespersonCode != null and queryForm.salespersonCode != ''">
+                        AND INSTR(v_sales_outbound.salesperson_code,#{queryForm.salespersonCode})
+            </if>
+            <!--出库日期-->
+            <if test="queryForm.salesBoundDate != null">
+                AND v_sales_outbound.sales_bound_date = #{queryForm.salesBoundDate}
+            </if>
+        </where>
+    </select>
+
+
+</mapper>

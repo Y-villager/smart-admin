@@ -11,6 +11,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
+import org.apache.ibatis.executor.BatchResult;
+import static cn.dev33.satoken.SaManager.log;
+
 import jakarta.annotation.Resource;
 
 /**
@@ -106,4 +109,80 @@ public class ${name.upperCamel}Service {
     }
     #end
 #end
+
+    /**
+     * 导入
+     *
+     * @param file 上传文件
+     * @return 结果
+     */
+    public ResponseDTO<String> import${name.upperCamel}(MultipartFile file) {
+        List<${name.upperCamel}AddForm> dataList;
+        List<${name.upperCamel}AddForm> failedDataList = new ArrayList<>();
+        List<${name.upperCamel}Entity> entityList = new ArrayList<>();
+
+        try {
+            dataList = EasyExcel.read(file.getInputStream()).head(${name.upperCamel}AddForm.class)
+                    .sheet()
+                    .doReadSync();
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+            throw new BusinessException("数据格式存在问题，无法读取");
+        }
+
+        if (CollectionUtils.isEmpty(dataList)) {
+            return ResponseDTO.userErrorParam("数据为空");
+        }
+
+        // 将 ${name.upperCamel}AddForm 转换为 ${name.upperCamel}Entity，同时记录失败的数据
+        for (${name.upperCamel}AddForm form : dataList) {
+
+            // 将有效的记录转换为实体
+            ${name.upperCamel}Entity entity = convertToEntity(form);
+            if (entity != null) {
+                entityList.add(entity);
+            } else {
+                // 如果转换失败，记录失败信息
+##                form.setErrorMessage("找不到${basic.description}");
+                failedDataList.add(form);
+            }
+        }
+        // 批量插入有效数据
+        List<BatchResult> insert = ${name.lowerCamel}Dao.insert(entityList);
+
+        // 如果有失败的数据，导出失败记录到 Excel
+##        if (!failedDataList.isEmpty()) {
+##            return ResponseDTO.okMsg("成功导入" + insert.size() + "条，失败记录已保存至：" );
+##        }
+        return ResponseDTO.okMsg("总共"+dataList.size()+"条数据，成功导入" + insert.get(0).getParameterObjects().size() + "条，导入失败记录有："+failedDataList.size()+"条" );
+
+    }
+
+    // 将 ${name.upperCamel}AddForm 转换为 ${name.upperCamel}Entity
+    private ${name.upperCamel}Entity convertToEntity(${name.upperCamel}AddForm form) {
+        ${name.upperCamel}Entity entity = new ${name.upperCamel}Entity();
+
+
+    #foreach($field in ${fields} )
+        entity.set${field.fieldName}(form.get${field.fieldName}());
+    #end
+
+        return entity;
+    }
+
+    /**
+     * 导出
+     * 需要修改
+     */
+    public List<${name.upperCamel}VO> getAll${name.upperCamel}() {
+        List<${name.upperCamel}Entity> goodsEntityList = ${name.lowerCamel}Dao.selectList(null);
+##        return goodsEntityList.stream()
+##                .map(e ->
+##                        ${name.upperCamel}VO.builder()
+##                                .build()
+##                )
+##                .collect(Collectors.toList());
+        return null;
+
+    }
 }

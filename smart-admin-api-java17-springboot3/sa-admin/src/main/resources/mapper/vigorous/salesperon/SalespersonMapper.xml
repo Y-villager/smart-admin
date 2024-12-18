@@ -57,4 +57,16 @@
         from v_salesperson
     </select>
 
+    <select id="getSalespersonIdByName" resultType="java.lang.Long">
+        select v_salesperson.id
+        from v_salesperson
+        where salesperson_name = #{salespersonName}
+    </select>
+
+    <select id="getSalespersonNameById" resultType="java.lang.String">
+        select salesperson_name
+        from v_salesperson
+        where v_salesperson.id = #{salespersonId}
+    </select>
+
 </mapper>
