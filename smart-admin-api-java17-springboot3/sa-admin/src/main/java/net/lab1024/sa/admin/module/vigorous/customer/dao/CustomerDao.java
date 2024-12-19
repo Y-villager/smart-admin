@@ -36,4 +36,8 @@ public interface CustomerDao extends BaseMapper<CustomerEntity> {
     * 根据客户编码查询客户
     * */
     List<CustomerEntity> queryByCustomerCode(@Param("customerCode") String customerCode);
+
+    List<Long> queryByCustomerName(@Param("customerName") String customerName);
+
+    String getCustomerNameById(@Param("customerId") Long customerId);
 }

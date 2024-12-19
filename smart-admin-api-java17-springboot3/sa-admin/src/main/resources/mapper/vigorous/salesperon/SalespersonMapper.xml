@@ -60,7 +60,7 @@
     <select id="getSalespersonIdByName" resultType="java.lang.Long">
         select v_salesperson.id
         from v_salesperson
-        where salesperson_name = #{salespersonName}
+        where INSTR(v_salesperson.salesperson_name,#{salespersonName})
     </select>
 
     <select id="getSalespersonNameById" resultType="java.lang.String">

@@ -24,11 +24,11 @@
         <a-form-item label="出库日期"  name="salesBoundDate">
           <a-date-picker valueFormat="YYYY-MM-DD" v-model:value="form.salesBoundDate" style="width: 100%" placeholder="出库日期"/>
         </a-form-item>
-        <a-form-item label="客户编码"  name="customerCode">
-          <a-input style="width: 100%" v-model:value="form.customerCode" placeholder="客户编码" />
+        <a-form-item label="客户编号"  name="customerId">
+          <a-input style="width: 100%" v-model:value="form.customerId" placeholder="客户编号" />
         </a-form-item>
-        <a-form-item label="业务员编码"  name="salespersonCode">
-          <a-input style="width: 100%" v-model:value="form.salespersonCode" placeholder="业务员编码" />
+        <a-form-item label="业务员编号"  name="salespersonId">
+          <a-input style="width: 100%" v-model:value="form.salespersonId" placeholder="业务员编号" />
         </a-form-item>
     </a-form>
 
@@ -85,8 +85,8 @@
       salesBoundId: undefined, //主键
       billNo: undefined, //单据编号
       salesBoundDate: undefined, //出库日期
-      customerCode: undefined, //客户编码
-      salespersonCode: undefined, //业务员编码
+      customerId: undefined, //客户编号
+      salespersonId: undefined, //业务员编号
   };
 
   let form = reactive({ ...formDefault });
@@ -95,8 +95,8 @@
       salesBoundId: [{ required: true, message: '主键 必填' }],
       billNo: [{ required: true, message: '单据编号 必填' }],
       salesBoundDate: [{ required: true, message: '出库日期 必填' }],
-      customerCode: [{ required: true, message: '客户编码 必填' }],
-      salespersonCode: [{ required: true, message: '业务员编码 必填' }],
+      customerId: [{ required: true, message: '客户编号 必填' }],
+      salespersonId: [{ required: true, message: '业务员编号 必填' }],
   };
 
   // 点击确定，验证表单

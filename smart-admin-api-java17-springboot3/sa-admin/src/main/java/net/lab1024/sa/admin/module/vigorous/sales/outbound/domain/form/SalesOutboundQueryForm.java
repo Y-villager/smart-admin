@@ -1,10 +1,11 @@
 package net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form;
 
-import net.lab1024.sa.base.common.domain.PageParam;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.time.LocalDate;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import net.lab1024.sa.base.common.domain.PageParam;
+
+import java.time.LocalDate;
 
 /**
  * 销售出库 分页查询表单
@@ -18,11 +19,15 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 public class SalesOutboundQueryForm extends PageParam {
 
-    @Schema(description = "客户编码")
-    private String customerCode;
+    @Schema(description = "客户名称")
+    private String customerName;
 
-    @Schema(description = "业务员")
-    private String salespersonCode;
+    private Long customerId;
+
+    @Schema(description = "业务员名称")
+    private String salespersonName;
+
+    private Long salespersonId;
 
     @Schema(description = "出库日期")
     private LocalDate salesBoundDate;

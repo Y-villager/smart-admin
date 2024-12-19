@@ -38,12 +38,12 @@ public class SalesOutboundEntity {
     /**
      * 客户编码
      */
-    private String customerCode;
+    private Long customerId;
 
     /**
      * 业务员编码
      */
-    private String salespersonCode;
+    private Long salespersonId;
 
     /**
      * 金额

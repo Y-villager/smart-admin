@@ -217,6 +217,16 @@ public class SalespersonService {
         return salespersonDao.getSalespersonIdByName(salespersonName);
     }
 
+    public Long getIdBySalespersonName(String salespersonName) {
+        List<Long> names = salespersonDao.getSalespersonIdByName(salespersonName);
+        if (names==null || names.size()!=1) {
+            return -1L;
+        }
+        return names.get(0);
+    }
+
+
+
     public String getSalespersonNameById(Long salespersonId) {
         return salespersonDao.getSalespersonNameById(salespersonId);
     }

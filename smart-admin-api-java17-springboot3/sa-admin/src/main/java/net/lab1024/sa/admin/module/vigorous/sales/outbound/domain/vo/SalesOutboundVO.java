@@ -1,15 +1,12 @@
 package net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
-
-import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import lombok.Data;
 
 /**
  * 销售出库 列表VO
@@ -20,7 +17,8 @@ import lombok.Data;
  */
 
 @Data
-@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class SalesOutboundVO {
 
 
@@ -34,10 +32,16 @@ public class SalesOutboundVO {
     private LocalDate salesBoundDate;
 
     @Schema(description = "客户编码")
-    private String customerCode;
+    private Long customerId;
 
-    @Schema(description = "业务员编码")
-    private String salespersonCode;
+    @Schema(description = "客户名称")
+    private String customerName;
+
+    @Schema(description = "业务员编号")
+    private Long salespersonId;
+
+    @Schema(description = "销售员")
+    private String salespersonName;
 
     @Schema(description = "金额")
     private BigDecimal amount;

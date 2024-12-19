@@ -45,5 +45,18 @@
             customer_code = #{customerCode}
     </select>
 
+    <select id="queryByCustomerName" resultType="java.lang.Long">
+        select customer_id
+        from v_customer
+        where
+            INSTR(v_customer.customer_name,#{customerName})
+    </select>
+
+    <select id="getCustomerNameById" resultType="java.lang.String">
+        select customer_name
+        from v_customer
+        where customer_id = #{customerId}
+    </select>
+
 
 </mapper>

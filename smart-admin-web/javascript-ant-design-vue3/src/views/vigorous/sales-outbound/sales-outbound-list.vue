@@ -10,10 +10,10 @@
     <a-form class="smart-query-form">
         <a-row class="smart-query-form-row">
             <a-form-item label="客户编码" class="smart-query-form-item">
-                <a-input style="width: 200px" v-model:value="queryForm.customerCode" placeholder="客户编码" />
+                <a-input style="width: 200px" v-model:value="queryForm.customerName" placeholder="客户编码" />
             </a-form-item>
             <a-form-item label="业务员" class="smart-query-form-item">
-                <a-input style="width: 200px" v-model:value="queryForm.salespersonCode" placeholder="业务员" />
+                <a-input style="width: 200px" v-model:value="queryForm.salespersonName" placeholder="业务员" />
             </a-form-item>
             <a-form-item label="出库日期" class="smart-query-form-item">
                 <a-date-picker valueFormat="YYYY-MM-DD" v-model:value="queryForm.salesBoundDate" style="width: 200px" />
@@ -189,13 +189,13 @@
             ellipsis: true,
         },
         {
-            title: '客户编码',
-            dataIndex: 'customerCode',
+            title: '客户',
+            dataIndex: 'customerName',
             ellipsis: true,
         },
         {
-            title: '业务员编码',
-            dataIndex: 'salespersonCode',
+            title: '业务员',
+            dataIndex: 'salespersonName',
             ellipsis: true,
         },
         {
@@ -214,8 +214,8 @@
     // ---------------------------- 查询数据表单和方法 ----------------------------
 
     const queryFormState = {
-        customerCode: undefined, //客户编码
-        salespersonCode: undefined, //业务员
+        customerName: undefined, //客户编码
+        salespersonName: undefined, //业务员
         salesBoundDate: undefined, //出库日期
         pageNum: 1,
         pageSize: 10,

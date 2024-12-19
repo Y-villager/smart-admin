@@ -250,4 +250,26 @@ public class CustomerService {
         return file;
     }
 
+    /*
+    * 根据客户名
+    * */
+    public List<Long> queryByCustomerName(String customerName) {
+        return customerDao.queryByCustomerName(customerName);
+    }
+
+    public Long getCustomerIdByCustomerName(String customerName) {
+        List<Long> names = customerDao.queryByCustomerName(customerName);
+        if (names == null || names.size() != 1) {
+            return -1L;
+        }
+        return names.get(0);
+
+    }
+
+    /*
+    * 根据id查询客户名称
+    * */
+    public String getCustomerNameById(Long customerId) {
+        return customerDao.getCustomerNameById(customerId);
+    }
 }

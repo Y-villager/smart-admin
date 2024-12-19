@@ -7,8 +7,8 @@
         v_sales_outbound.sales_bound_id,
         v_sales_outbound.bill_no,
         v_sales_outbound.sales_bound_date,
-        v_sales_outbound.customer_code,
-        v_sales_outbound.salesperson_code,
+        v_sales_outbound.customer_id,
+        v_sales_outbound.salesperson_id,
         v_sales_outbound.amount
     </sql>
 
@@ -19,18 +19,25 @@
         FROM v_sales_outbound
         <where>
             <!--客户编码-->
-            <if test="queryForm.customerCode != null and queryForm.customerCode != ''">
-                        AND INSTR(v_sales_outbound.customer_code,#{queryForm.customerCode})
+            <if test="queryForm.customerId != null">
+                        AND INSTR(v_sales_outbound.customer_id,#{queryForm.customerId})
             </if>
             <!--业务员-->
-            <if test="queryForm.salespersonCode != null and queryForm.salespersonCode != ''">
-                        AND INSTR(v_sales_outbound.salesperson_code,#{queryForm.salespersonCode})
+            <if test="queryForm.salespersonId != null">
+                        AND INSTR(v_sales_outbound.salesperson_id,#{queryForm.salespersonId})
             </if>
             <!--出库日期-->
             <if test="queryForm.salesBoundDate != null">
                 AND v_sales_outbound.sales_bound_date = #{queryForm.salesBoundDate}
             </if>
         </where>
+    </select>
+
+    <select id="queryByBillNo"
+            resultType="net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.entity.SalesOutboundEntity">
+        select <include refid="base_columns"/>
+        from v_sales_outbound
+        where bill_no = #{billNo}
     </select>
 
 
