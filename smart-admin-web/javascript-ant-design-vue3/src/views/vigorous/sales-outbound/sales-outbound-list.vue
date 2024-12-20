@@ -174,11 +174,6 @@
 
     const columns = ref([
         {
-            title: '主键',
-            dataIndex: 'salesBoundId',
-            ellipsis: true,
-        },
-        {
             title: '单据编号',
             dataIndex: 'billNo',
             ellipsis: true,
@@ -203,6 +198,17 @@
             dataIndex: 'amount',
             ellipsis: true,
         },
+
+      {
+        title: '创建时间',
+        dataIndex: 'createTime',
+        ellipsis: true,
+      },
+      {
+        title: '更新时间',
+        dataIndex: 'updateTime',
+        ellipsis: true,
+      },
         {
             title: '操作',
             dataIndex: 'action',

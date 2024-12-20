@@ -9,7 +9,9 @@
         v_sales_outbound.sales_bound_date,
         v_sales_outbound.customer_id,
         v_sales_outbound.salesperson_id,
-        v_sales_outbound.amount
+        v_sales_outbound.amount,
+        v_sales_outbound.create_time,
+        v_sales_outbound.update_time
     </sql>
 
     <!-- 分页查询 -->

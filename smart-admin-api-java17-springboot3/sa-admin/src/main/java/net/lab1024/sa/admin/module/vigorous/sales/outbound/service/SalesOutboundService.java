@@ -60,10 +60,10 @@ public class SalesOutboundService {
     public PageResult<SalesOutboundVO> queryPage(SalesOutboundQueryForm queryForm) {
         Page<?> page = SmartPageUtil.convert2PageQuery(queryForm);
 
-        if (queryForm.getCustomerName() != null){
+        if (queryForm.getCustomerName() != null && !queryForm.getCustomerName().isEmpty()) {
             queryForm.setCustomerId(customerService.getCustomerIdByCustomerName(queryForm.getCustomerName()));
         }
-        if (queryForm.getSalespersonName() != null){
+        if (queryForm.getSalespersonName() != null && !queryForm.getSalespersonName().isEmpty()) {
             queryForm.setSalespersonId(salespersonService.getIdBySalespersonName(queryForm.getSalespersonName()));
         }
         List<SalesOutboundVO> list = salesOutboundDao.queryPage(page, queryForm);
