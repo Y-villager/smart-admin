@@ -5,7 +5,7 @@
  * @Date:      2024-12-12 14:48:19
  * @Copyright  (c)2024 yxz
  */
-import { postRequest, getRequest } from '/src/lib/axios';
+import {postRequest, getRequest, getDownload} from '/src/lib/axios';
 
 export const salesOutboundApi = {
 

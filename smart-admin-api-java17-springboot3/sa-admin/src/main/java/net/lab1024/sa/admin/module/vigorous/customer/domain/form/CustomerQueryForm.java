@@ -17,13 +17,18 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 public class CustomerQueryForm extends PageParam {
 
-    @Schema(description = "顾客名称")
-    private String CustomerName;
+    @Schema(description = "客户名称")
+    private String customerName;
+
+    private Long customerId;
 
     @Schema(description = "简称")
-    private String ShortName;
+    private String shortName;
 
     @Schema(description = "业务员")
-    private String SalespersonId;
+    private String salespersonName;
+
+    private Long salespersonId;
+
 
 }

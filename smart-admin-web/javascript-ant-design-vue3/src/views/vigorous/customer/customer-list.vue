@@ -10,10 +10,10 @@
     <a-form class="smart-query-form">
         <a-row class="smart-query-form-row">
             <a-form-item label="顾客名称" class="smart-query-form-item">
-                <a-input style="width: 200px" v-model:value="queryForm.CustomerName" placeholder="顾客名称" />
+                <a-input style="width: 200px" v-model:value="queryForm.customerName" placeholder="顾客名称" />
             </a-form-item>
             <a-form-item label="简称" class="smart-query-form-item">
-                <a-input style="width: 200px" v-model:value="queryForm.ShortName" placeholder="简称" />
+                <a-input style="width: 200px" v-model:value="queryForm.shortName" placeholder="简称" />
             </a-form-item>
             <a-form-item label="业务员" class="smart-query-form-item">
                 <a-input style="width: 200px" v-model:value="queryForm.SalespersonId" placeholder="业务员" />
@@ -225,9 +225,9 @@
     // ---------------------------- 查询数据表单和方法 ----------------------------
 
     const queryFormState = {
-        CustomerName: undefined, //顾客名称
-        ShortName: undefined, //简称
-        SalespersonId: undefined, //业务员
+        customerName: undefined, //顾客名称
+        shortName: undefined, //简称
+        salespersonName: undefined, //业务员
         pageNum: 1,
         pageSize: 10,
     };

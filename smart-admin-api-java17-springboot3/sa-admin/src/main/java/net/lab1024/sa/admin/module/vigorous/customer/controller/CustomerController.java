@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.form.CustomerAddForm;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.form.CustomerQueryForm;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.form.CustomerUpdateForm;
@@ -30,6 +31,7 @@ import java.util.List;
  * @Copyright (c)2024 yxz
  */
 
+@Slf4j
 @RestController
 @Tag(name = "顾客")
 public class CustomerController {
@@ -84,8 +86,9 @@ public class CustomerController {
     @GetMapping("/customer/export")
     @SaCheckPermission("customer:export")
     public void exportCustomer(HttpServletResponse response) throws IOException {
-        List<CustomerExcelVO> goodsList = customerService.getAllCustomer();
+        List<CustomerExcelVO> goodsList = customerService.exportCustomers();
         SmartExcelUtil.exportExcel(response,"顾客.xlsx","顾客",CustomerExcelVO.class, goodsList);
     }
+
 
 }

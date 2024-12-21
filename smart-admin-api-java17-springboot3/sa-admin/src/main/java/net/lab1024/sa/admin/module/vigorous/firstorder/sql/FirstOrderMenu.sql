@@ -3,7 +3,7 @@
 # 如果你一切都是按照默认，那么下面的 SQL 基本不用改
 
 INSERT INTO t_menu ( menu_name, menu_type, parent_id, path, component, frame_flag, cache_flag, visible_flag, disabled_flag, perms_type, create_user_id )
-VALUES ( '客户首单信息', 2, 0, '/first-order/list', '/business/first-order/first-order-list.vue', false, false, true, false, 1, 1 );
+VALUES ( '客户首单信息', 2, 0, '/first-order/list', '/vigorous/first-order/first-order-list.vue', false, false, true, false, 1, 1 );
 
 # 按菜单名称查询该菜单的 menu_id 作为按钮权限的 父菜单ID 与 功能点关联菜单ID
 SET @parent_id = NULL;

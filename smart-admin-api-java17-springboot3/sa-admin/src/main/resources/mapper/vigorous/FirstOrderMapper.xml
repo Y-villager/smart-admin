@@ -8,7 +8,10 @@
         v_first_order.customer_id,
         v_first_order.salesperson_id,
         v_first_order.bill_no,
-        v_first_order.order_date
+        v_first_order.order_date,
+        v_first_order.amount,
+        v_first_order.create_time,
+        v_first_order.update_time
     </sql>
 
     <!-- 分页查询 -->
@@ -17,13 +20,13 @@
         <include refid="base_columns"/>
         FROM v_first_order
         <where>
-            <!--客户简称-->
-            <if test="queryForm.CustomerId != null and queryForm.CustomerId != ''">
-                        AND INSTR(v_first_order.customer_id,#{queryForm.CustomerId})
+            <!--客户名称-->
+            <if test="queryForm.customerId != null and queryForm.customerId != ''">
+                        AND INSTR(v_first_order.customer_id,#{queryForm.customerId})
             </if>
             <!--业务员-->
-            <if test="queryForm.SalespersonId != null and queryForm.SalespersonId != ''">
-                        AND INSTR(v_first_order.salesperson_id,#{queryForm.SalespersonId})
+            <if test="queryForm.salespersonId != null and queryForm.salespersonId != ''">
+                        AND INSTR(v_first_order.salesperson_id,#{queryForm.salespersonId})
             </if>
         </where>
     </select>

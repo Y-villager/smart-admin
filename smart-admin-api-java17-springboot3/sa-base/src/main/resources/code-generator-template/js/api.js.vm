@@ -5,7 +5,7 @@
  * @Date:      ${basic.frontDate}
  * @Copyright  ${basic.copyright}
  */
-import { postRequest, getRequest } from '/@/lib/axios';
+import { postRequest, getRequest, getDownload } from '/@/lib/axios';
 
 export const ${name.lowerCamel}Api = {
 

@@ -5,7 +5,7 @@
  * @Date:      2024-12-12 14:50:26
  * @Copyright  (c)2024 yxz
  */
-import { postRequest, getRequest } from '/@/lib/axios';
+import {postRequest, getRequest, getDownload} from '/@/lib/axios';
 
 export const firstOrderApi = {
 
@@ -53,6 +53,10 @@ export const firstOrderApi = {
     // 导出
     exportFirstOrder : () =>{
         return getDownload('/firstOrder/export');
-    }
+    },
 
+    // 初始化
+    initFirstOrder() {
+        return postRequest('/firstOrder/init')
+    }
 };

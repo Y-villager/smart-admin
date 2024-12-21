@@ -1,6 +1,7 @@
 package net.lab1024.sa.admin.module.vigorous.customer.service;
 
 import com.alibaba.excel.EasyExcel;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
 import net.lab1024.sa.admin.module.system.login.service.LoginService;
@@ -12,6 +13,8 @@ import net.lab1024.sa.admin.module.vigorous.customer.domain.form.CustomerQueryFo
 import net.lab1024.sa.admin.module.vigorous.customer.domain.form.CustomerUpdateForm;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerExcelVO;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerVO;
+import net.lab1024.sa.admin.module.vigorous.firstorder.domain.entity.FirstOrderEntity;
+import net.lab1024.sa.admin.module.vigorous.firstorder.domain.result.InsertResult;
 import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
@@ -21,8 +24,12 @@ import net.lab1024.sa.base.common.util.SmartPageUtil;
 import net.lab1024.sa.base.common.util.SmartRequestUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.executor.BatchResult;
+import org.apache.ibatis.session.ExecutorType;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -51,6 +58,9 @@ public class CustomerService {
     @Autowired
     private LoginService loginService;
 
+    @Autowired
+    private SqlSessionFactory sqlSessionFactory;
+
     /**
      * 分页查询
      *
@@ -59,10 +69,11 @@ public class CustomerService {
      */
     public PageResult<CustomerVO> queryPage(CustomerQueryForm queryForm) {
         Page<?> page = SmartPageUtil.convert2PageQuery(queryForm);
+        List<Long> ids = customerDao.getCustomerIdByCustomerName(queryForm.getCustomerName());
+        if (ids.size() == 1){
+            queryForm.setCustomerId(ids.get(0));
+        }
         List<CustomerVO> list = customerDao.queryPage(page, queryForm);
-        list.forEach(e -> {
-            e.setSalespersonName(salespersonService.getSalespersonNameById(e.getSalespersonId()));
-        });
         PageResult<CustomerVO> pageResult = SmartPageUtil.convert2PageResult(page, list);
         return pageResult;
     }
@@ -198,7 +209,7 @@ public class CustomerService {
      * 导出
      * 需要修改
      */
-    public List<CustomerExcelVO> getAllCustomer() {
+    public List<CustomerExcelVO> exportCustomers() {
         List<CustomerEntity> entityList = customerDao.selectList(null);
         return entityList.stream()
                 .map(e ->
@@ -254,11 +265,12 @@ public class CustomerService {
     * 根据客户名
     * */
     public List<Long> queryByCustomerName(String customerName) {
-        return customerDao.queryByCustomerName(customerName);
+        return customerDao.getCustomerIdByCustomerName(customerName);
     }
 
     public Long getCustomerIdByCustomerName(String customerName) {
-        List<Long> names = customerDao.queryByCustomerName(customerName);
+        if (customerName==null)return null;
+        List<Long> names = customerDao.getCustomerIdByCustomerName(customerName);
         if (names == null || names.size() != 1) {
             return -1L;
         }
@@ -271,5 +283,74 @@ public class CustomerService {
     * */
     public String getCustomerNameById(Long customerId) {
         return customerDao.getCustomerNameById(customerId);
+    }
+
+    /**
+     * 查询所有顾客信息
+     * @return
+     */
+    public List<CustomerEntity> selectAll() {
+        LambdaQueryWrapper<CustomerEntity> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.isNull(CustomerEntity::getCustomerId);
+        return customerDao.selectList(queryWrapper);
+    }
+
+
+    /**
+     * 查询首单id为null
+     * @return
+     */
+    public List<CustomerVO> getCustomerOfFONull() {
+        return customerDao.getCustomerOfFONull();
+    }
+
+
+    @Transactional
+    public InsertResult updateFirstOrderIds(List<Long> customerIdToUpdate, List<FirstOrderEntity> insertedFirstOrderIds) {
+        if (customerIdToUpdate != null && insertedFirstOrderIds != null && customerIdToUpdate.size() == insertedFirstOrderIds.size()) {
+            int batchSize = 500; // 每批处理 500 条
+            SqlSession sqlSession = null;
+
+            try {
+                // 使用 ExecutorType.BATCH 提高批量执行性能
+                sqlSession = sqlSessionFactory.openSession(ExecutorType.BATCH, false);
+                CustomerDao batchCustomerDao = sqlSession.getMapper(CustomerDao.class);
+
+                // 分批次执行
+                for (int i = 0; i < customerIdToUpdate.size(); i += batchSize) {
+                    int end = Math.min(i + batchSize, customerIdToUpdate.size());
+//                    List<Long> subCustomerIdToUpdate = customerIdToUpdate.subList(i, end);
+                    List<FirstOrderEntity> subInsertedFirstOrderIds = insertedFirstOrderIds.subList(i, end);
+
+                    // 执行每批次的更新操作
+                    batchCustomerDao.updateFirstOrderIdsBatch(subInsertedFirstOrderIds);
+                }
+
+                // 提交批量操作
+                sqlSession.commit();
+
+                // 返回操作结果
+                return new InsertResult(true, "批量更新成功");
+
+            } catch (Exception e) {
+                // 发生异常时回滚事务
+                if (sqlSession != null) {
+                    sqlSession.rollback();
+                }
+                // 记录异常并抛出
+                return new InsertResult(false, "批量更新失败: " + e.getMessage());
+
+            } finally {
+                // 关闭 sqlSession
+                if (sqlSession != null) {
+                    sqlSession.close();
+                }
+            }
+        }
+        return new InsertResult(false, "输入参数错误");
+    }
+
+    public CustomerEntity queryById(Long customerId) {
+        return customerDao.selectById(customerId);
     }
 }

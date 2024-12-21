@@ -31,7 +31,7 @@
           <a-input style="width: 100%" v-model:value="form.customerCategory" placeholder="客户类别" />
         </a-form-item>
         <a-form-item label="业务员编码"  name="salespersonId">
-          <a-input style="width: 100%" v-model:value="form.salespersonId" placeholder="业务员编码" />
+          <div></div>
         </a-form-item>
         <a-form-item label="客户编码"  name="customerCode">
           <a-input style="width: 100%" v-model:value="form.customerCode" placeholder="客户编码" />
@@ -53,6 +53,9 @@
   import { SmartLoading } from '/@/components/framework/smart-loading';
   import { customerApi } from '/@/api/vigorous/customer-api';
   import { smartSentry } from '/@/lib/smart-sentry';
+  // ------------------------ 数据 ------------------------
+  const salespersons = []
+  const loading = ref(false)
 
   // ------------------------ 事件 ------------------------
 

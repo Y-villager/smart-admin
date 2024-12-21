@@ -34,4 +34,6 @@ public interface SalesOutboundDao extends BaseMapper<SalesOutboundEntity> {
 
 
     SalesOutboundEntity queryByBillNo(@Param("billNo") String billNo);
+
+    SalesOutboundVO queryFirstOrderOfCustomer(@Param("customerId") Long customerId);
 }

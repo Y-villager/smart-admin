@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.lab1024.sa.admin.module.vigorous.customer.dao.CustomerDao">
+
+    <!-- 查询结果列 -->
+    <sql id="base_columns">
+        v_customer.customer_id,
+        v_customer.customer_name,
+        v_customer.short_name,
+        v_customer.country,
+        v_customer.customer_group,
+        v_customer.customer_category,
+        v_customer.salesperson_id,
+        v_customer.customer_code,
+        v_customer.first_order_id
+    </sql>
+
+    <resultMap id="customerResultMap" type="net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerVO">
+        <id property="customerId" column="customer_id"/>
+        <result property="customerName" column="customer_name"/>
+        <result property="shortName" column="short_name"/>
+        <result property="country" column="country"/>
+        <result property="customerCategory" column="customer_category"/>
+        <result property="customerGroup" column="customer_group"/>
+        <association property="firstOrder" javaType="net.lab1024.sa.admin.module.vigorous.firstorder.domain.entity.FirstOrderEntity"/>
+<!--            <id property="firstOrderId" column="first_order_id"/>-->
+<!--            <result property="orderDate" column="order_date"/>-->
+<!--            <result property="billNo" column="bill_no"/>-->
+<!--            <result property="salespersonId" column="salesperson_id"/>-->
+<!--            <result property="customerId" column="customerId"/>-->
+<!--        </association>-->
+
+    </resultMap>
+
+    <!-- 分页查询 -->
+    <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerVO">
+        SELECT
+        <include refid="base_columns"/>
+        FROM v_customer
+        <where>
+            <!--顾客名称-->
+            <if test="queryForm.customerName != null and queryForm.customerName != ''">
+                        AND INSTR(v_customer.customer_name,#{queryForm.customerName})
+            </if>
+            <!--简称-->
+            <if test="queryForm.shortName != null and queryForm.shortName != ''">
+                        AND INSTR(v_customer.short_name,#{queryForm.shortName})
+            </if>
+            <!--业务员-->
+            <if test="queryForm.salespersonId != null and queryForm.salespersonId != ''">
+                        AND INSTR(v_customer.salesperson_id,#{queryForm.salespersonId})
+            </if>
+        </where>
+    </select>
+
+    <select id="queryByCustomerCode"
+            resultType="net.lab1024.sa.admin.module.vigorous.customer.domain.entity.CustomerEntity">
+        select
+            <include refid="base_columns"/>
+            from v_customer
+        where
+            customer_code = #{customerCode}
+    </select>
+
+    <select id="getCustomerIdByCustomerName" resultType="java.lang.Long">
+        select customer_id
+        from v_customer
+        where
+            INSTR(v_customer.customer_name,#{customerName})
+    </select>
+
+    <select id="getCustomerNameById" resultType="java.lang.String">
+        select customer_name
+        from v_customer
+        where customer_id = #{customerId}
+    </select>
+
+    <select id="getCustomerOfFONull"
+            resultType="net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerVO">
+        SELECT
+        <include refid="base_columns"/>,
+        s.salesperson_name
+        FROM
+        v_customer
+        LEFT JOIN v_salesperson s ON v_customer.salesperson_id = s.id
+        WHERE
+        v_customer.first_order_id IS NULL
+    </select>
+
+    <update id="updateFirstOrderIdsBatch">
+        <foreach collection="list" item="item" index="index" separator=";">
+            update v_customer
+            <set>
+                first_order_id = (select fo.first_order_id from v_first_order fo where fo.customer_id=#{item.customerId})
+            </set>
+            where customer_id = #{item.customerId}
+        </foreach>
+    </update>
+
+
+
+</mapper>

@@ -218,6 +218,7 @@ public class SalespersonService {
     }
 
     public Long getIdBySalespersonName(String salespersonName) {
+        if (salespersonName == null) {return null;}
         List<Long> names = salespersonDao.getSalespersonIdByName(salespersonName);
         if (names==null || names.size()!=1) {
             return -1L;
@@ -229,5 +230,10 @@ public class SalespersonService {
 
     public String getSalespersonNameById(Long salespersonId) {
         return salespersonDao.getSalespersonNameById(salespersonId);
+    }
+
+
+    public SalespersonEntity queryById(Long salespersonId) {
+        return salespersonDao.selectById(salespersonId);
     }
 }

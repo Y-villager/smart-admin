@@ -1,7 +1,11 @@
 package net.lab1024.sa.admin.module.vigorous.customer.domain.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import net.lab1024.sa.admin.module.vigorous.firstorder.domain.entity.FirstOrderEntity;
+import net.lab1024.sa.admin.module.vigorous.salesperson.domain.entity.SalespersonEntity;
 
 /**
  * 顾客 列表VO
@@ -11,6 +15,8 @@ import lombok.Data;
  * @Copyright (c)2024 yxz
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class CustomerVO {
 
 
@@ -32,16 +38,13 @@ public class CustomerVO {
     @Schema(description = "客户类别")
     private String customerCategory;
 
-    @Schema(description = "业务员编码")
-    private Long salespersonId;
-
     @Schema(description = "业务员")
-    private String salespersonName;
+    private SalespersonEntity salesperson;
 
     @Schema(description = "客户编码")
     private String customerCode;
 
     @Schema(description = "首单信息编号")
-    private Long firstOrderId;
+    private FirstOrderEntity firstOrder;
 
 }

@@ -175,13 +175,13 @@ public class ${name.upperCamel}Service {
      * 需要修改
      */
     public List<${name.upperCamel}VO> getAll${name.upperCamel}() {
-        List<${name.upperCamel}Entity> goodsEntityList = ${name.lowerCamel}Dao.selectList(null);
-##        return goodsEntityList.stream()
-##                .map(e ->
-##                        ${name.upperCamel}VO.builder()
-##                                .build()
-##                )
-##                .collect(Collectors.toList());
+        List<${name.upperCamel}Entity> entityList = ${name.lowerCamel}Dao.selectList(null);
+//        return entityList.stream()
+//                .map(e ->
+//                        ${name.upperCamel}VO.builder()
+//                                .build()
+//                )
+//                .collect(Collectors.toList());
         return null;
 
     }

@@ -9,11 +9,11 @@
     <!---------- 查询表单form begin ----------->
     <a-form class="smart-query-form">
         <a-row class="smart-query-form-row">
-            <a-form-item label="客户简称" class="smart-query-form-item">
-                <a-input style="width: 200px" v-model:value="queryForm.CustomerId" placeholder="客户简称" />
+            <a-form-item label="客户名称" class="smart-query-form-item">
+                <a-input style="width: 200px" v-model:value="queryForm.customerName" placeholder="客户名称" />
             </a-form-item>
             <a-form-item label="业务员" class="smart-query-form-item">
-                <a-input style="width: 200px" v-model:value="queryForm.SalespersonId" placeholder="业务员" />
+                <a-input style="width: 200px" v-model:value="queryForm.salespersonName" placeholder="业务员" />
             </a-form-item>
             <a-form-item class="smart-query-form-item">
                 <a-button type="primary" @click="onSearch">
@@ -37,23 +37,23 @@
         <!---------- 表格操作行 begin ----------->
         <a-row class="smart-table-btn-block">
             <div class="smart-table-operate-block">
-                <a-button @click="showForm" type="primary">
-                    <template #icon>
-                        <PlusOutlined />
-                    </template>
-                    新建
-                </a-button>
-                <a-button @click="confirmBatchDelete" type="primary" danger :disabled="selectedRowKeyList.length == 0">
-                    <template #icon>
-                        <DeleteOutlined />
-                    </template>
-                    批量删除
-                </a-button>
-              <a-button @click="showImportModal" type="primary" v-privilege="'firstOrder:importFirstOrder'">
+<!--                <a-button @click="showForm" type="primary">-->
+<!--                    <template #icon>-->
+<!--                        <PlusOutlined />-->
+<!--                    </template>-->
+<!--                    新建-->
+<!--                </a-button>-->
+<!--                <a-button @click="confirmBatchDelete" type="primary" danger :disabled="selectedRowKeyList.length == 0">-->
+<!--                    <template #icon>-->
+<!--                        <DeleteOutlined />-->
+<!--                    </template>-->
+<!--                    批量删除-->
+<!--                </a-button>-->
+              <a-button @click="initFirstOrder" type="primary" v-privilege="'firstOrder:importFirstOrder'" :disabled="initDisabled">
                 <template #icon>
                   <ImportOutlined />
                 </template>
-                导入
+                初始化首单信息
               </a-button>
 
               <a-button @click="onExportFirstOrder" type="primary" v-privilege="'firstOrder:exportFirstOrder'">
@@ -80,7 +80,7 @@
             :pagination="false"
             :row-selection="{ selectedRowKeys: selectedRowKeyList, onChange: onSelectChange }"
         >
-            <template #bodyCell="{ text, record, column }">
+<!--            <template #bodyCell="{ text, record, column }">-->
 
 	    <!-- 有图片预览时 注释解开并把下面的'picture'修改成自己的图片字段名即可 -->
               <!-- <template v-if="column.dataIndex === 'picture'">
@@ -95,13 +95,13 @@
                 </a-tag>
               </template> -->
 
-                <template v-if="column.dataIndex === 'action'">
-                    <div class="smart-table-operate">
-                        <a-button @click="showForm(record)" type="link">编辑</a-button>
-                        <a-button @click="onDelete(record)" danger type="link">删除</a-button>
-                    </div>
-                </template>
-            </template>
+<!--                <template v-if="column.dataIndex === 'action'">-->
+<!--                    <div class="smart-table-operate">-->
+<!--                        <a-button @click="showForm(record)" type="link">编辑</a-button>-->
+<!--                        <a-button @click="onDelete(record)" danger type="link">删除</a-button>-->
+<!--                    </div>-->
+<!--                </template>-->
+<!--            </template>-->
         </a-table>
         <!---------- 表格 end ----------->
 
@@ -171,11 +171,6 @@
 
     const columns = ref([
         {
-            title: '首单信息编号',
-            dataIndex: 'firstOrderId',
-            ellipsis: true,
-        },
-        {
             title: '客户编码',
             dataIndex: 'customerId',
             ellipsis: true,
@@ -196,18 +191,28 @@
             ellipsis: true,
         },
         {
-            title: '操作',
-            dataIndex: 'action',
-            fixed: 'right',
-            width: 90,
+            title: '创建日期',
+            dataIndex: 'createTime',
+            ellipsis: true,
         },
+        {
+            title: '修改日期',
+            dataIndex: 'updateTime',
+            ellipsis: true,
+        },
+        // {
+        //     title: '操作',
+        //     dataIndex: 'action',
+        //     fixed: 'right',
+        //     width: 90,
+        // },
     ]);
 
     // ---------------------------- 查询数据表单和方法 ----------------------------
 
     const queryFormState = {
-        CustomerId: undefined, //客户简称
-        SalespersonId: undefined, //业务员
+        customerName: undefined, //客户名称
+        salespersonName: undefined, //业务员
         pageNum: 1,
         pageSize: 10,
     };
@@ -381,5 +386,20 @@ function beforeUpload(file) {
 }
 // 下载模板
 function downloadExcel() {
+}
+
+// ------------------初始化数据----------------------
+    const initDisabled = ref(false)
+async function initFirstOrder(){
+  try {
+    initDisabled.value=true
+    let res = await firstOrderApi.initFirstOrder()
+    await message.success(res.data);
+    initDisabled.value=false
+  } catch (e) {
+    smartSentry.captureError(e);
+  } finally {
+    SmartLoading.hide();
+  }
 }
 </script>

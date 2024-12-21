@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutboundAddForm;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutboundQueryForm;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutboundUpdateForm;
+import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundExcelVO;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.service.SalesOutboundService;
 import net.lab1024.sa.base.common.domain.PageResult;
@@ -83,8 +84,8 @@ public class SalesOutboundController {
     @GetMapping("/salesOutbound/export")
     @SaCheckPermission("salesOutbound:export")
     public void exportSalesOutbound(HttpServletResponse response) throws IOException {
-        List<SalesOutboundVO> goodsList = salesOutboundService.getAllSalesOutbound();
-        SmartExcelUtil.exportExcel(response,"销售出库.xlsx","销售出库",SalesOutboundVO.class, goodsList);
+        List<SalesOutboundExcelVO> goodsList = salesOutboundService.getAllSalesOutbound();
+        SmartExcelUtil.exportExcel(response,"销售出库.xlsx","销售出库",SalesOutboundExcelVO.class, goodsList);
     }
 
 }

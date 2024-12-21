@@ -10,12 +10,15 @@ import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutb
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutboundImportForm;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutboundQueryForm;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutboundUpdateForm;
+import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundExcelVO;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO;
 import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
 import net.lab1024.sa.base.common.exception.BusinessException;
-import net.lab1024.sa.base.common.util.*;
+import net.lab1024.sa.base.common.util.SmartBeanUtil;
+import net.lab1024.sa.base.common.util.SmartPageUtil;
+import net.lab1024.sa.base.common.util.SmartRequestUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.executor.BatchResult;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +33,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static cn.dev33.satoken.SaManager.log;
 
@@ -66,7 +70,9 @@ public class SalesOutboundService {
         if (queryForm.getSalespersonName() != null && !queryForm.getSalespersonName().isEmpty()) {
             queryForm.setSalespersonId(salespersonService.getIdBySalespersonName(queryForm.getSalespersonName()));
         }
+
         List<SalesOutboundVO> list = salesOutboundDao.queryPage(page, queryForm);
+
         // 查询部门、业务员级别名称
         list.forEach(e -> {
             e.setSalespersonName(salespersonService.getSalespersonNameById(e.getSalespersonId()));
@@ -181,15 +187,17 @@ public class SalesOutboundService {
     private SalesOutboundEntity convertToEntity(SalesOutboundImportForm form) {
         SalesOutboundEntity entity = new SalesOutboundEntity();
 
-        if (form.getSalesBoundDate()!=null){
-
+        if (form.getSalesBoundDate().contains("-")){
+            LocalDate date = LocalDate.parse(form.getSalesBoundDate());
+            entity.setSalesBoundDate(date);
+        }else if (form.getSalesBoundDate().contains("/")){
             DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy/M/d");
             LocalDate date = LocalDate.parse(form.getSalesBoundDate(), fmt);
             entity.setSalesBoundDate(date);
         }
 
         SalesOutboundEntity salesOutbound = salesOutboundDao.queryByBillNo(form.getBillNo());
-        if (salesOutbound != null) {
+        if (salesOutbound != null && salesOutbound.getBillNo().equals(form.getBillNo())) {
             form.setErrorMsg("单据编号重复，不允许导入");
             return entity;
         }
@@ -221,12 +229,20 @@ public class SalesOutboundService {
 
     /**
      * 导出
-     * 需要修改
      */
-    public List<SalesOutboundVO> getAllSalesOutbound() {
-        List<SalesOutboundEntity> goodsEntityList = salesOutboundDao.selectList(null);
-        return null;
+    public List<SalesOutboundExcelVO> getAllSalesOutbound() {
+        List<SalesOutboundEntity> entityList = salesOutboundDao.selectList(null);
 
+        return entityList.stream()
+                .map(e ->
+                        SalesOutboundExcelVO.builder()
+                                .salespersonName(salespersonService.getSalespersonNameById(e.getSalespersonId()))
+                                .billNo(e.getBillNo())
+                                .salesBoundDate(e.getSalesBoundDate())
+                                .amount(e.getAmount())
+                                .customerName(customerService.getCustomerNameById(e.getCustomerId()))
+                                .build()
+                ).collect(Collectors.toList());
     }
 
     /**
@@ -245,7 +261,7 @@ public class SalesOutboundService {
         }
 
         // 构建文件路径
-        File file = new File(userFolder + "failed_import_data.xlsx");
+        File file = new File(userFolder + "outbound_failed_import_data.xlsx");
 
         // 使用 EasyExcel 保存失败的数据到 Excel 文件
         try (OutputStream os = new FileOutputStream(file)) {
@@ -257,5 +273,14 @@ public class SalesOutboundService {
         }
 
         return file;
+    }
+
+    /**
+     * 查询客户首单信息
+     * @param customerId
+     * @return
+     */
+    public SalesOutboundVO queryFirstOrderOfCustomer(Long customerId) {
+        return salesOutboundDao.queryFirstOrderOfCustomer(customerId);
     }
 }

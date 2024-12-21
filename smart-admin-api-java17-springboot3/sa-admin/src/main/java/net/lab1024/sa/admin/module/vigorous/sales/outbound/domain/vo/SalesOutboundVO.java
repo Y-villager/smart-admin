@@ -32,7 +32,7 @@ public class SalesOutboundVO {
     @Schema(description = "出库日期")
     private LocalDate salesBoundDate;
 
-    @Schema(description = "客户编码")
+    @Schema(description = "客户编号")
     private Long customerId;
 
     @Schema(description = "客户名称")

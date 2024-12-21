@@ -9,7 +9,10 @@
     <!---------- 查询表单form begin ----------->
     <a-form class="smart-query-form">
         <a-row class="smart-query-form-row">
-            <a-form-item label="客户编码" class="smart-query-form-item">
+            <a-form-item label="单据编号" class="smart-query-form-item">
+              <a-input style="width: 200px" v-model:value="queryForm.billNo" placeholder="单据编号" />
+            </a-form-item>
+            <a-form-item label="客户" class="smart-query-form-item">
                 <a-input style="width: 200px" v-model:value="queryForm.customerName" placeholder="客户编码" />
             </a-form-item>
             <a-form-item label="业务员" class="smart-query-form-item">
@@ -52,14 +55,14 @@
                     </template>
                     批量删除
                 </a-button>
-              <a-button @click="showImportModal" type="primary" v-privilege="'salesOutbound:importSalesOutbound'">
+              <a-button @click="showImportModal" type="primary" v-privilege="'salesOutbound:import'">
                 <template #icon>
                   <ImportOutlined />
                 </template>
                 导入
               </a-button>
 
-              <a-button @click="onExportSalesOutbound" type="primary" v-privilege="'salesOutbound:exportSalesOutbound'">
+              <a-button @click="onExportSalesOutbound" type="primary" v-privilege="'salesOutbound:export'" :disabled="exportDisabled">
                 <template #icon>
                   <ExportOutlined />
                 </template>
@@ -220,6 +223,7 @@
     // ---------------------------- 查询数据表单和方法 ----------------------------
 
     const queryFormState = {
+        billNo: undefined, //单据编号
         customerName: undefined, //客户编码
         salespersonName: undefined, //业务员
         salesBoundDate: undefined, //出库日期
@@ -234,6 +238,8 @@
     const tableData = ref([]);
     // 总数
     const total = ref(0);
+    //
+    const exportDisabled = ref(false);
 
     // 重置查询条件
     function resetQuery() {
@@ -262,7 +268,6 @@
             tableLoading.value = false;
         }
     }
-
 
     onMounted(queryData);
 
@@ -380,7 +385,10 @@ async function onImportSalesOutbound() {
 
 // 导出excel文件
 async function onExportSalesOutbound() {
-  await salesOutboundApi.exportSalesOutbound();
+  exportDisabled.value = true
+  let res = await salesOutboundApi.exportSalesOutbound();
+
+  exportDisabled.value = false
 }
 
 function handleRemove(file) {

@@ -2,7 +2,6 @@ package net.lab1024.sa.admin.module.vigorous.firstorder.domain.form;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
@@ -15,10 +14,6 @@ import lombok.Data;
 
 @Data
 public class FirstOrderAddForm {
-
-    @Schema(description = "首单信息编号", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotNull(message = "首单信息编号 不能为空")
-    private Long firstOrderId;
 
     @Schema(description = "客户编码", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "客户编码 不能为空")

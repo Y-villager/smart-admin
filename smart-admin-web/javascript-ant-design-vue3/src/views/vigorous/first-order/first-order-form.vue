@@ -15,9 +15,6 @@
       :destroyOnClose="true"
   >
     <a-form ref="formRef" :model="form" :rules="rules" :label-col="{ span: 5 }" >
-        <a-form-item label="首单信息编号"  name="firstOrderId">
-          <a-input-number style="width: 100%" v-model:value="form.firstOrderId" placeholder="首单信息编号" />
-        </a-form-item>
         <a-form-item label="客户编码"  name="customerId">
           <a-input style="width: 100%" v-model:value="form.customerId" placeholder="客户编码" />
         </a-form-item>
@@ -79,7 +76,6 @@
   const formRef = ref();
 
   const formDefault = {
-      firstOrderId: undefined, //首单信息编号
       customerId: undefined, //客户编码
       salespersonId: undefined, //业务员编码
       billNo: undefined, //首单编号
@@ -88,7 +84,6 @@
   let form = reactive({ ...formDefault });
 
   const rules = {
-      firstOrderId: [{ required: true, message: '首单信息编号 必填' }],
       customerId: [{ required: true, message: '客户编码 必填' }],
       salespersonId: [{ required: true, message: '业务员编码 必填' }],
       billNo: [{ required: true, message: '首单编号 必填' }],
