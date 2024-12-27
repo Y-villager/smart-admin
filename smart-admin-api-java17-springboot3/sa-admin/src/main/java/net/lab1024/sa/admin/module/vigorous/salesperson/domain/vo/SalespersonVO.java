@@ -1,7 +1,9 @@
 package net.lab1024.sa.admin.module.vigorous.salesperson.domain.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * 业务员 列表VO
@@ -12,9 +14,11 @@ import lombok.Data;
  */
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class SalespersonVO {
     @Schema(description = "主键")
-    private String id;
+    private Long id;
 
     @Schema(description = "业务员编码")
     private String salespersonCode;

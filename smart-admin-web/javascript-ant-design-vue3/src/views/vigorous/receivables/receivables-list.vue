@@ -1,27 +1,25 @@
 <!--
-  * 销售出库
+  * 应收单
   *
   * @Author:    yxz
-  * @Date:      2024-12-12 14:48:19
-  * @Copyright  (c)2024 yxz
+  * @Date:      2024-12-12 14:46:31
+  * @Copyright  yxz
 -->
 <template>
     <!---------- 查询表单form begin ----------->
     <a-form class="smart-query-form">
         <a-row class="smart-query-form-row">
-            <a-form-item label="单据编号" class="smart-query-form-item">
-              <a-input style="width: 200px" v-model:value="queryForm.billNo" placeholder="单据编号" />
+            <a-form-item label="客户名称" class="smart-query-form-item">
+                <a-input style="width: 200px" v-model:value="queryForm.customerName" placeholder="客户名称" />
             </a-form-item>
-            <a-form-item label="客户" class="smart-query-form-item">
-                <a-input style="width: 200px" v-model:value="queryForm.customerName" placeholder="客户编码" />
+            <a-form-item label="销售员名称" class="smart-query-form-item">
+                <a-input style="width: 200px" v-model:value="queryForm.salespersonName" placeholder="销售员名称" />
             </a-form-item>
-            <a-form-item label="业务员" class="smart-query-form-item">
-                <a-input style="width: 200px" v-model:value="queryForm.salespersonName" placeholder="业务员" />
+            <a-form-item label="币种" class="smart-query-form-item">
+                <SmartEnumSelect width="200px" v-model:value="queryForm.currencyType" enumName="" placeholder="币种"/>
             </a-form-item>
-            <a-form-item label="出库日期" class="smart-query-form-item">
-              <a-range-picker v-model:value="queryForm.salesBoundDate" :presets="defaultTimeRanges"
-                              style="width: 220px"
-                              @change="onChangeSalesBoundDate"/>
+            <a-form-item label="收款日期" class="smart-query-form-item">
+                <a-range-picker v-model:value="queryForm.receivablesDate" :presets="defaultTimeRanges" style="width: 200px" @change="onChangeReceivablesDate" />
             </a-form-item>
             <a-form-item class="smart-query-form-item">
                 <a-button type="primary" @click="onSearch">
@@ -57,14 +55,14 @@
                     </template>
                     批量删除
                 </a-button>
-              <a-button @click="showImportModal" type="primary" v-privilege="'salesOutbound:import'">
+              <a-button @click="showImportModal" type="primary" v-privilege="'receivables:importReceivables'">
                 <template #icon>
                   <ImportOutlined />
                 </template>
                 导入
               </a-button>
 
-              <a-button @click="onExportSalesOutbound" type="primary" v-privilege="'salesOutbound:export'" :disabled="exportDisabled">
+              <a-button @click="onExportReceivables" type="primary" v-privilege="'receivables:exportReceivables'">
                 <template #icon>
                   <ExportOutlined />
                 </template>
@@ -82,7 +80,7 @@
             size="small"
             :dataSource="tableData"
             :columns="columns"
-            rowKey="salesBoundId"
+            rowKey="receivablesId"
             bordered
             :loading="tableLoading"
             :pagination="false"
@@ -129,7 +127,7 @@
             />
         </div>
 
-        <SalesOutboundForm  ref="formRef" @reloadList="queryData"/>
+        <ReceivablesForm  ref="formRef" @reloadList="queryData"/>
 
       <a-modal v-model:open="importModalShowFlag" title="导入" @onCancel="hideImportModal" @ok="hideImportModal">
         <div style="text-align: center; width: 400px; margin: 0 auto">
@@ -155,7 +153,7 @@
           </a-upload>
 
           <br />
-          <a-button @click="onImportSalesOutbound">
+          <a-button @click="onImportReceivables">
             <ImportOutlined />
             第三步：开始导入
           </a-button>
@@ -168,53 +166,58 @@
     import { reactive, ref, onMounted } from 'vue';
     import { message, Modal } from 'ant-design-vue';
     import { SmartLoading } from '/@/components/framework/smart-loading';
-    import { salesOutboundApi } from '/@/api/vigorous/sales-outbound-api';
+    import { receivablesApi } from '/@/api/vigorous/receivables-api';
     import { PAGE_SIZE_OPTIONS } from '/@/constants/common-const';
     import { smartSentry } from '/@/lib/smart-sentry';
     import TableOperator from '/@/components/support/table-operator/index.vue';
-    import SalesOutboundForm from './sales-outbound-form.vue';
-    import {defaultTimeRanges} from "/@/lib/default-time-ranges.js";
+    import ReceivablesForm from './receivables-form.vue';
+    import SmartEnumSelect from '/@/components/framework/smart-enum-select/index.vue';
+    import { defaultTimeRanges } from '/@/lib/default-time-ranges';
     //import FilePreview from '/@/components/support/file-preview/index.vue'; // 图片预览组件
 
     // ---------------------------- 表格列 ----------------------------
 
     const columns = ref([
         {
-            title: '单据编号',
+            title: '应收表id',
+            dataIndex: 'receivablesId',
+            ellipsis: true,
+        },
+        {
+            title: '应收表-单据编号',
             dataIndex: 'billNo',
             ellipsis: true,
         },
         {
-            title: '出库日期',
-            dataIndex: 'salesBoundDate',
+            title: '应收日期',
+            dataIndex: 'receivablesDate',
             ellipsis: true,
         },
         {
-            title: '客户',
-            dataIndex: 'customerName',
+            title: '业务员编号',
+            dataIndex: 'salespersonId',
             ellipsis: true,
         },
         {
-            title: '业务员',
-            dataIndex: 'salespersonName',
+            title: '客户编号',
+            dataIndex: 'customerId',
             ellipsis: true,
         },
         {
-            title: '金额',
+            title: '单据类型',
+            dataIndex: 'receivablesType',
+            ellipsis: true,
+        },
+        {
+            title: '税收合计',
             dataIndex: 'amount',
             ellipsis: true,
         },
-
-      {
-        title: '创建时间',
-        dataIndex: 'createTime',
-        ellipsis: true,
-      },
-      {
-        title: '更新时间',
-        dataIndex: 'updateTime',
-        ellipsis: true,
-      },
+        {
+            title: '币种',
+            dataIndex: 'currencyType',
+            ellipsis: true,
+        },
         {
             title: '操作',
             dataIndex: 'action',
@@ -226,11 +229,12 @@
     // ---------------------------- 查询数据表单和方法 ----------------------------
 
     const queryFormState = {
-        billNo: undefined, //单据编号
-        customerName: undefined, //客户编码
-        salespersonName: undefined, //业务员
-        salesBoundDateBegin: undefined, //出库日期 开始
-        salesBoundDateEnd: undefined, //出库日期 结束
+        customerName: undefined, //客户名称
+        salespersonName: undefined, //销售员名称
+        currencyType: undefined, //币种
+        receivablesDate: [], //收款日期
+        receivablesDateBegin: undefined, //收款日期 开始
+        receivablesDateEnd: undefined, //收款日期 结束
         pageNum: 1,
         pageSize: 10,
     };
@@ -242,8 +246,6 @@
     const tableData = ref([]);
     // 总数
     const total = ref(0);
-    //
-    const exportDisabled = ref(false);
 
     // 重置查询条件
     function resetQuery() {
@@ -263,7 +265,7 @@
     async function queryData() {
         tableLoading.value = true;
         try {
-            let queryResult = await salesOutboundApi.queryPage(queryForm);
+            let queryResult = await receivablesApi.queryPage(queryForm);
             tableData.value = queryResult.data.list;
             total.value = queryResult.data.total;
         } catch (e) {
@@ -272,6 +274,12 @@
             tableLoading.value = false;
         }
     }
+
+    function onChangeReceivablesDate(dates, dateStrings){
+        queryForm.receivablesDateBegin = dateStrings[0];
+        queryForm.receivablesDateEnd = dateStrings[1];
+    }
+
 
     onMounted(queryData);
 
@@ -305,7 +313,7 @@
             let deleteForm = {
                 goodsIdList: selectedRowKeyList.value,
             };
-            await salesOutboundApi.delete(data.salesBoundId);
+            await receivablesApi.delete(data.receivablesId);
             message.success('删除成功');
             queryData();
         } catch (e) {
@@ -343,7 +351,7 @@
     async function requestBatchDelete() {
         try {
             SmartLoading.show();
-            await salesOutboundApi.batchDelete(selectedRowKeyList.value);
+            await receivablesApi.batchDelete(selectedRowKeyList.value);
             message.success('删除成功');
             queryData();
         } catch (e) {
@@ -370,7 +378,7 @@ function hideImportModal() {
   importModalShowFlag.value = false;
 }
 // 导入文件
-async function onImportSalesOutbound() {
+async function onImportReceivables() {
   const formData = new FormData();
   fileList.value.forEach((file) => {
     formData.append('file', file.originFileObj);
@@ -378,7 +386,7 @@ async function onImportSalesOutbound() {
 
   SmartLoading.show();
   try {
-    let res = await salesOutboundApi.importSalesOutbound(formData);
+    let res = await receivablesApi.importReceivables(formData);
     message.success(res.msg);
   } catch (e) {
     smartSentry.captureError(e);
@@ -388,11 +396,8 @@ async function onImportSalesOutbound() {
 }
 
 // 导出excel文件
-async function onExportSalesOutbound() {
-  exportDisabled.value = true
-  let res = await salesOutboundApi.exportSalesOutbound();
-
-  exportDisabled.value = false
+async function onExportReceivables() {
+  await receivablesApi.exportReceivables();
 }
 
 function handleRemove(file) {
@@ -409,10 +414,4 @@ function beforeUpload(file) {
 // 下载模板
 function downloadExcel() {
 }
-
-  // ---------------------出库日期选择 事件--------------------------
-    function onChangeSalesBoundDate(dates, dateStrings){
-      queryForm.salesBoundDateBegin = dateStrings[0]
-      queryForm.salesBoundDateEnd = dateStrings[1]
-    }
 </script>

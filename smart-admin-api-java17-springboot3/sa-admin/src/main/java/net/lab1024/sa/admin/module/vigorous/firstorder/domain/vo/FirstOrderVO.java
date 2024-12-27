@@ -3,7 +3,9 @@ package
         net.lab1024.sa.admin.module.vigorous.firstorder.domain.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -18,6 +20,8 @@ import java.time.LocalDateTime;
  */
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class FirstOrderVO {
 
     @Schema(description = "首单信息编号")

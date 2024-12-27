@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.lab1024.sa.admin.module.vigorous.commission.dao.CommissionRuleDao">
+
+    <!-- 查询结果列 -->
+    <sql id="base_columns">
+        v_commission_rule.rule_id,
+        v_commission_rule.currency_type,
+        v_commission_rule.salesperson_level_id,
+        v_commission_rule.commission_rate,
+        v_commission_rule.first_order_rate,
+        v_commission_rule.first_year_rate,
+        v_commission_rule.yearly_decrease_rate,
+        v_commission_rule.min_rate,
+        v_commission_rule.remark
+    </sql>
+
+    <!-- 分页查询 -->
+    <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.commission.domain.vo.CommissionRuleVO">
+        SELECT
+        <include refid="base_columns"/>
+        FROM v_commission_rule
+        <where>
+            <!--业务员级别名称-->
+            <if test="queryForm.salespersonLevelName != null and queryForm.salespersonLevelName != ''">
+                        AND INSTR(v_commission_rule.salesperson_level_id,#{queryForm.salespersonLevelName})
+            </if>
+            <!--币种-->
+            <if test="queryForm.currencuType != null and queryForm.currencuType != ''">
+                        AND INSTR(v_commission_rule.currency_type,#{queryForm.currencuType})
+            </if>
+        </where>
+    </select>
+
+
+</mapper>

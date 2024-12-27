@@ -10,7 +10,9 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 客户 Dao
@@ -49,4 +51,8 @@ public interface CustomerDao extends BaseMapper<CustomerEntity> {
     List<CustomerVO> getCustomerOfFONull();
 
     int updateFirstOrderIdsBatch(@Param("list") List<FirstOrderEntity> subInsertedFirstOrderIds);
+
+    Collection<CustomerVO> queryByCustomerNames(@Param("customerNames") Set<String> customerNames);
+
+    Collection<CustomerVO> getCustomerNamesByIds(@Param("customerIds") Set<Long> customerIds);
 }

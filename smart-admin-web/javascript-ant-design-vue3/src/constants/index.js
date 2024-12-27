@@ -21,6 +21,7 @@ import message from './business/message/message-const';
 import codeGeneratorConst from './support/code-generator-const';
 import changeLogConst from './support/change-log-const';
 import jobConst from './support/job-const.js';
+import {SALESPERSON_LEVEL_ENUM} from "/@/constants/vigorous/commission-rule-const.js";
 
 export default {
   FLAG_NUMBER_ENUM,
@@ -28,6 +29,7 @@ export default {
   GENDER_ENUM,
   USER_TYPE_ENUM,
   LAYOUT_ENUM,
+  SALESPERSON_LEVEL_ENUM,
   ...loginLog,
   ...menu,
   ...goods,

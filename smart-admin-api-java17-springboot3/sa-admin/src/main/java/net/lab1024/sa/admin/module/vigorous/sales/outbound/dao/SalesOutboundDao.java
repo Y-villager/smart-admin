@@ -10,6 +10,7 @@ import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * 销售出库 Dao
@@ -36,4 +37,6 @@ public interface SalesOutboundDao extends BaseMapper<SalesOutboundEntity> {
     SalesOutboundEntity queryByBillNo(@Param("billNo") String billNo);
 
     SalesOutboundVO queryFirstOrderOfCustomer(@Param("customerId") Long customerId);
+
+    List<SalesOutboundEntity> queryByBillNos(@Param("billNos") Set<String> billNos);
 }

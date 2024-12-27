@@ -164,7 +164,7 @@ public class ${name.upperCamel}Service {
 
 
     #foreach($field in ${fields} )
-        entity.set${field.fieldName}(form.get${field.fieldName}());
+  //      entity.set${field.fieldName}(form.get${field.fieldName}());
     #end
 
         return entity;

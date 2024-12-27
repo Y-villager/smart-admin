@@ -32,7 +32,7 @@ import java.util.List;
 
 @RestController
 @Tag(name = "销售出库")
-public class SalesOutboundController {
+class SalesOutboundController {
 
     @Resource
     private SalesOutboundService salesOutboundService;
@@ -84,6 +84,13 @@ public class SalesOutboundController {
     @GetMapping("/salesOutbound/export")
     @SaCheckPermission("salesOutbound:export")
     public void exportSalesOutbound(HttpServletResponse response) throws IOException {
+        List<SalesOutboundExcelVO> goodsList = salesOutboundService.getAllSalesOutbound();
+        SmartExcelUtil.exportExcel(response,"销售出库.xlsx","销售出库",SalesOutboundExcelVO.class, goodsList);
+    }
+
+    @Operation(summary = "导出")
+    @GetMapping("/salesOutbound/exportCommission")
+    public void exportCommission(HttpServletResponse response) throws IOException {
         List<SalesOutboundExcelVO> goodsList = salesOutboundService.getAllSalesOutbound();
         SmartExcelUtil.exportExcel(response,"销售出库.xlsx","销售出库",SalesOutboundExcelVO.class, goodsList);
     }

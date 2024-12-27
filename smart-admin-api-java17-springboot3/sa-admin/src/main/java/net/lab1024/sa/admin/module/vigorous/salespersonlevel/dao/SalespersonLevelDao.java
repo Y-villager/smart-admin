@@ -33,4 +33,5 @@ public interface SalespersonLevelDao extends BaseMapper<SalespersonLevelEntity> 
     List<SalespersonLevelVO> queryPage(Page page, @Param("queryForm") SalespersonLevelQueryForm queryForm);
 
 
+    List<SalespersonLevelVO> getAll();
 }

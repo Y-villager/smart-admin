@@ -9,6 +9,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -52,4 +53,8 @@ public interface SalespersonDao extends BaseMapper<SalespersonEntity> {
     List<Long> getSalespersonIdByName(@Param("salespersonName") String salespersonName);
 
     String getSalespersonNameById(@Param("salespersonId") Long salespersonId);
+
+    Collection<SalespersonVO> getSalespersonsByNames(@Param("salespersonNames") Set<String> salespersonNames);
+
+    Collection<SalespersonVO> getSalespersonNamesByIds(@Param("salespersonIds") Set<Long> salespersonIds);
 }

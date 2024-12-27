@@ -32,7 +32,10 @@ public class SalesOutboundQueryForm extends PageParam {
 
     private Long salespersonId;
 
-    @Schema(description = "出库日期")
-    private LocalDate salesBoundDate;
+    @Schema(description = "出库日期开始")
+    private LocalDate salesBoundDateBegin;
+
+    @Schema(description = "出库日期结束")
+    private LocalDate salesBoundDateEnd;
 
 }

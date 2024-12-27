@@ -4,8 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import net.lab1024.sa.admin.module.vigorous.firstorder.domain.entity.FirstOrderEntity;
-import net.lab1024.sa.admin.module.vigorous.salesperson.domain.entity.SalespersonEntity;
+import net.lab1024.sa.admin.module.vigorous.firstorder.domain.vo.FirstOrderVO;
+import net.lab1024.sa.admin.module.vigorous.salesperson.domain.vo.SalespersonVO;
 
 /**
  * 顾客 列表VO
@@ -39,12 +39,12 @@ public class CustomerVO {
     private String customerCategory;
 
     @Schema(description = "业务员")
-    private SalespersonEntity salesperson;
+    private SalespersonVO salesperson;
 
     @Schema(description = "客户编码")
     private String customerCode;
 
     @Schema(description = "首单信息编号")
-    private FirstOrderEntity firstOrder;
+    private FirstOrderVO firstOrder;
 
 }

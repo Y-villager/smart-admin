@@ -53,6 +53,10 @@ export const salespersonLevelApi = {
     // 导出
     exportSalespersonLevel : () =>{
         return getDownload('/salespersonLevel/export');
+    },
+
+    queryList:() =>{
+      return postRequest('/salespersonLevel/getAll');
     }
 
 };

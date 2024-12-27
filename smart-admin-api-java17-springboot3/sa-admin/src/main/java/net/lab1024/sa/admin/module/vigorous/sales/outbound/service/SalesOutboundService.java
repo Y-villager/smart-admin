@@ -3,6 +3,7 @@ package net.lab1024.sa.admin.module.vigorous.sales.outbound.service;
 import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
+import net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerVO;
 import net.lab1024.sa.admin.module.vigorous.customer.service.CustomerService;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.dao.SalesOutboundDao;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.entity.SalesOutboundEntity;
@@ -12,6 +13,7 @@ import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutb
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutboundUpdateForm;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundExcelVO;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO;
+import net.lab1024.sa.admin.module.vigorous.salesperson.domain.vo.SalespersonVO;
 import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
@@ -31,8 +33,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static cn.dev33.satoken.SaManager.log;
@@ -73,15 +74,28 @@ public class SalesOutboundService {
 
         List<SalesOutboundVO> list = salesOutboundDao.queryPage(page, queryForm);
 
-        // 查询部门、业务员级别名称
+        // 获取所有需要的业务员和客户信息
+        Set<Long> salespersonIds = list.stream()
+                .map(SalesOutboundVO::getSalespersonId)
+                .collect(Collectors.toSet());
+        Set<Long> customerIds = list.stream()
+                .map(SalesOutboundVO::getCustomerId)
+                .collect(Collectors.toSet());
+
+        Map<Long, String> salespersonNames = salespersonService.getSalespersonNamesByIds(salespersonIds);
+        Map<Long, String> customerNames = customerService.getCustomerNamesByIds(customerIds);
+
+
+        // 填充业务员和客户名称
         list.forEach(e -> {
-            e.setSalespersonName(salespersonService.getSalespersonNameById(e.getSalespersonId()));
-            e.setCustomerName(customerService.getCustomerNameById(e.getCustomerId()));
+            e.setSalespersonName(salespersonNames.get(e.getSalespersonId()));
+            e.setCustomerName(customerNames.get(e.getCustomerId()));
         });
 
         PageResult<SalesOutboundVO> pageResult = SmartPageUtil.convert2PageResult(page, list);
         return pageResult;
     }
+
 
     /**
      * 添加
@@ -140,7 +154,6 @@ public class SalesOutboundService {
     public ResponseDTO<String> importSalesOutbound(MultipartFile file) {
         List<SalesOutboundImportForm> dataList;
         List<SalesOutboundImportForm> failedDataList = new ArrayList<>();
-        List<SalesOutboundEntity> entityList = new ArrayList<>();
 
         try {
             dataList = EasyExcel.read(file.getInputStream()).head(SalesOutboundImportForm.class)
@@ -155,19 +168,39 @@ public class SalesOutboundService {
             return ResponseDTO.userErrorParam("数据为空");
         }
 
-        // 将 SalesOutboundImportForm 转换为 SalesOutboundEntity，同时记录失败的数据
+        // 批量查询出 出库单、业务员和客户
+        // 构建需要查询的数据集合（查询一次，减少查询次数）
+        Set<String> billNos = new HashSet<>();
+        Set<String> salespersonNames = new HashSet<>();
+        Set<String> customerNames = new HashSet<>();
+
         for (SalesOutboundImportForm form : dataList) {
-
-            // 将有效的记录转换为实体
-            SalesOutboundEntity entity = convertToEntity(form);
-
-            if (form.getErrorMsg() == null) {
-                entityList.add(entity);
-            } else {
-                // 如果转换失败，记录失败信息
-                failedDataList.add(form);
-            }
+            billNos.add(form.getBillNo());
+            salespersonNames.add(form.getSalespersonName());
+            customerNames.add(form.getCustomerName());
         }
+
+        // 批量查询销售出库单据
+        List<SalesOutboundEntity> salesOutboundList = salesOutboundDao.queryByBillNos(billNos);
+        Map<String, SalesOutboundEntity> salesOutboundMap = salesOutboundList
+                .stream().filter(Objects::nonNull)
+                .collect(Collectors.toMap(SalesOutboundEntity::getBillNo, entity -> entity));
+
+        // 批量查询业务员
+        Map<String, Long> salespersonMap = salespersonService.getSalespersonsByNames(salespersonNames)
+                .stream().filter(Objects::nonNull)
+                .collect(Collectors.toMap(SalespersonVO::getSalespersonName, SalespersonVO::getId));
+
+        // 批量查询客户
+        Map<String, Long> customerMap = customerService.queryByCustomerNames(customerNames)
+                .stream().filter(Objects::nonNull)
+                .collect(Collectors.toMap(CustomerVO::getCustomerName, CustomerVO::getCustomerId));
+
+        List<SalesOutboundEntity> entityList = dataList.parallelStream()
+                .map(form -> convertToEntity(form, salesOutboundMap, salespersonMap, customerMap, failedDataList))
+                .filter(Objects::nonNull)
+                .toList();
+
         // 批量插入有效数据
         List<BatchResult> insert = salesOutboundDao.insert(entityList);
 
@@ -182,50 +215,57 @@ public class SalesOutboundService {
         return ResponseDTO.okMsg("总共"+dataList.size()+"条数据，成功导入" + insert.get(0).getParameterObjects().size() + "条，导入失败记录有："+failedDataList.size()+"条" );
 
     }
-
-    // 将 SalesOutboundImportForm 转换为 SalesOutboundEntity
-    private SalesOutboundEntity convertToEntity(SalesOutboundImportForm form) {
+    private SalesOutboundEntity convertToEntity(SalesOutboundImportForm form,
+                                                Map<String, SalesOutboundEntity> salesOutboundMap,
+                                                Map<String, Long> salespersonMap,
+                                                Map<String, Long> customerMap,
+                                                List<SalesOutboundImportForm> failedDataList) {
         SalesOutboundEntity entity = new SalesOutboundEntity();
 
-        if (form.getSalesBoundDate().contains("-")){
+        // 检查销售出库单据编号是否重复（批量查询，减少数据库查询次数）
+        if (salesOutboundMap.containsKey(form.getBillNo())) {
+            form.setErrorMsg("单据编号重复，不允许导入");
+            failedDataList.add(form);  // 保存失败的数据
+            return null;  // 只返回空的实体，标记失败
+        }
+
+        // 根据名称获取业务员id（从缓存中查询）
+        Long salespersonId = salespersonMap.get(form.getSalespersonName());
+        if (salespersonId == null) {
+            form.setErrorMsg("找不到业务员，不允许导入");
+            failedDataList.add(form);  // 保存失败的数据
+            return null;
+        }
+
+        // 客户id（从缓存中查询）
+        Long customerId = customerMap.get(form.getCustomerName());
+        if (customerId == null) {
+            form.setErrorMsg("找不到客户信息，不允许导入");
+            failedDataList.add(form);  // 保存失败的数据
+            return null;
+        }
+
+        // 转换日期格式
+        if (form.getSalesBoundDate().contains("-")) {
             LocalDate date = LocalDate.parse(form.getSalesBoundDate());
             entity.setSalesBoundDate(date);
-        }else if (form.getSalesBoundDate().contains("/")){
+        } else if (form.getSalesBoundDate().contains("/")) {
             DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy/M/d");
             LocalDate date = LocalDate.parse(form.getSalesBoundDate(), fmt);
             entity.setSalesBoundDate(date);
         }
 
-        SalesOutboundEntity salesOutbound = salesOutboundDao.queryByBillNo(form.getBillNo());
-        if (salesOutbound != null && salesOutbound.getBillNo().equals(form.getBillNo())) {
-            form.setErrorMsg("单据编号重复，不允许导入");
-            return entity;
-        }
-        List<Long> ids = salespersonService.getSalespersonIdByName(form.getSalespersonName());
-        if (CollectionUtils.isEmpty(ids)) {
-            form.setErrorMsg("找不到业务员，不允许导入");
-            return entity;
-        }else if (ids.size() > 1) {
-            form.setErrorMsg("系统中有业务员重名");
-            return entity;
-        }
-
-        List<Long> customerIds = customerService.queryByCustomerName(form.getCustomerName());
-        if (CollectionUtils.isEmpty(customerIds)) {
-            form.setErrorMsg("找不到客户信息，不允许导入");
-            return entity;
-        }else if (customerIds.size() > 1) {
-            form.setErrorMsg("系统中有客户重名，不允许导入");
-            return entity;
-        }
-
-        entity.setCustomerId(customerIds.get(0));
-        entity.setSalespersonId(ids.get(0));
+        // 设置其他字段
+        entity.setCustomerId(customerId);
+        entity.setSalespersonId(salespersonId);
         entity.setAmount(form.getAmount());
         entity.setBillNo(form.getBillNo());
 
+        // 如果所有字段都已正确设置，则返回转换后的实体
         return entity;
     }
+
+
 
     /**
      * 导出
@@ -233,17 +273,30 @@ public class SalesOutboundService {
     public List<SalesOutboundExcelVO> getAllSalesOutbound() {
         List<SalesOutboundEntity> entityList = salesOutboundDao.selectList(null);
 
-        return entityList.stream()
-                .map(e ->
-                        SalesOutboundExcelVO.builder()
-                                .salespersonName(salespersonService.getSalespersonNameById(e.getSalespersonId()))
-                                .billNo(e.getBillNo())
-                                .salesBoundDate(e.getSalesBoundDate())
-                                .amount(e.getAmount())
-                                .customerName(customerService.getCustomerNameById(e.getCustomerId()))
-                                .build()
+        // 获取所有销售员ID和客户ID
+        Set<Long> salespersonIds = entityList.stream()
+                .map(SalesOutboundEntity::getSalespersonId)
+                .collect(Collectors.toSet());
+        Set<Long> customerIds = entityList.stream()
+                .map(SalesOutboundEntity::getCustomerId)
+                .collect(Collectors.toSet());
+
+        // id->name 集合
+        Map<Long, String> salespersonNameMap = salespersonService.getSalespersonNamesByIds(salespersonIds);
+        Map<Long, String> customerNameMap = customerService.getCustomerNamesByIds(customerIds);
+
+        // 使用并行流进行转换，提高处理速度
+        return entityList.parallelStream()
+                .map(e -> SalesOutboundExcelVO.builder()
+                        .salespersonName(salespersonNameMap.get(e.getSalespersonId()))
+                        .billNo(e.getBillNo())
+                        .salesBoundDate(e.getSalesBoundDate())
+                        .amount(e.getAmount())
+                        .customerName(customerNameMap.get(e.getCustomerId()))
+                        .build()
                 ).collect(Collectors.toList());
     }
+
 
     /**
      * 保存失败的数据到 Excel 文件

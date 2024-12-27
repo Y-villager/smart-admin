@@ -24,9 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static cn.dev33.satoken.SaManager.log;
@@ -235,5 +233,18 @@ public class SalespersonService {
 
     public SalespersonEntity queryById(Long salespersonId) {
         return salespersonDao.selectById(salespersonId);
+    }
+
+    public Collection<SalespersonVO> getSalespersonsByNames(Set<String> salespersonNames) {
+        return salespersonDao.getSalespersonsByNames(salespersonNames);
+    }
+
+
+    public Map<Long, String> getSalespersonNamesByIds(Set<Long> salespersonIds) {
+        if (salespersonIds == null || salespersonIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        return salespersonDao.getSalespersonNamesByIds(salespersonIds).stream()
+                .collect(Collectors.toMap(SalespersonVO::getId, SalespersonVO::getSalespersonName));
     }
 }

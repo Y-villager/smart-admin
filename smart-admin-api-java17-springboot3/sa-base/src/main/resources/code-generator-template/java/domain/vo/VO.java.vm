@@ -15,7 +15,6 @@ $importClass
  */
 
 @Data
-@Builder
 public class ${name.upperCamel}VO {
 
 #foreach ($field in $fields)

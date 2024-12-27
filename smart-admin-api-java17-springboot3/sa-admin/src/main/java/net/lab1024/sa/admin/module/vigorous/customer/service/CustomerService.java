@@ -36,8 +36,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -73,6 +72,7 @@ public class CustomerService {
         if (ids.size() == 1){
             queryForm.setCustomerId(ids.get(0));
         }
+
         List<CustomerVO> list = customerDao.queryPage(page, queryForm);
         PageResult<CustomerVO> pageResult = SmartPageUtil.convert2PageResult(page, list);
         return pageResult;
@@ -352,5 +352,22 @@ public class CustomerService {
 
     public CustomerEntity queryById(Long customerId) {
         return customerDao.selectById(customerId);
+    }
+
+    /**
+     * 批量查询
+     * @param customerNames
+     * @return
+     */
+    public Collection<CustomerVO> queryByCustomerNames(Set<String> customerNames) {
+        return customerDao.queryByCustomerNames(customerNames);
+    }
+
+    public Map<Long, String> getCustomerNamesByIds(Set<Long> customerIds) {
+        if (customerIds==null || customerIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        return customerDao.getCustomerNamesByIds(customerIds).stream()
+                .collect(Collectors.toMap(CustomerVO::getCustomerId, CustomerVO::getCustomerName));
     }
 }

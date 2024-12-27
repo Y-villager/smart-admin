@@ -69,4 +69,23 @@
         where v_salesperson.id = #{salespersonId}
     </select>
 
+    <select id="getSalespersonsByNames" resultType="net.lab1024.sa.admin.module.vigorous.salesperson.domain.vo.SalespersonVO">
+        select id, salesperson_name
+        from v_salesperson
+        where salesperson_name in
+        <foreach collection="salespersonNames" item="name" open="(" close=")" separator=",">
+            #{name}
+        </foreach>
+    </select>
+
+
+    <select id="getSalespersonNamesByIds" resultType="net.lab1024.sa.admin.module.vigorous.salesperson.domain.vo.SalespersonVO">
+        select id, salesperson_name
+        from v_salesperson
+        where id in
+        <foreach collection="salespersonIds" index="index" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </select>
+
 </mapper>

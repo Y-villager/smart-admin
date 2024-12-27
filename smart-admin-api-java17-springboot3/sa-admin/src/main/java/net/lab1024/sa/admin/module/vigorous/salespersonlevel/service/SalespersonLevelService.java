@@ -174,4 +174,22 @@ public class SalespersonLevelService {
                 .collect(Collectors.toList());
 
     }
+
+    /**
+     * 获取所有业务员
+     * @return
+     */
+    public List<SalespersonLevelVO> getAll() {
+        return salespersonLevelDao.getAll();
+    }
+
+    public String getSalespersonLevelNameById(String salespersonLevelId) {
+        SalespersonLevelEntity salespersonLevel = salespersonLevelDao.selectById(salespersonLevelId);
+        if (salespersonLevel == null) {
+            return null;
+        }
+        return salespersonLevel.getSalespersonLevelName();
+
+
+    }
 }

@@ -32,8 +32,11 @@
                 AND INSTR(v_sales_outbound.bill_no,#{queryForm.billNo})
             </if>
             <!--出库日期-->
-            <if test="queryForm.salesBoundDate != null and queryForm.salesBoundDate != '' ">
-                AND v_sales_outbound.sales_bound_date = #{queryForm.salesBoundDate}
+            <if test="queryForm.salesBoundDateBegin != null ">
+                AND DATE_FORMAT(v_sales_outbound.sales_bound_date, '%Y-%m-%d') &gt;= #{queryForm.salesBoundDateBegin}
+            </if>
+            <if test="queryForm.salesBoundDateEnd != null ">
+                AND DATE_FORMAT(v_sales_outbound.sales_bound_date, '%Y-%m-%d') &lt;= #{queryForm.salesBoundDateEnd}
             </if>
         </where>
     </select>
@@ -52,6 +55,16 @@
         where customer_id = #{customerId}
         order by sales_bound_date ASC
         limit 1
+    </select>
+
+    <select id="queryByBillNos"
+            resultType="net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.entity.SalesOutboundEntity">
+        SELECT <include refid="base_columns"/>
+            FROM v_sales_outbound
+        WHERE bill_no IN
+        <foreach collection="billNos" item="billNo" open="(" close=")" separator=",">
+            #{billNo}
+        </foreach>
     </select>
 
 

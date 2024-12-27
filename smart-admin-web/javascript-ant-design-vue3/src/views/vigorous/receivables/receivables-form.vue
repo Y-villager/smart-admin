@@ -1,13 +1,13 @@
 <!--
-  * 顾客
+  * 应收单
   *
   * @Author:    yxz
-  * @Date:      2024-12-12 14:51:07
-  * @Copyright  (c)2024 yxz
+  * @Date:      2024-12-12 14:46:31
+  * @Copyright  yxz
 -->
 <template>
   <a-drawer
-      :title="form.customerId ? '编辑' : '添加'"
+      :title="form.receivablesId ? '编辑' : '添加'"
       :width="500"
       :open="visibleFlag"
       @close="onClose"
@@ -15,26 +15,26 @@
       :destroyOnClose="true"
   >
     <a-form ref="formRef" :model="form" :rules="rules" :label-col="{ span: 5 }" >
-        <a-form-item label="客户名称"  name="customerName">
-          <a-input style="width: 100%" v-model:value="form.customerName" placeholder="客户名称" />
+        <a-form-item label="应收表-单据编号"  name="billNo">
+          <a-input style="width: 100%" v-model:value="form.billNo" placeholder="应收表-单据编号" />
         </a-form-item>
-        <a-form-item label="简称"  name="shortName">
-          <a-input style="width: 100%" v-model:value="form.shortName" placeholder="简称" />
+        <a-form-item label="应收日期"  name="receivablesDate">
+          <a-date-picker valueFormat="YYYY-MM-DD" v-model:value="form.receivablesDate" style="width: 100%" placeholder="应收日期"/>
         </a-form-item>
-        <a-form-item label="国家"  name="country">
-          <a-input style="width: 100%" v-model:value="form.country" placeholder="国家" />
+        <a-form-item label="业务员编号"  name="salespersonId">
+          <a-input style="width: 100%" v-model:value="form.salespersonId" placeholder="业务员编号" />
         </a-form-item>
-        <a-form-item label="客户分组"  name="customerGroup">
-          <a-input style="width: 100%" v-model:value="form.customerGroup" placeholder="客户分组" />
+        <a-form-item label="客户编号"  name="customerId">
+          <a-input style="width: 100%" v-model:value="form.customerId" placeholder="客户编号" />
         </a-form-item>
-        <a-form-item label="客户类别"  name="customerCategory">
-          <a-input style="width: 100%" v-model:value="form.customerCategory" placeholder="客户类别" />
+        <a-form-item label="单据类型"  name="receivablesType">
+          <a-input style="width: 100%" v-model:value="form.receivablesType" placeholder="单据类型" />
         </a-form-item>
-        <a-form-item label="业务员编码"  name="salespersonId">
-          <a-input style="width: 100%" v-model:value="form.salespersonId" placeholder="客户类别" />
+        <a-form-item label="税收合计"  name="amount">
+          <a-input-number style="width: 100%" v-model:value="form.amount" placeholder="税收合计" />
         </a-form-item>
-        <a-form-item label="客户编码"  name="customerCode">
-          <a-input style="width: 100%" v-model:value="form.customerCode" placeholder="客户编码" />
+        <a-form-item label="币种"  name="currencyType">
+          <DictSelect width="100%" v-model:value="form.currencyType" keyCode="CURRENCY_TYPE" placeholder="币种"/>
         </a-form-item>
     </a-form>
 
@@ -51,11 +51,9 @@
   import _ from 'lodash';
   import { message } from 'ant-design-vue';
   import { SmartLoading } from '/@/components/framework/smart-loading';
-  import { customerApi } from '/@/api/vigorous/customer-api';
+  import { receivablesApi } from '/@/api/vigorous/receivables-api';
   import { smartSentry } from '/@/lib/smart-sentry';
-  // ------------------------ 数据 ------------------------
-  const salespersons = []
-  const loading = ref(false)
+  import DictSelect from '/@/components/support/dict-select/index.vue';
 
   // ------------------------ 事件 ------------------------
 
@@ -91,20 +89,23 @@
   const formRef = ref();
 
   const formDefault = {
-      customerName: undefined, //客户名称
-      shortName: undefined, //简称
-      country: undefined, //国家
-      customerGroup: undefined, //客户分组
-      customerCategory: undefined, //客户类别
-      salespersonId: undefined, //业务员编码
-      customerCode: undefined, //客户编码
+      billNo: undefined, //应收表-单据编号
+      receivablesDate: undefined, //应收日期
+      salespersonId: undefined, //业务员编号
+      customerId: undefined, //客户编号
+      receivablesType: undefined, //单据类型
+      amount: undefined, //税收合计
+      currencyType: undefined, //币种
   };
 
   let form = reactive({ ...formDefault });
 
   const rules = {
-      customerName: [{ required: true, message: '客户名称 必填' }],
-      customerCode: [{ required: true, message: '客户编码 必填' }],
+      billNo: [{ required: true, message: '应收表-单据编号 必填' }],
+      receivablesDate: [{ required: true, message: '应收日期 必填' }],
+      salespersonId: [{ required: true, message: '业务员编号 必填' }],
+      customerId: [{ required: true, message: '客户编号 必填' }],
+      currencyType: [{ required: true, message: '币种 必填' }],
   };
 
   // 点击确定，验证表单
@@ -121,10 +122,10 @@
   async function save() {
     SmartLoading.show();
     try {
-      if (form.customerId) {
-        await customerApi.update(form);
+      if (form.receivablesId) {
+        await receivablesApi.update(form);
       } else {
-        await customerApi.add(form);
+        await receivablesApi.add(form);
       }
       message.success('操作成功');
       emits('reloadList');

@@ -37,6 +37,12 @@ public class SalespersonLevelController {
     @Resource
     private SalespersonLevelService salespersonLevelService;
 
+    @Operation(summary = "获取所有业务员")
+    @PostMapping("/salespersonLevel/getAll")
+    public ResponseDTO<List<SalespersonLevelVO>> getAll(HttpServletResponse response) {
+        return ResponseDTO.ok(salespersonLevelService.getAll());
+    }
+
     @Operation(summary = "分页查询 @author yxz")
     @PostMapping("/salespersonLevel/queryPage")
     @SaCheckPermission("salespersonLevel:query")

@@ -46,7 +46,7 @@
         </a-form-item>
         <a-form-item>
           <a-checkbox v-model:checked="rememberPwd">记住密码</a-checkbox>
-          <span> ( 账号：admin, 密码：123456)</span>
+          <span></span>
         </a-form-item>
         <a-form-item>
           <div class="btn" @click="onLogin">登录</div>

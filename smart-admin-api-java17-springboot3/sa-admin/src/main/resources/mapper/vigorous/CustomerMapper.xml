@@ -10,33 +10,54 @@
         v_customer.country,
         v_customer.customer_group,
         v_customer.customer_category,
-        v_customer.salesperson_id,
-        v_customer.customer_code,
-        v_customer.first_order_id
+        v_customer.customer_code
+    </sql>
+
+    <sql id="first_order_columns">
+        v_first_order.first_order_id,
+        v_first_order.bill_no,
+        v_first_order.order_date
+    </sql>
+
+    <sql id="salesperson_columns">
+        v_salesperson.id,
+        v_salesperson.salesperson_code,
+        v_salesperson.salesperson_name
     </sql>
 
     <resultMap id="customerResultMap" type="net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerVO">
         <id property="customerId" column="customer_id"/>
         <result property="customerName" column="customer_name"/>
+        <result property="customerCode" column="customer_code"/>
         <result property="shortName" column="short_name"/>
         <result property="country" column="country"/>
         <result property="customerCategory" column="customer_category"/>
         <result property="customerGroup" column="customer_group"/>
-        <association property="firstOrder" javaType="net.lab1024.sa.admin.module.vigorous.firstorder.domain.entity.FirstOrderEntity"/>
-<!--            <id property="firstOrderId" column="first_order_id"/>-->
-<!--            <result property="orderDate" column="order_date"/>-->
-<!--            <result property="billNo" column="bill_no"/>-->
-<!--            <result property="salespersonId" column="salesperson_id"/>-->
-<!--            <result property="customerId" column="customerId"/>-->
-<!--        </association>-->
+
+        <association property="firstOrder" column="first_order_id" javaType="net.lab1024.sa.admin.module.vigorous.firstorder.domain.vo.FirstOrderVO">
+            <id property="firstOrderId" column="first_order_id"/>
+            <result property="billNo" column="bill_no"/>
+            <result property="orderDate" column="order_date"/>
+        </association>
+        <association property="salesperson" column="id" javaType="net.lab1024.sa.admin.module.vigorous.salesperson.domain.vo.SalespersonVO">
+            <id property="id" column="id"/>
+            <result property="salespersonCode" column="salesperson_code"/>
+            <result property="salespersonName" column="salesperson_name"/>
+        </association>
+
 
     </resultMap>
 
     <!-- 分页查询 -->
-    <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerVO">
+<!--    <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerVO">-->
+    <select id="queryPage" resultMap="customerResultMap">
         SELECT
-        <include refid="base_columns"/>
-        FROM v_customer
+        <include refid="base_columns"/>,
+            <include refid="first_order_columns"/>,
+            <include refid="salesperson_columns"/>
+        FROM   v_customer
+            left JOIN  v_first_order ON v_customer.first_order_id = v_first_order.first_order_id
+            left join v_salesperson ON v_customer.salesperson_id = v_salesperson.id
         <where>
             <!--顾客名称-->
             <if test="queryForm.customerName != null and queryForm.customerName != ''">
@@ -85,6 +106,27 @@
         LEFT JOIN v_salesperson s ON v_customer.salesperson_id = s.id
         WHERE
         v_customer.first_order_id IS NULL
+    </select>
+
+    <select id="queryByCustomerNames"
+            resultType="net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerVO">
+        select
+            <include refid="base_columns"/>
+        from v_customer
+        where customer_name in
+        <foreach collection="customerNames" item="name" open="(" close=")" separator=",">
+            #{name}
+        </foreach>
+
+    </select>
+    
+    <select id="getCustomerNamesByIds" resultType="net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerVO">
+        select customer_id, customer_name
+        from v_customer
+        where customer_id in
+        <foreach collection="customerIds" index="index" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
     </select>
 
     <update id="updateFirstOrderIdsBatch">
