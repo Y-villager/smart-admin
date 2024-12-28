@@ -235,8 +235,10 @@ public class SalespersonService {
         return salespersonDao.selectById(salespersonId);
     }
 
-    public Collection<SalespersonVO> getSalespersonsByNames(Set<String> salespersonNames) {
-        return salespersonDao.getSalespersonsByNames(salespersonNames);
+    public Map<String, Long> getSalespersonsByNames(Set<String> salespersonNames) {
+        return salespersonDao.getSalespersonsByNames(salespersonNames)
+                .stream().filter(Objects::nonNull)
+                .collect(Collectors.toMap(SalespersonVO::getSalespersonName, SalespersonVO::getId));
     }
 
 

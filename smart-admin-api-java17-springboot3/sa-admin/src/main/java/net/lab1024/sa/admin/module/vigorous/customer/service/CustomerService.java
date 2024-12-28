@@ -359,8 +359,10 @@ public class CustomerService {
      * @param customerNames
      * @return
      */
-    public Collection<CustomerVO> queryByCustomerNames(Set<String> customerNames) {
-        return customerDao.queryByCustomerNames(customerNames);
+    public Map<String, Long>  queryByCustomerNames(Set<String> customerNames) {
+        return customerDao.queryByCustomerNames(customerNames)
+                .stream().filter(Objects::nonNull)
+                .collect(Collectors.toMap(CustomerVO::getCustomerName, CustomerVO::getCustomerId));
     }
 
     public Map<Long, String> getCustomerNamesByIds(Set<Long> customerIds) {

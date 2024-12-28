@@ -13,7 +13,7 @@
               <SalespersonLevelSelect width="200px" v-model:value="queryForm.salespersonLevelId" keyCode="SALESPERSON_LEVEL"  placeholder="业务员级别名称"/>
             </a-form-item>
             <a-form-item label="币种" class="smart-query-form-item">
-              <DictSelect width="200px" v-model:aria-valuemax="queryForm.currencuType" keyCode="CURRENCY_TYPE" placheolder="币种"/>
+              <DictSelect width="200px" v-model:aria-valuemax="queryForm.currencyType" keyCode="CURRENCY_TYPE" placheolder="币种"/>
             </a-form-item>
             <a-form-item class="smart-query-form-item">
                 <a-button type="primary" @click="onSearch">
@@ -194,7 +194,7 @@
 
     const queryFormState = {
         salespersonLevelId: undefined, //业务员级别名称
-        currencuType: undefined, //币种
+        currencyType: undefined, //币种
         pageNum: 1,
         pageSize: 10,
     };

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.lab1024.sa.admin.module.vigorous.receivables.dao.ReceivablesDao">
+
+    <!-- 查询结果列 -->
+    <sql id="base_columns">
+        v_receivables.receivables_id,
+        v_receivables.bill_no,
+        v_receivables.receivables_date,
+        v_receivables.salesperson_id,
+        v_receivables.customer_id,
+        v_receivables.origin_bill_no,
+        v_receivables.amount,
+        v_receivables.rate,
+        v_receivables.currency_type
+    </sql>
+
+<!--    <update id="updateReceivablesByBillNo">-->
+<!--        <foreach collection="list" item="item" separator=";">-->
+<!--            UPDATE v_receivables-->
+<!--            SET-->
+<!--            receivables_date = #{item.receivablesDate},-->
+<!--            salesperson_id = #{item.salespersonId},-->
+<!--            customer_id = #{item.customerId},-->
+<!--            origin_bill_no = #{item.originBillNo},-->
+<!--            amount = #{item.amount},-->
+<!--            rate = #{item.rate},-->
+<!--            currency_type = #{item.currencyType}-->
+<!--            WHERE bill_no = #{item.billNo}-->
+<!--        </foreach>-->
+<!--    </update>-->
+    <update id="updateReceivablesByBillNo">
+        <foreach collection="list" item="item" separator=";">
+            UPDATE v_receivables
+            SET
+            <trim prefix="" suffix="" suffixOverrides=",">
+                <if test="item.receivablesDate != null">
+                    receivables_date = #{item.receivablesDate},
+                </if>
+                <if test="item.salespersonId != null">
+                    salesperson_id = #{item.salespersonId},
+                </if>
+                <if test="item.customerId != null">
+                    customer_id = #{item.customerId},
+                </if>
+                <if test="item.originBillNo != null">
+                    origin_bill_no = #{item.originBillNo},
+                </if>
+                <if test="item.amount != null">
+                    amount = #{item.amount},
+                </if>
+                <if test="item.rate != null">
+                    rate = #{item.rate},
+                </if>
+                <if test="item.currencyType != null">
+                    currency_type = #{item.currencyType},
+                </if>
+            </trim>
+            WHERE bill_no = #{item.billNo}
+        </foreach>
+    </update>
+
+
+    <!-- 分页查询 -->
+    <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.receivables.domain.vo.ReceivablesVO">
+        SELECT
+        <include refid="base_columns"/>
+        FROM v_receivables
+        <where>
+            <!--客户名称-->
+            <if test="queryForm.customerName != null and queryForm.customerName != ''">
+                        AND INSTR(v_receivables.customer_id,#{queryForm.customerName})
+            </if>
+            <!--销售员名称-->
+            <if test="queryForm.salespersonName != null and queryForm.salespersonName != ''">
+                        AND INSTR(v_receivables.salesperson_id,#{queryForm.salespersonName})
+            </if>
+            <!--币种-->
+            <if test="queryForm.currencyType != null">
+                AND v_receivables.currency_type = #{queryForm.currencyType}
+            </if>
+            <!--收款日期-->
+            <if test="queryForm.receivablesDateBegin != null">
+                AND v_receivables.receivables_date &gt;= #{queryForm.receivablesDateBegin}
+            </if>
+            <if test="queryForm.receivablesDateEnd != null">
+                AND v_receivables.receivables_date &lt;= #{queryForm.receivablesDateEnd}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryByBillNos"
+            resultType="net.lab1024.sa.admin.module.vigorous.receivables.domain.vo.ReceivablesVO">
+        select <include refid="base_columns"/>
+            from v_receivables
+        where
+            bill_no in
+        <foreach collection="billNos" index="index" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </select>
+
+
+</mapper>

@@ -20,6 +20,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 字典 服务
@@ -193,4 +195,13 @@ public class DictService {
     }
 
 
+    public Map<String, String> keyQuery(String currencyType) {
+        DictKeyEntity dictKeyEntity = dictKeyDao.selectByCode(currencyType, false);
+        if (dictKeyEntity == null) {
+            return null;
+        }
+        List<DictValueEntity> dictValueEntities = dictValueDao.selectByDeletedFlagAndKeyId(dictKeyEntity.getDictKeyId(), false);
+        return dictValueEntities.stream().collect(Collectors.toMap(DictValueEntity::getValueName, DictValueEntity::getValueCode));
+
+    }
 }

@@ -3,7 +3,6 @@ package net.lab1024.sa.admin.module.vigorous.sales.outbound.service;
 import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
-import net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerVO;
 import net.lab1024.sa.admin.module.vigorous.customer.service.CustomerService;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.dao.SalesOutboundDao;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.entity.SalesOutboundEntity;
@@ -13,8 +12,8 @@ import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutb
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutboundUpdateForm;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundExcelVO;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO;
-import net.lab1024.sa.admin.module.vigorous.salesperson.domain.vo.SalespersonVO;
 import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
+import net.lab1024.sa.admin.util.ExcelUtils;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
 import net.lab1024.sa.base.common.exception.BusinessException;
@@ -182,19 +181,15 @@ public class SalesOutboundService {
 
         // 批量查询销售出库单据
         List<SalesOutboundEntity> salesOutboundList = salesOutboundDao.queryByBillNos(billNos);
-        Map<String, SalesOutboundEntity> salesOutboundMap = salesOutboundList
+        Map<String, Long> salesOutboundMap = salesOutboundList
                 .stream().filter(Objects::nonNull)
-                .collect(Collectors.toMap(SalesOutboundEntity::getBillNo, entity -> entity));
+                .collect(Collectors.toMap(SalesOutboundEntity::getBillNo, SalesOutboundEntity::getSalesBoundId));
 
         // 批量查询业务员
-        Map<String, Long> salespersonMap = salespersonService.getSalespersonsByNames(salespersonNames)
-                .stream().filter(Objects::nonNull)
-                .collect(Collectors.toMap(SalespersonVO::getSalespersonName, SalespersonVO::getId));
+        Map<String, Long> salespersonMap = salespersonService.getSalespersonsByNames(salespersonNames);
 
         // 批量查询客户
-        Map<String, Long> customerMap = customerService.queryByCustomerNames(customerNames)
-                .stream().filter(Objects::nonNull)
-                .collect(Collectors.toMap(CustomerVO::getCustomerName, CustomerVO::getCustomerId));
+        Map<String, Long> customerMap = customerService.queryByCustomerNames(customerNames);
 
         List<SalesOutboundEntity> entityList = dataList.parallelStream()
                 .map(form -> convertToEntity(form, salesOutboundMap, salespersonMap, customerMap, failedDataList))
@@ -206,7 +201,7 @@ public class SalesOutboundService {
 
         if (!failedDataList.isEmpty()) {
             // 创建并保存失败的数据文件
-            File failedFile = saveFailedDataToExcel(failedDataList);
+            File file1 = ExcelUtils.saveFailedDataToExcel(failedDataList, SalesOutboundImportForm.class);
         }
 
         if (insert.isEmpty()){
@@ -216,7 +211,7 @@ public class SalesOutboundService {
 
     }
     private SalesOutboundEntity convertToEntity(SalesOutboundImportForm form,
-                                                Map<String, SalesOutboundEntity> salesOutboundMap,
+                                                Map<String, Long> salesOutboundMap,
                                                 Map<String, Long> salespersonMap,
                                                 Map<String, Long> customerMap,
                                                 List<SalesOutboundImportForm> failedDataList) {
