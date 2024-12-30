@@ -1,6 +1,6 @@
 package
 
-        net.lab1024.sa.admin.module.vigorous.commission.domain.entity;
+        net.lab1024.sa.admin.module.vigorous.commission.rule.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;

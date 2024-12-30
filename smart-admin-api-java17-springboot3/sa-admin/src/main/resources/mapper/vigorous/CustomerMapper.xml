@@ -45,7 +45,6 @@
             <result property="salespersonName" column="salesperson_name"/>
         </association>
 
-
     </resultMap>
 
     <!-- 分页查询 -->

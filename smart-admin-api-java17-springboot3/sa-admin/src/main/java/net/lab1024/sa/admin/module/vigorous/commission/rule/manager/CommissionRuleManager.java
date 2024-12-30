@@ -1,7 +1,7 @@
-package net.lab1024.sa.admin.module.vigorous.commission.manager;
+package net.lab1024.sa.admin.module.vigorous.commission.rule.manager;
 
-import net.lab1024.sa.admin.module.vigorous.commission.domain.entity.CommissionRuleEntity;
-import net.lab1024.sa.admin.module.vigorous.commission.dao.CommissionRuleDao;
+import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.entity.CommissionRuleEntity;
+import net.lab1024.sa.admin.module.vigorous.commission.rule.dao.CommissionRuleDao;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;

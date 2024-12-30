@@ -12,6 +12,7 @@ import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutb
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutboundUpdateForm;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundExcelVO;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO;
+import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO2;
 import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
 import net.lab1024.sa.admin.util.ExcelUtils;
 import net.lab1024.sa.base.common.domain.PageResult;
@@ -67,38 +68,12 @@ public class SalesOutboundService {
      * @param queryForm
      * @return
      */
-    public PageResult<SalesOutboundVO> queryPage(SalesOutboundQueryForm queryForm) {
+    public PageResult<SalesOutboundVO2> queryPage(SalesOutboundQueryForm queryForm) {
         Page<?> page = SmartPageUtil.convert2PageQuery(queryForm);
 
-        if (queryForm.getCustomerName() != null && !queryForm.getCustomerName().isEmpty()) {
-            queryForm.setCustomerId(customerService.getCustomerIdByCustomerName(queryForm.getCustomerName()));
-        }
-        if (queryForm.getSalespersonName() != null && !queryForm.getSalespersonName().isEmpty()) {
-            queryForm.setSalespersonId(salespersonService.getIdBySalespersonName(queryForm.getSalespersonName()));
-        }
+        List<SalesOutboundVO2> list = salesOutboundDao.queryPage2(page, queryForm);
 
-        List<SalesOutboundVO> list = salesOutboundDao.queryPage(page, queryForm);
-
-        // 获取所有需要的业务员和客户信息
-        Set<Long> salespersonIds = list.stream()
-                .map(SalesOutboundVO::getSalespersonId)
-                .collect(Collectors.toSet());
-        Set<Long> customerIds = list.stream()
-                .map(SalesOutboundVO::getCustomerId)
-                .collect(Collectors.toSet());
-
-        Map<Long, String> salespersonNames = salespersonService.getSalespersonNamesByIds(salespersonIds);
-        Map<Long, String> customerNames = customerService.getCustomerNamesByIds(customerIds);
-
-
-        // 填充业务员和客户名称
-        list.forEach(e -> {
-            e.setSalespersonName(salespersonNames.get(e.getSalespersonId()));
-            e.setCustomerName(customerNames.get(e.getCustomerId()));
-        });
-
-        PageResult<SalesOutboundVO> pageResult = SmartPageUtil.convert2PageResult(page, list);
-        return pageResult;
+        return SmartPageUtil.convert2PageResult(page, list);
     }
 
 
@@ -271,15 +246,16 @@ public class SalesOutboundService {
     /**
      * 导出
      */
-    public List<SalesOutboundExcelVO> getAllSalesOutbound() {
-        List<SalesOutboundEntity> entityList = salesOutboundDao.selectList(null);
+    public List<SalesOutboundExcelVO> getExportList(SalesOutboundQueryForm queryForm) {
+//        List<SalesOutboundEntity> entityList = salesOutboundDao.selectList(null);
+        List<SalesOutboundVO> entityList = salesOutboundDao.queryPage(null,queryForm);
 
         // 获取所有销售员ID和客户ID
         Set<Long> salespersonIds = entityList.stream()
-                .map(SalesOutboundEntity::getSalespersonId)
+                .map(SalesOutboundVO::getSalespersonId)
                 .collect(Collectors.toSet());
         Set<Long> customerIds = entityList.stream()
-                .map(SalesOutboundEntity::getCustomerId)
+                .map(SalesOutboundVO::getCustomerId)
                 .collect(Collectors.toSet());
 
         // id->name 集合
@@ -336,5 +312,39 @@ public class SalesOutboundService {
      */
     public SalesOutboundVO queryFirstOrderOfCustomer(Long customerId) {
         return salesOutboundDao.queryFirstOrderOfCustomer(customerId);
+    }
+
+    public PageResult<SalesOutboundVO> queryPageWithReceivables(SalesOutboundQueryForm queryForm) {
+        Page<?> page = SmartPageUtil.convert2PageQuery(queryForm);
+
+//        if (queryForm.getCustomerName() != null && !queryForm.getCustomerName().isEmpty()) {
+//            queryForm.setCustomerId(customerService.getCustomerIdByCustomerName(queryForm.getCustomerName()));
+//        }
+//        if (queryForm.getSalespersonName() != null && !queryForm.getSalespersonName().isEmpty()) {
+//            queryForm.setSalespersonId(salespersonService.getIdBySalespersonName(queryForm.getSalespersonName()));
+//        }
+
+        List<SalesOutboundVO> list = salesOutboundDao.queryPageWithReceivables(page, queryForm);
+
+        // 获取所有需要的业务员和客户信息
+        Set<Long> salespersonIds = list.stream()
+                .map(SalesOutboundVO::getSalespersonId)
+                .collect(Collectors.toSet());
+        Set<Long> customerIds = list.stream()
+                .map(SalesOutboundVO::getCustomerId)
+                .collect(Collectors.toSet());
+
+        Map<Long, String> salespersonNames = salespersonService.getSalespersonNamesByIds(salespersonIds);
+        Map<Long, String> customerNames = customerService.getCustomerNamesByIds(customerIds);
+
+
+        // 填充业务员和客户名称
+        list.forEach(e -> {
+            e.setSalespersonName(salespersonNames.get(e.getSalespersonId()));
+            e.setCustomerName(customerNames.get(e.getCustomerId()));
+        });
+
+        PageResult<SalesOutboundVO> pageResult = SmartPageUtil.convert2PageResult(page, list);
+        return pageResult;
     }
 }

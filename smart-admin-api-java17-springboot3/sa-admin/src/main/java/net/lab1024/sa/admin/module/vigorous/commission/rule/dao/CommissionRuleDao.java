@@ -1,9 +1,9 @@
-package net.lab1024.sa.admin.module.vigorous.commission.dao;
+package net.lab1024.sa.admin.module.vigorous.commission.rule.dao;
 
 import java.util.List;
-import net.lab1024.sa.admin.module.vigorous.commission.domain.entity.CommissionRuleEntity;
-import net.lab1024.sa.admin.module.vigorous.commission.domain.form.CommissionRuleQueryForm;
-import net.lab1024.sa.admin.module.vigorous.commission.domain.vo.CommissionRuleVO;
+import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.entity.CommissionRuleEntity;
+import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.form.CommissionRuleQueryForm;
+import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.vo.CommissionRuleVO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.ibatis.annotations.Mapper;

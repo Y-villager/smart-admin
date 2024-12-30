@@ -1,4 +1,4 @@
-package net.lab1024.sa.admin.module.vigorous.commission.domain.form;
+package net.lab1024.sa.admin.module.vigorous.commission.rule.domain.form;
 
 import net.lab1024.sa.base.common.domain.PageParam;
 import io.swagger.v3.oas.annotations.media.Schema;

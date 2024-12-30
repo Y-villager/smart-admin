@@ -102,6 +102,21 @@
                   {{ text && text.length > 0 ? text.map((e) => e.valueName).join(',') : '暂无' }}
                 </a-tag>
               </template> -->
+              <template v-if="column.dataIndex==='salesperson'">
+                {{ text !=null ? text.salespersonName : '' }}
+              </template>
+              <template v-if="column.dataIndex==='customer'">
+                {{ text !=null ? text.customerName : '' }}
+              </template>
+              <template v-if="column.dataIndex==='receivables'">
+                {{ text !=null ? text.billNo : '' }}
+              </template>
+<!--              <template v-if="column.dataIndex==='receivables.currency'">-->
+<!--                {{ text !=null ? text.currency_type : '' }}-->
+<!--              </template>-->
+<!--              <template v-if="column.dataIndex==='receivables.rate'">-->
+<!--                {{ text !=null ? text.rate : '' }}-->
+<!--              </template>-->
 
                 <template v-if="column.dataIndex === 'action'">
                     <div class="smart-table-operate">
@@ -191,14 +206,20 @@
         },
         {
             title: '客户',
-            dataIndex: 'customerName',
+            dataIndex: 'customer',
             ellipsis: true,
         },
         {
             title: '业务员',
-            dataIndex: 'salespersonName',
+            dataIndex: 'salesperson',
             ellipsis: true,
         },
+        {
+          title: '应收单单据号',
+          dataIndex: 'receivables',
+          ellipsis: true,
+        },
+
         {
             title: '金额',
             dataIndex: 'amount',
@@ -390,7 +411,7 @@ async function onImportSalesOutbound() {
 // 导出excel文件
 async function onExportSalesOutbound() {
   exportDisabled.value = true
-  let res = await salesOutboundApi.exportSalesOutbound();
+  let res = await salesOutboundApi.exportSalesOutbound(queryForm);
 
   exportDisabled.value = false
 }

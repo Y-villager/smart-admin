@@ -1,14 +1,14 @@
-package net.lab1024.sa.admin.module.vigorous.commission.service;
+package net.lab1024.sa.admin.module.vigorous.commission.rule.service;
 
 import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
-import net.lab1024.sa.admin.module.vigorous.commission.dao.CommissionRuleDao;
-import net.lab1024.sa.admin.module.vigorous.commission.domain.entity.CommissionRuleEntity;
-import net.lab1024.sa.admin.module.vigorous.commission.domain.form.CommissionRuleAddForm;
-import net.lab1024.sa.admin.module.vigorous.commission.domain.form.CommissionRuleQueryForm;
-import net.lab1024.sa.admin.module.vigorous.commission.domain.form.CommissionRuleUpdateForm;
-import net.lab1024.sa.admin.module.vigorous.commission.domain.vo.CommissionRuleVO;
+import net.lab1024.sa.admin.module.vigorous.commission.rule.dao.CommissionRuleDao;
+import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.entity.CommissionRuleEntity;
+import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.form.CommissionRuleAddForm;
+import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.form.CommissionRuleQueryForm;
+import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.form.CommissionRuleUpdateForm;
+import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.vo.CommissionRuleVO;
 import net.lab1024.sa.admin.module.vigorous.salespersonlevel.service.SalespersonLevelService;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;

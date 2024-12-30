@@ -1,4 +1,4 @@
-package net.lab1024.sa.admin.module.vigorous.commission.controller;
+package net.lab1024.sa.admin.module.vigorous.commission.rule.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import io.swagger.v3.oas.annotations.Operation;
@@ -6,11 +6,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import net.lab1024.sa.admin.module.vigorous.commission.domain.form.CommissionRuleAddForm;
-import net.lab1024.sa.admin.module.vigorous.commission.domain.form.CommissionRuleQueryForm;
-import net.lab1024.sa.admin.module.vigorous.commission.domain.form.CommissionRuleUpdateForm;
-import net.lab1024.sa.admin.module.vigorous.commission.domain.vo.CommissionRuleVO;
-import net.lab1024.sa.admin.module.vigorous.commission.service.CommissionRuleService;
+import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.form.CommissionRuleAddForm;
+import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.form.CommissionRuleQueryForm;
+import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.form.CommissionRuleUpdateForm;
+import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.vo.CommissionRuleVO;
+import net.lab1024.sa.admin.module.vigorous.commission.rule.service.CommissionRuleService;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
 import net.lab1024.sa.base.common.domain.ValidateList;

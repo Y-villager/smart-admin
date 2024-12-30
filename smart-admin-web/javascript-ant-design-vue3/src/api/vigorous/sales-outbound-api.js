@@ -51,8 +51,8 @@ export const salesOutboundApi = {
     },
 
     // 导出
-    exportSalesOutbound : () =>{
-        return getDownload('/salesOutbound/export');
+    exportSalesOutbound : (param) =>{
+        return postRequest('/salesOutbound/export', param);
     }
 
 };
