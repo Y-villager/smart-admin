@@ -131,10 +131,10 @@
 
           <!-- 绑定 radio 按钮 -->
           <label>
-            <input type="radio" v-model="importMode" value="0"> 追加
+            <input type="radio" v-model="importMode" value="1"> 追加
           </label>
           <label>
-            <input type="radio" v-model="importMode" value="1"> 覆盖
+            <input type="radio" v-model="importMode" value="0"> 覆盖
           </label>
         </div>
         <br>
@@ -158,6 +158,8 @@
           <ImportOutlined />
           开始导入
         </a-button>
+        <br>
+        <a-button type="text" @click="downloadFailedData">下载失败数据</a-button>
       </div>
     </a-modal>
 
@@ -176,6 +178,7 @@ import SmartEnumSelect from '/@/components/framework/smart-enum-select/index.vue
 import { defaultTimeRanges } from '/@/lib/default-time-ranges';
 //import FilePreview from '/@/components/support/file-preview/index.vue'; // 图片预览组件
 import DictSelect from '/@/components/support/dict-select/index.vue';
+import {receivablesApi as excelApi} from "/@/api/vigorous/excel-api.js";
 
 
 // ---------------------------- 表格列 ----------------------------
@@ -217,16 +220,17 @@ const columns = ref([
     ellipsis: true,
   },
   {
+    title: '应收比例(%)',
+    dataIndex: 'rate',
+    ellipsis: true,
+  },
+  {
     title: '操作',
     dataIndex: 'action',
     fixed: 'right',
     width: 90,
   },
-  {
-    title: '应收比例(%)',
-    dataIndex: 'rate',
-    ellipsis: true,
-  },
+
 ]);
 
 // ---------------------------- 查询数据表单和方法 ----------------------------
@@ -356,7 +360,7 @@ async function requestBatchDelete() {
     SmartLoading.show();
     await receivablesApi.batchDelete(selectedRowKeyList.value);
     message.success('删除成功');
-    queryData();
+    await queryData();
   } catch (e) {
     smartSentry.captureError(e);
   } finally {
@@ -370,6 +374,7 @@ const importModalShowFlag = ref(false);
 
 const fileList = ref([]);
 
+
 // 显示导入
 function showImportModal() {
   fileList.value = [];
@@ -380,7 +385,7 @@ function showImportModal() {
 function hideImportModal() {
   importModalShowFlag.value = false;
 }
-const importMode = ref(0)
+const importMode = ref(1)
 // 导入文件
 async function onImportReceivables() {
   const formData = new FormData();
@@ -392,6 +397,8 @@ async function onImportReceivables() {
   SmartLoading.show();
   try {
     let res = await receivablesApi.importReceivables(formData);
+    console.log(res)
+    failed_import_data.value = res.data;
     message.success(res.msg);
   } catch (e) {
     smartSentry.captureError(e);
@@ -418,5 +425,20 @@ function beforeUpload(file) {
 }
 // 下载模板
 function downloadExcel() {
+}
+
+// 下载导入失败数据
+const failed_import_data = ref();
+function downloadFailedData(){
+  if (failed_import_data.value != null){
+    console.log(failed_import_data)
+    try{
+      excelApi.downloadFailedImportData();
+    }catch (e){
+      smartSentry.captureError(e)
+    }
+  }else {
+    message.error("当前没有导入失败数据")
+  }
 }
 </script>

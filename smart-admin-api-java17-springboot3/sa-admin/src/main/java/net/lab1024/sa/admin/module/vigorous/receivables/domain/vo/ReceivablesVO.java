@@ -47,4 +47,8 @@ public class ReceivablesVO {
     @JsonSerialize(using = DictValueVoSerializer.class)
     private String currencyType;
 
+    @Schema(description = "应收比例(%)")
+    private Integer rate;
+
+
 }

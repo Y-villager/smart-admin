@@ -14,6 +14,8 @@ import net.lab1024.sa.admin.module.vigorous.receivables.domain.form.ReceivablesU
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.vo.ReceivablesVO;
 import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
 import net.lab1024.sa.admin.util.ExcelUtils;
+import net.lab1024.sa.admin.util.SplitListUtils;
+import net.lab1024.sa.base.common.code.SystemErrorCode;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
 import net.lab1024.sa.base.common.exception.BusinessException;
@@ -24,15 +26,20 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.executor.BatchResult;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static cn.dev33.satoken.SaManager.log;
@@ -62,6 +69,11 @@ public class ReceivablesService {
     private SqlSessionFactory sqlSessionFactory;
 
     private final int BATCH_SIZE = 1000;
+
+    @Value("${file.excel.failed-import.failed-data-name}")
+    private String failedDataName;
+    @Value("${file.excel.failed-import.upload-path}")
+    private String uploadPath;
 
     /**
      * 分页查询
@@ -150,35 +162,80 @@ public class ReceivablesService {
         }
 
         List<ReceivablesEntity> entityList = createImportList(dataList, failedDataList, mode);
-        int successTotal = 0;
 
         // true 为追加模式，false为按单据编号覆盖
-        if (mode){  // 覆盖
-            int total = batchUpdate(entityList);
-
-        }else { // 追加
-            List<BatchResult> insert = receivablesDao.insert(entityList);
-
-            for (BatchResult batchResult : insert) {
-                successTotal += batchResult.getParameterObjects().size();
+        int successTotal = 0;
+        try {
+            if (mode) {  // 追加
+                // 批量插入操作
+                List<BatchResult> insert = receivablesDao.insert(entityList);
+                for (BatchResult batchResult : insert) {
+                    successTotal += batchResult.getParameterObjects().size();
+                }
+            } else {  // 覆盖
+                // 执行批量更新操作
+                successTotal = doThreadUpdate(entityList);
             }
         }
+        catch (DataAccessException e) {
+            // 捕获数据库访问异常
+            return ResponseDTO.error(SystemErrorCode.SYSTEM_ERROR, "数据库操作失败，更新或插入过程中出现异常："+e.getMessage());
+        } catch (Exception e) {
+            // 捕获其他异常
+            return ResponseDTO.error(SystemErrorCode.SYSTEM_ERROR, "发生未知错误："+e.getMessage());
+        }
 
-
+        String failed_data_path=null;
         if (!failedDataList.isEmpty()) {
             // 创建并保存失败的数据文件
-            File file1 = ExcelUtils.saveFailedDataToExcel(failedDataList, ReceivablesImportForm.class);
+            failed_data_path = ExcelUtils.saveFailedDataToExcel(failedDataList, ReceivablesImportForm.class, uploadPath,failedDataName );
         }
 
         // 如果有失败的数据，导出失败记录到 Excel
-        return ResponseDTO.okMsg("总共"+dataList.size()+"条数据，成功导入" + successTotal + "条，导入失败记录有："+failedDataList.size()+"条" );
+        return ResponseDTO.okMsg("总共"+dataList.size()+"条数据，成功导入" + successTotal + "条，导入失败记录有："+failedDataList.size()+"条", failed_data_path );
 
+    }
+
+    private int doThreadUpdate(List<ReceivablesEntity> entityList) {
+//        Long startTime = System.currentTimeMillis();
+//        System.out.println("-----------开始多线程------------");
+//        System.out.println("CPU核心数："+Runtime.getRuntime().availableProcessors());
+        List<ReceivablesEntity> updateList = new ArrayList<>();
+        // 初始化线程池
+        ThreadPoolExecutor threadPool = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), 50,
+                4, TimeUnit.SECONDS, new ArrayBlockingQueue<>(10),
+                new ThreadPoolExecutor.CallerRunsPolicy());
+        // 将大集合拆分成N个小集合，使用多线程操作数据
+        List<List<ReceivablesEntity>> splitList = SplitListUtils.splitList(entityList, 1000);
+        // 记录单个任务的执行次数
+        CountDownLatch countDownLatch = new CountDownLatch(splitList.size());
+        for (List<ReceivablesEntity> subList : splitList) {
+            threadPool.execute(new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    System.out.println("当前线程："+ Thread.currentThread().getName());
+                    receivablesDao.updateReceivablesByBillNo(subList);
+                    countDownLatch.countDown();
+                }
+            }));
+        }
+        try {
+            // 让当前线程处于阻塞状态，知道锁存器计数为零
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+//        Long endTime = System.currentTimeMillis();
+//        Long costTime = endTime - startTime;
+//        System.out.println("----------------总共用时："+costTime+"毫秒");
+        return 0;
     }
 
     @Transactional
     protected int batchUpdate(List<ReceivablesEntity> entityList) {
         int total = 0;
         List<ReceivablesEntity> batchList = new ArrayList<>();  // 用于存储当前批次的记录
+
         for (int i = 0; i < entityList.size(); i++) {
             batchList.add(entityList.get(i));  // 将当前记录添加到批次列表中
 
@@ -212,9 +269,9 @@ public class ReceivablesService {
                 .stream().filter(Objects::nonNull)
                 .collect(Collectors.toMap(ReceivablesVO::getBillNo, ReceivablesVO::getReceivablesId));
 
-        // 所有客户
+        // 客户映射
         Map<String, Long> customerMap = customerService.queryByCustomerNames(customerNames);
-        // 所有业务员
+        // 业务员映射
         Map<String, Long> salespersonMap = salespersonService.getSalespersonsByNames(salespersonNames);
         // 币别映射
         Map<String, String> currencyMap = dictService.keyQuery("CURRENCY_TYPE");
@@ -246,15 +303,19 @@ public class ReceivablesService {
                                               boolean mode) {
         ReceivablesEntity entity = new ReceivablesEntity();
 
-        // 根据 mode 的值简化条件判断
-        boolean isValid = mode
-                ? receivablesMap.containsKey(form.getBillNo())
-                : !receivablesMap.containsKey(form.getBillNo());
-
-        if (!isValid) {
-            form.setErrorMsg(mode ? "系统已存在系统单据编号的数据" : "系统中不存在该单据编号");
-            failedDataList.add(form);
-            return null;
+        // 根据 mode 的值简化条件判断，true为追加
+        if (mode){
+            if (receivablesMap.containsKey(form.getBillNo())){
+                form.setErrorMsg("追加模式: 系统已存在系统单据编号的数据");
+                failedDataList.add(form);
+                return null;
+            }
+        }else {
+            if (!receivablesMap.containsKey(form.getBillNo())){
+                form.setErrorMsg("覆盖模式：系统中不存在该单据编号的数据");
+                failedDataList.add(form);
+                return null;
+            }
         }
 
         if (form.getSalespersonName()==null){

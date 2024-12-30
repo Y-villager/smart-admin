@@ -53,6 +53,8 @@ export const receivablesApi = {
     // 导出
     exportReceivables : () =>{
         return getDownload('/receivables/export');
-    }
+    },
+
+
 
 };

@@ -84,6 +84,10 @@ public class ResponseDTO<T> {
         return new ResponseDTO<>(OK_CODE, null, true, msg, null);
     }
 
+    public static <T> ResponseDTO<T> okMsg(String msg, T data) {
+        return new ResponseDTO<T>(OK_CODE, null, true, msg, data);
+    }
+
     // -------------------------------------------- 最常用的 用户参数 错误码 --------------------------------------------
 
     public static <T> ResponseDTO<T> userErrorParam() {

@@ -31,7 +31,7 @@ public class ReceivablesImportForm {
     @ExcelProperty("客户")
     private String customerName;
 
-    @ExcelProperty("价税合计")
+    @ExcelProperty("应收金额")
     private BigDecimal amount;
 
     @ExcelProperty("币别")

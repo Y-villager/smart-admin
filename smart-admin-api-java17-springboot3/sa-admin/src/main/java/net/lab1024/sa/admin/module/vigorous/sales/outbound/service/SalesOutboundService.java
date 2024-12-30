@@ -23,6 +23,7 @@ import net.lab1024.sa.base.common.util.SmartRequestUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.executor.BatchResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -54,6 +55,11 @@ public class SalesOutboundService {
     private SalespersonService salespersonService;
     @Autowired
     private CustomerService customerService;
+
+    @Value("${file.excel.failed-import.failed-data-name}")
+    private String failedDataName;
+    @Value("${file.excel.failed-import.upload-path}")
+    private String uploadPath;
 
     /**
      * 分页查询
@@ -201,7 +207,7 @@ public class SalesOutboundService {
 
         if (!failedDataList.isEmpty()) {
             // 创建并保存失败的数据文件
-            File file1 = ExcelUtils.saveFailedDataToExcel(failedDataList, SalesOutboundImportForm.class);
+            String file1 = ExcelUtils.saveFailedDataToExcel(failedDataList, SalesOutboundImportForm.class, uploadPath, failedDataName);
         }
 
         if (insert.isEmpty()){

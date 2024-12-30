@@ -1,26 +1,20 @@
 package net.lab1024.sa.admin.util;
 
 import com.alibaba.excel.EasyExcel;
-import com.alibaba.excel.annotation.ExcelProperty;
 import net.lab1024.sa.base.common.util.SmartRequestUtil;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-import java.util.ArrayList;
 import java.util.List;
 
 public class ExcelUtils {
 
-    public static File saveFailedDataToExcel(List<?> failedDataList, Class<?> tClass) {
+    public static String saveFailedDataToExcel(List<?> failedDataList, Class<?> tClass, String path, String failedDataName) {
         Long userId = SmartRequestUtil.getRequestUserId();
         // 构建文件保存路径
-        String userFolder = "D:\\Vigorous\\failedData\\" + userId + "\\";
+        String userFolder = path + userId + "\\";
         File directory = new File(userFolder);
 
         // 如果文件夹不存在，创建文件夹
@@ -29,7 +23,7 @@ public class ExcelUtils {
         }
 
         // 构建文件路径
-        File file = new File(userFolder + "failed_import_data.xlsx");
+        File file = new File(userFolder + failedDataName);
 
         // 使用 EasyExcel 保存失败的数据到 Excel 文件
         try (OutputStream os = new FileOutputStream(file)) {
@@ -40,7 +34,10 @@ public class ExcelUtils {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        if (file.exists()) {
+            return file.getAbsolutePath();
+        }
+        return null;
 
-        return file;
     }
 }
