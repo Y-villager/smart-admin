@@ -161,12 +161,18 @@
 
       <a-modal v-model:open="importModalShowFlag" title="导入" @onCancel="hideImportModal" @ok="hideImportModal">
         <div style="text-align: center; width: 400px; margin: 0 auto">
-          <a-button @click="downloadExcel">
-            <download-outlined />
-            第一步：下载模板
-          </a-button>
-          <br />
-          <br />
+          <div id="app">
+            <span>导入模式：</span>
+
+            <!-- 绑定 radio 按钮 -->
+            <label>
+              <input type="radio" v-model="importMode" value="1"/> 追加
+            </label>
+            <label>
+              <input type="radio" v-model="importMode" value="0"/> 覆盖
+            </label>
+          </div>
+          <br/>
           <a-upload
               v-model:fileList="fileList"
               name="file"
@@ -178,15 +184,17 @@
           >
             <a-button>
               <upload-outlined />
-              第二步：选择文件
+              选择文件
             </a-button>
           </a-upload>
 
           <br />
           <a-button @click="onImport${name.upperCamel}">
             <ImportOutlined />
-            第三步：开始导入
+            开始导入
           </a-button>
+          <br/>
+          <a-button type="text" @click="downloadFailedData">下载失败数据</a-button>
         </div>
       </a-modal>
 
@@ -200,6 +208,8 @@
     import { PAGE_SIZE_OPTIONS } from '/@/constants/common-const';
     import { smartSentry } from '/@/lib/smart-sentry';
     import TableOperator from '/@/components/support/table-operator/index.vue';
+    import {${name.lowerCamel}Api as excelApi} from "/@/api/vigorous/excel-api.js";
+
 #foreach ($import in $frontImportList)
     $!{import}
 #end
@@ -432,6 +442,41 @@ function beforeUpload(file) {
 }
 // 下载模板
 function downloadExcel() {
+}
+
+const importMode = ref(1)
+// 导入文件
+async function onImport${name.upperCamel}() {
+  const formData = new FormData();
+  fileList.value.forEach((file) => {
+    formData.append('file', file.originFileObj);
+    formData.append('mode', importMode.value);
+  });
+
+  SmartLoading.show();
+  try {
+    let res = await ${name.lowerCamel}Api.import${name.upperCamel}(formData);
+    failed_import_data.value = res.data;
+    message.success(res.msg);
+  } catch (e) {
+    smartSentry.captureError(e);
+  } finally {
+    SmartLoading.hide();
+  }
+}
+
+// 下载导入失败数据
+const failed_import_data = ref();
+function downloadFailedData(){
+  if (failed_import_data.value != null){
+    try{
+      excelApi.downloadFailedImportData();
+    }catch (e){
+      smartSentry.captureError(e)
+    }
+  }else {
+    message.error("当前没有导入失败数据")
+  }
 }
 #end
 </script>

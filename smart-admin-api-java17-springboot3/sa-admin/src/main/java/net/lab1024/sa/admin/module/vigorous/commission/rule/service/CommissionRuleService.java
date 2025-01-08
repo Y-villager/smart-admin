@@ -9,7 +9,6 @@ import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.form.Commissi
 import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.form.CommissionRuleQueryForm;
 import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.form.CommissionRuleUpdateForm;
 import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.vo.CommissionRuleVO;
-import net.lab1024.sa.admin.module.vigorous.salespersonlevel.service.SalespersonLevelService;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
 import net.lab1024.sa.base.common.exception.BusinessException;
@@ -17,7 +16,6 @@ import net.lab1024.sa.base.common.util.SmartBeanUtil;
 import net.lab1024.sa.base.common.util.SmartPageUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.executor.BatchResult;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -40,8 +38,6 @@ public class CommissionRuleService {
 
     @Resource
     private CommissionRuleDao commissionRuleDao;
-    @Autowired
-    private SalespersonLevelService salespersonLevelService;
 
     /**
      * 分页查询
@@ -52,9 +48,6 @@ public class CommissionRuleService {
     public PageResult<CommissionRuleVO> queryPage(CommissionRuleQueryForm queryForm) {
         Page<?> page = SmartPageUtil.convert2PageQuery(queryForm);
         List<CommissionRuleVO> list = commissionRuleDao.queryPage(page, queryForm);
-        list.forEach(e->{
-            e.setSalespersonLevelName(salespersonLevelService.getSalespersonLevelNameById(e.getSalespersonLevelId()));
-        });
         PageResult<CommissionRuleVO> pageResult = SmartPageUtil.convert2PageResult(page, list);
         return pageResult;
     }
@@ -159,11 +152,8 @@ public class CommissionRuleService {
   //      entity.setruleId(form.getruleId());
   //      entity.setcurrencyType(form.getcurrencyType());
   //      entity.setsalespersonLevelId(form.getsalespersonLevelId());
-  //      entity.setcommissionRate(form.getcommissionRate());
   //      entity.setfirstOrderRate(form.getfirstOrderRate());
-  //      entity.setfirstYearRate(form.getfirstYearRate());
-  //      entity.setyearlyDecreaseRate(form.getyearlyDecreaseRate());
-  //      entity.setminRate(form.getminRate());
+  //      entity.setbaseRate(form.getbaseRate());
   //      entity.setremark(form.getremark());
 
         return entity;

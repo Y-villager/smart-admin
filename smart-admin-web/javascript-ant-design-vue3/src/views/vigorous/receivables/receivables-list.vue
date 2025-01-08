@@ -131,13 +131,13 @@
 
           <!-- 绑定 radio 按钮 -->
           <label>
-            <input type="radio" v-model="importMode" value="1"> 追加
+            <input type="radio" v-model="importMode" value="1"/> 追加
           </label>
           <label>
-            <input type="radio" v-model="importMode" value="0"> 覆盖
+            <input type="radio" v-model="importMode" value="0"/> 覆盖
           </label>
         </div>
-        <br>
+        <br/>
         <a-upload
             v-model:fileList="fileList"
             name="file"
@@ -158,7 +158,7 @@
           <ImportOutlined />
           开始导入
         </a-button>
-        <br>
+        <br/>
         <a-button type="text" @click="downloadFailedData">下载失败数据</a-button>
       </div>
     </a-modal>
@@ -215,7 +215,7 @@ const columns = ref([
     ellipsis: true,
   },
   {
-    title: '币种',
+    title: '币别',
     dataIndex: 'currencyType',
     ellipsis: true,
   },
@@ -238,7 +238,7 @@ const columns = ref([
 const queryFormState = {
   customerName: undefined, //客户名称
   salespersonName: undefined, //销售员名称
-  currencyType: undefined, //币种
+  currencyType: undefined, //币别
   receivablesDate: [], //收款日期
   receivablesDateBegin: undefined, //收款日期 开始
   receivablesDateEnd: undefined, //收款日期 结束
@@ -431,7 +431,6 @@ function downloadExcel() {
 const failed_import_data = ref();
 function downloadFailedData(){
   if (failed_import_data.value != null){
-    console.log(failed_import_data)
     try{
       excelApi.downloadFailedImportData();
     }catch (e){

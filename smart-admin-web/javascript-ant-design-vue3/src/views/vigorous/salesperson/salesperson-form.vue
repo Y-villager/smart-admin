@@ -24,9 +24,6 @@
         <a-form-item label="部门编码"  name="departmentId">
           <a-input-number style="width: 100%" v-model:value="form.departmentId" placeholder="部门编码" />
         </a-form-item>
-        <a-form-item label="级别编码"  name="salespersonLevelId">
-          <a-input-number style="width: 100%" v-model:value="form.salespersonLevelId" placeholder="级别编码" />
-        </a-form-item>
         <a-form-item label="上级id"  name="parentId">
           <a-input-number style="width: 100%" v-model:value="form.parentId" placeholder="上级id" />
         </a-form-item>
@@ -47,6 +44,7 @@
   import { SmartLoading } from '/@/components/framework/smart-loading';
   import { salespersonApi } from '/@/api/vigorous/salesperson/salesperson-api';
   import { smartSentry } from '/@/lib/smart-sentry';
+  import SalespersonLevelSelect from "/@/components/vigorous/salesperson-level-select/index.vue";
 
   // ------------------------ 事件 ------------------------
 
@@ -85,7 +83,6 @@
       salespersonCode: undefined, //业务员编码
       salespersonName: undefined, //业务员名称
       departmentId: undefined, //部门编码
-      salespersonLevelId: undefined, //级别编码
       parentId: undefined, //上级id
   };
 
@@ -95,7 +92,6 @@
       salespersonCode: [{ required: true, message: '业务员编码 必填' }],
       salespersonName: [{ required: true, message: '业务员名称 必填' }],
       departmentId: [{ required: true, message: '部门编码 必填' }],
-      salespersonLevelId: [{ required: true, message: '级别编码 必填' }],
   };
 
   // 点击确定，验证表单

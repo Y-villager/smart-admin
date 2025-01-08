@@ -33,4 +33,7 @@ public class CustomerExcelVO {
     @ExcelProperty("销售员")
     private String salespersonName;
 
+    @ExcelProperty("首单日期")
+    private String orderDate;
+
 }

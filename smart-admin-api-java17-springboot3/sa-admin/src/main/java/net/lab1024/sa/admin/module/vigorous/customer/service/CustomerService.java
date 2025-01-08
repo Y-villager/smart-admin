@@ -132,10 +132,10 @@ public class CustomerService {
      * @param file 上传文件
      * @return 结果
      */
-    public ResponseDTO<String> importCustomer(MultipartFile file) {
+    public ResponseDTO<String> importCustomer(MultipartFile file, Boolean mode) {
         List<CustomerImportForm> dataList;
         List<CustomerImportForm> failedDataList = new ArrayList<>();
-        List<CustomerEntity> entityList = new ArrayList<>();
+
 
         try {
             dataList = EasyExcel.read(file.getInputStream()).head(CustomerImportForm.class)
@@ -150,16 +150,8 @@ public class CustomerService {
         }
 
         // 将 CustomerImportForm 转换为 CustomerEntity，同时记录失败的数据
-        for (CustomerImportForm form : dataList) {
+        List<CustomerEntity> entityList  = createImportList(dataList, failedDataList, mode);
 
-            // 将有效的记录转换为实体
-            CustomerEntity entity = convertToEntity(form);
-            if (entity == null) {
-                failedDataList.add(form);
-                continue;
-            }
-            entityList.add(entity);
-        }
         // 批量插入有效数据
         List<BatchResult> insert = customerDao.insert(entityList);
 
@@ -176,22 +168,68 @@ public class CustomerService {
         return ResponseDTO.okMsg("总共"+dataList.size()+"条数据，成功导入" + insert.get(0).getParameterObjects().size() + "条，导入失败记录有："+failedDataList.size()+"条" );
     }
 
+    // 生成导入列表
+    private List<CustomerEntity> createImportList(List<CustomerImportForm> dataList,
+                                                     List<CustomerImportForm> failedDataList,
+                                                     boolean mode) {
+        Set<String> salespersonNames = new HashSet<>();
+        Set<String> customerCodes = new HashSet<>();
+
+        for (CustomerImportForm form : dataList) {
+            salespersonNames.add(form.getSalespersonName());
+            customerCodes.add(form.getCustomerCode());
+        }
+
+        // customer key map
+        List<CustomerVO> voList = customerDao.queryByCustomerCodes(customerCodes);
+        Map<String, Long> keyMap = voList
+                .stream().filter(Objects::nonNull)
+                .collect(Collectors.toMap(CustomerVO::getCustomerCode, CustomerVO::getCustomerId));
+
+
+        // 业务员映射
+        Map<String, Long> salespersonMap = salespersonService.getSalespersonsByNames(salespersonNames);
+
+        return dataList.parallelStream()
+                .map(form -> convertToEntity(form,keyMap, salespersonMap, failedDataList, mode))
+                .filter(Objects::nonNull)
+                .toList();
+
+    }
+
     // 将 CustomerImportForm 转换为 CustomerEntity
-    private CustomerEntity convertToEntity(CustomerImportForm form) {
+    private CustomerEntity convertToEntity(CustomerImportForm form,
+                                           Map<String, Long> keyMap,
+                                           Map<String, Long> salespersonMap,
+                                           List<CustomerImportForm> failedDataList,
+                                           Boolean mode) {
         CustomerEntity entity = new CustomerEntity();
+        if (form.getCustomerCode() == null){
+            form.setErrorMsg("没有客户编码，不允许导入");
+            failedDataList.add(form);
+            return null;
+        }
+        // 根据 mode 的值简化条件判断，true为追加
+        if (mode){
+            if (keyMap.containsKey(form.getCustomerCode())){
+                form.setErrorMsg("追加模式: 系统已存在该编码的客户");
+                failedDataList.add(form);
+                return null;
+            }
+        }else {
+            if (!keyMap.containsKey(form.getCustomerCode())){
+                form.setErrorMsg("覆盖模式：系统中不存在该编码的客户");
+                failedDataList.add(form);
+                return null;
+            }
+        }
 
         List<Long> salespersonIds = salespersonService.getSalespersonIdByName(form.getSalespersonName());
         if (salespersonIds.size() > 1){
-            form.setErrorMsg("有业务员同名");
+            form.setErrorMsg("有业务员同名，业务层出错");
             return null;
         }else if (salespersonIds.isEmpty()){
             form.setErrorMsg("没有找到业务员");
-            return null;
-        }
-
-        List<CustomerEntity> customers = customerDao.queryByCustomerCode(form.getCustomerCode());
-        if (!customers.isEmpty()){
-            form.setErrorMsg("客户编码重复，客户已存在");
             return null;
         }
 

@@ -28,26 +28,16 @@ public class CommissionRuleVO {
     @JsonSerialize(using = DictValueVoSerializer.class)
     private String currencyType;
 
-    @Schema(description = "业务员级别Id")
-    private String salespersonLevelId;
+    @Schema(description = "业务员级别id")
+    private Integer salespersonLevelId;
 
-    @Schema(description = "业务员级别")
     private String salespersonLevelName;
-
-    @Schema(description = "提成比例")
-    private BigDecimal commissionRate;
 
     @Schema(description = "首单比例")
     private BigDecimal firstOrderRate;
 
-    @Schema(description = "首年比例")
-    private BigDecimal firstYearRate;
-
-    @Schema(description = "逐年递减比例")
-    private BigDecimal yearlyDecreaseRate;
-
-    @Schema(description = "最低比例")
-    private BigDecimal minRate;
+    @Schema(description = "基础比例")
+    private BigDecimal baseRate;
 
     @Schema(description = "备注")
     private String remark;

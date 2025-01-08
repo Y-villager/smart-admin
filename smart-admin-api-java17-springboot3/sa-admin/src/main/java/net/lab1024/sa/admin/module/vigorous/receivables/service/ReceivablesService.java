@@ -197,9 +197,6 @@ public class ReceivablesService {
     }
 
     private int doThreadUpdate(List<ReceivablesEntity> entityList) {
-//        Long startTime = System.currentTimeMillis();
-//        System.out.println("-----------开始多线程------------");
-//        System.out.println("CPU核心数："+Runtime.getRuntime().availableProcessors());
         List<ReceivablesEntity> updateList = new ArrayList<>();
         // 初始化线程池
         ThreadPoolExecutor threadPool = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), 50,
@@ -225,9 +222,6 @@ public class ReceivablesService {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-//        Long endTime = System.currentTimeMillis();
-//        Long costTime = endTime - startTime;
-//        System.out.println("----------------总共用时："+costTime+"毫秒");
         return 0;
     }
 

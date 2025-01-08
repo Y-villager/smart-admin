@@ -35,11 +35,7 @@ public class FirstOrderExcelVO {
     @ExcelProperty("销售员名称")
     private String salespersonName;
 
-
     @ExcelProperty( "首单日期")
     private LocalDate orderDate;
-
-    @ExcelProperty( "金额")
-    private BigDecimal amount;
 
 }

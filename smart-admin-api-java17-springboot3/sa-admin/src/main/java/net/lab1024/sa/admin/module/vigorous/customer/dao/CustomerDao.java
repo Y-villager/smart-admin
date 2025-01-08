@@ -55,4 +55,6 @@ public interface CustomerDao extends BaseMapper<CustomerEntity> {
     Collection<CustomerVO> queryByCustomerNames(@Param("customerNames") Set<String> customerNames);
 
     Collection<CustomerVO> getCustomerNamesByIds(@Param("customerIds") Set<Long> customerIds);
+
+    List<CustomerVO> queryByCustomerCodes(@Param("customerCodes") Set<String> customerCodes);
 }

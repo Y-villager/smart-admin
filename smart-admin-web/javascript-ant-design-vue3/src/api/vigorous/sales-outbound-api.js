@@ -5,7 +5,7 @@
  * @Date:      2024-12-12 14:48:19
  * @Copyright  (c)2024 yxz
  */
-import {postRequest, getRequest, getDownload} from '/src/lib/axios';
+import {postRequest, getRequest, getDownload, postDownload} from '/src/lib/axios';
 
 export const salesOutboundApi = {
 
@@ -52,7 +52,12 @@ export const salesOutboundApi = {
 
     // 导出
     exportSalesOutbound : (param) =>{
-        return postRequest('/salesOutbound/export', param);
+        return postDownload('/salesOutbound/export', param);
+    },
+
+    // 导出
+    exportCommission : (param) =>{
+        return postDownload('/salesOutbound/exportCommission', param);
     }
 
 };

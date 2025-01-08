@@ -47,6 +47,12 @@ public class SalesOutboundVO {
     @Schema(description = "金额")
     private BigDecimal amount;
 
+    @Schema(description = "应收比例(%)")
+    private Integer rate;
+
+    @Schema(description = "币别")
+    private String currencyType;
+
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
 

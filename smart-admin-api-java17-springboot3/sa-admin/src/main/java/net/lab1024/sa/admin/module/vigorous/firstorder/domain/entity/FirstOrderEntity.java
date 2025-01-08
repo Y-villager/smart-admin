@@ -47,10 +47,6 @@ public class FirstOrderEntity {
      */
     private LocalDate orderDate;
 
-    /**
-     * 金额
-     */
-    private BigDecimal amount;
 
     /**
      * 创建日期

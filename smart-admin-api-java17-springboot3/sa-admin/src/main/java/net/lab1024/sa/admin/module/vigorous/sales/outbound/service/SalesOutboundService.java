@@ -12,7 +12,6 @@ import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutb
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutboundUpdateForm;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundExcelVO;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO;
-import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO2;
 import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
 import net.lab1024.sa.admin.util.ExcelUtils;
 import net.lab1024.sa.base.common.domain.PageResult;
@@ -68,10 +67,10 @@ public class SalesOutboundService {
      * @param queryForm
      * @return
      */
-    public PageResult<SalesOutboundVO2> queryPage(SalesOutboundQueryForm queryForm) {
+    public PageResult<SalesOutboundVO> queryPage(SalesOutboundQueryForm queryForm) {
         Page<?> page = SmartPageUtil.convert2PageQuery(queryForm);
 
-        List<SalesOutboundVO2> list = salesOutboundDao.queryPage2(page, queryForm);
+        List<SalesOutboundVO> list = salesOutboundDao.queryPage(page, queryForm);
 
         return SmartPageUtil.convert2PageResult(page, list);
     }
@@ -250,26 +249,14 @@ public class SalesOutboundService {
 //        List<SalesOutboundEntity> entityList = salesOutboundDao.selectList(null);
         List<SalesOutboundVO> entityList = salesOutboundDao.queryPage(null,queryForm);
 
-        // 获取所有销售员ID和客户ID
-        Set<Long> salespersonIds = entityList.stream()
-                .map(SalesOutboundVO::getSalespersonId)
-                .collect(Collectors.toSet());
-        Set<Long> customerIds = entityList.stream()
-                .map(SalesOutboundVO::getCustomerId)
-                .collect(Collectors.toSet());
-
-        // id->name 集合
-        Map<Long, String> salespersonNameMap = salespersonService.getSalespersonNamesByIds(salespersonIds);
-        Map<Long, String> customerNameMap = customerService.getCustomerNamesByIds(customerIds);
-
         // 使用并行流进行转换，提高处理速度
         return entityList.parallelStream()
                 .map(e -> SalesOutboundExcelVO.builder()
-                        .salespersonName(salespersonNameMap.get(e.getSalespersonId()))
+                        .salespersonName(e.getSalespersonName())
                         .billNo(e.getBillNo())
                         .salesBoundDate(e.getSalesBoundDate())
                         .amount(e.getAmount())
-                        .customerName(customerNameMap.get(e.getCustomerId()))
+                        .customerName(e.getCustomerName())
                         .build()
                 ).collect(Collectors.toList());
     }

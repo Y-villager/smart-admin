@@ -76,8 +76,8 @@ public class ${name.upperCamel}Controller {
     @Operation(summary = "导入")
     @PostMapping("/${name.lowerCamel}/import")
     @SaCheckPermission("${name.lowerCamel}:import")
-    public ResponseDTO<String> import${name.upperCamel}(@RequestParam MultipartFile file) {
-        return ${name.lowerCamel}Service.import${name.upperCamel}(file);
+    public ResponseDTO<String> import${name.upperCamel}(@RequestParam MultipartFile file, @RequestParam("mode") Boolean mode ) {
+        return ${name.lowerCamel}Service.import${name.upperCamel}(file, mode);
     }
 
     @Operation(summary = "导出")

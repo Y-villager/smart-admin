@@ -10,7 +10,7 @@ import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutb
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutboundQueryForm;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutboundUpdateForm;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundExcelVO;
-import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO2;
+import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.service.SalesOutboundService;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
@@ -40,7 +40,7 @@ class SalesOutboundController {
     @Operation(summary = "分页查询 @author yxz")
     @PostMapping("/salesOutbound/queryPage")
     @SaCheckPermission("salesOutbound:query")
-    public ResponseDTO<PageResult<SalesOutboundVO2>> queryPage(@RequestBody @Valid SalesOutboundQueryForm queryForm) {
+    public ResponseDTO<PageResult<SalesOutboundVO>> queryPage(@RequestBody @Valid SalesOutboundQueryForm queryForm) {
         return ResponseDTO.ok(salesOutboundService.queryPage(queryForm));
     }
 
@@ -84,15 +84,15 @@ class SalesOutboundController {
     @PostMapping("/salesOutbound/export")
     @SaCheckPermission("salesOutbound:export")
     public void exportSalesOutbound(HttpServletResponse response, @RequestBody @Valid SalesOutboundQueryForm queryForm) throws IOException {
-        List<SalesOutboundExcelVO> goodsList = salesOutboundService.getExportList(queryForm);
-        SmartExcelUtil.exportExcel(response,"销售出库.xlsx","销售出库",SalesOutboundExcelVO.class, goodsList);
+        List<SalesOutboundExcelVO> list = salesOutboundService.getExportList(queryForm);
+        SmartExcelUtil.exportExcel(response,"销售出库.xlsx","销售出库",SalesOutboundExcelVO.class, list);
     }
 
-//    @Operation(summary = "导出")
-//    @GetMapping("/salesOutbound/exportCommission")
-//    public void exportCommission(HttpServletResponse response, ) throws IOException {
-//        List<SalesOutboundExcelVO> goodsList = salesOutboundService.getExportList();
-//        SmartExcelUtil.exportExcel(response,"销售出库.xlsx","销售出库",SalesOutboundExcelVO.class, goodsList);
-//    }
+    @Operation(summary = "导出业绩提成")
+    @PostMapping("/salesOutbound/exportCommission")
+    public void exportCommission(HttpServletResponse response, @RequestBody @Valid SalesOutboundQueryForm queryForm) throws IOException {
+        List<SalesOutboundExcelVO> list = salesOutboundService.getExportList(queryForm);
+        SmartExcelUtil.exportExcel(response,"销售业绩表.xlsx","销售业绩表",SalesOutboundExcelVO.class, list);
+    }
 
 }

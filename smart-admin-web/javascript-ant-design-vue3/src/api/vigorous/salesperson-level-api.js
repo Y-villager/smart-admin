@@ -57,6 +57,9 @@ export const salespersonLevelApi = {
 
     queryList:() =>{
       return postRequest('/salespersonLevel/getAll');
-    }
+    },
 
+    updateLevel(data) {
+        return postRequest('/salesperson/updateLevel', data)
+    }
 };

@@ -1,22 +1,19 @@
 <!--
-  * 业务员
+  * 业务员级别变动记录
   *
   * @Author:    yxz
-  * @Date:      2024-12-16 10:56:45
+  * @Date:      2025-01-07 08:58:41
   * @Copyright  (c)2024 yxz
 -->
 <template>
     <!---------- 查询表单form begin ----------->
     <a-form class="smart-query-form">
         <a-row class="smart-query-form-row">
-            <a-form-item label="业务员编码" class="smart-query-form-item">
-                <a-input style="width: 200px" v-model:value="queryForm.salespersonCode" placeholder="业务员编码" />
-            </a-form-item>
             <a-form-item label="业务员名称" class="smart-query-form-item">
                 <a-input style="width: 200px" v-model:value="queryForm.salespersonName" placeholder="业务员名称" />
             </a-form-item>
-            <a-form-item label="业务员级别" class="smart-query-form-item">
-              <SalespersonLevelSelect width="200px" v-model:value="queryForm.salespersonLevelId" enumName="" placeholder="选择业务员级别"/>
+            <a-form-item label="变动时间" class="smart-query-form-item">
+                <a-range-picker v-model:value="queryForm.createTime" :presets="defaultTimeRanges" style="width: 200px" @change="onChangeCreateTime" />
             </a-form-item>
             <a-form-item class="smart-query-form-item">
                 <a-button type="primary" @click="onSearch">
@@ -40,32 +37,12 @@
         <!---------- 表格操作行 begin ----------->
         <a-row class="smart-table-btn-block">
             <div class="smart-table-operate-block">
-                <a-button @click="showForm" type="primary" size="small">
+                <a-button @click="showForm" type="primary">
                     <template #icon>
                         <PlusOutlined />
                     </template>
                     新建
                 </a-button>
-                <a-button @click="confirmBatchDelete" type="primary" danger size="small" :disabled="selectedRowKeyList.length == 0">
-                    <template #icon>
-                        <DeleteOutlined />
-                    </template>
-                    批量删除
-                </a-button>
-
-              <a-button @click="showImportModal" type="primary" v-privilege="'salesperson:importSalesperson'">
-                <template #icon>
-                  <ImportOutlined />
-                </template>
-                导入
-              </a-button>
-
-              <a-button @click="onExportSalesperson" type="primary" v-privilege="'salesperson:exportSalesperson'">
-                <template #icon>
-                  <ExportOutlined />
-                </template>
-                导出
-              </a-button>
             </div>
             <div class="smart-table-setting-block">
                 <TableOperator v-model="columns" :tableId="null" :refresh="queryData" />
@@ -82,7 +59,6 @@
             bordered
             :loading="tableLoading"
             :pagination="false"
-            :row-selection="{ selectedRowKeys: selectedRowKeyList, onChange: onSelectChange }"
         >
             <template #bodyCell="{ text, record, column }">
 
@@ -102,8 +78,6 @@
                 <template v-if="column.dataIndex === 'action'">
                     <div class="smart-table-operate">
                         <a-button @click="showForm(record)" type="link">编辑</a-button>
-                        <a-button @click="changeLevel(record)" type="link">调成级别</a-button>
-                        <a-button @click="onDelete(record)" danger type="link">删除</a-button>
                     </div>
                 </template>
             </template>
@@ -126,9 +100,7 @@
             />
         </div>
 
-        <SalespersonForm  ref="formRef" @reloadList="queryData"/>
-
-        <LevelChangeForm  ref="levelFormRef" />
+        <SalespersonLevelRecordForm  ref="formRef" @reloadList="queryData"/>
 
       <a-modal v-model:open="importModalShowFlag" title="导入" @onCancel="hideImportModal" @ok="hideImportModal">
         <div style="text-align: center; width: 400px; margin: 0 auto">
@@ -154,75 +126,80 @@
           </a-upload>
 
           <br />
-          <a-button @click="onImportSalesperson">
+          <a-button @click="onImportSalespersonLevelRecord">
             <ImportOutlined />
             第三步：开始导入
           </a-button>
         </div>
       </a-modal>
+
     </a-card>
 </template>
 <script setup>
     import { reactive, ref, onMounted } from 'vue';
     import { message, Modal } from 'ant-design-vue';
     import { SmartLoading } from '/@/components/framework/smart-loading';
-    import { salespersonApi } from '/@/api/vigorous/salesperson/salesperson-api';
+    import { salespersonLevelRecordApi } from '/@/api/vigorous/salesperson-level-record-api';
     import { PAGE_SIZE_OPTIONS } from '/@/constants/common-const';
     import { smartSentry } from '/@/lib/smart-sentry';
     import TableOperator from '/@/components/support/table-operator/index.vue';
-    import SalespersonForm from './salesperson-form.vue';
-    import SalespersonLevelSelect from "/@/components/vigorous/salesperson-level-select/index.vue";
-    import SalespersonLevelRecordForm from "/@/views/vigorous/salesperson-level/salesperson-level-record-form.vue";
-    import LevelChangeForm from "/@/views/vigorous/salesperson/level-change-form.vue";
+    import SalespersonLevelRecordForm from './salesperson-level-record-form.vue';
+    import { defaultTimeRanges } from '/@/lib/default-time-ranges';
     //import FilePreview from '/@/components/support/file-preview/index.vue'; // 图片预览组件
 
     // ---------------------------- 表格列 ----------------------------
 
     const columns = ref([
         {
-            title: '业务员编码',
-            dataIndex: 'salespersonCode',
+            title: '业务员',
+            dataIndex: 'salespersonId',
             ellipsis: true,
         },
         {
-            title: '业务员名称',
-            dataIndex: 'salespersonName',
+            title: '先前级别',
+            dataIndex: 'oldLevel',
             ellipsis: true,
         },
         {
-            title: '部门名称',
-            dataIndex: 'departmentName',
+            title: '现在级别',
+            dataIndex: 'newLevel',
             ellipsis: true,
         },
         {
-            title: '业务员级别',
-            dataIndex: 'salespersonLevelName',
+            title: '开始时间',
+            dataIndex: 'startDate',
             ellipsis: true,
         },
         {
-            title: '层级路径',
-            dataIndex: 'path',
+            title: '结束时间',
+            dataIndex: 'endDate',
             ellipsis: true,
         },
         {
-            title: '上级id',
-            dataIndex: 'parentId',
+            title: '变动原因',
+            dataIndex: 'changeReason',
+            ellipsis: true,
+        },
+        {
+            title: '创建时间',
+            dataIndex: 'createTime',
             ellipsis: true,
         },
         {
             title: '操作',
             dataIndex: 'action',
             fixed: 'right',
-            width: 160,
+            width: 90,
         },
     ]);
 
     // ---------------------------- 查询数据表单和方法 ----------------------------
 
     const queryFormState = {
-        salespersonCode: undefined, //业务员编码
         salespersonName: undefined, //业务员名称
-        salespersonLevelId: undefined, //业务员级别
+        createTime: [], //变动时间
+        createTimeBegin: undefined, //变动时间 开始
+        createTimeEnd: undefined, //变动时间 结束
         pageNum: 1,
         pageSize: 10,
     };
@@ -253,7 +230,7 @@
     async function queryData() {
         tableLoading.value = true;
         try {
-            let queryResult = await salespersonApi.queryPage(queryForm);
+            let queryResult = await salespersonLevelRecordApi.queryPage(queryForm);
             tableData.value = queryResult.data.list;
             total.value = queryResult.data.total;
         } catch (e) {
@@ -261,6 +238,11 @@
         } finally {
             tableLoading.value = false;
         }
+    }
+
+    function onChangeCreateTime(dates, dateStrings){
+        queryForm.createTimeBegin = dateStrings[0];
+        queryForm.createTimeEnd = dateStrings[1];
     }
 
 
@@ -273,134 +255,4 @@
         formRef.value.show(data);
     }
 
-    // ---------------------------- 调整级别 ----------------------------
-    const levelFormRef = ref();
-    function changeLevel(data){
-      levelFormRef.value.show(data)
-    }
-
-    // ---------------------------- 单个删除 ----------------------------
-    //确认删除
-    function onDelete(data){
-        Modal.confirm({
-            title: '提示',
-            content: '确定要删除选吗?',
-            okText: '删除',
-            okType: 'danger',
-            onOk() {
-                requestDelete(data);
-            },
-            cancelText: '取消',
-            onCancel() {},
-        });
-    }
-
-    //请求删除
-    async function requestDelete(data){
-        SmartLoading.show();
-        try {
-            let deleteForm = {
-                goodsIdList: selectedRowKeyList.value,
-            };
-            await salespersonApi.delete(data.id);
-            message.success('删除成功');
-            queryData();
-        } catch (e) {
-            smartSentry.captureError(e);
-        } finally {
-            SmartLoading.hide();
-        }
-    }
-
-    // ---------------------------- 批量删除 ----------------------------
-
-    // 选择表格行
-    const selectedRowKeyList = ref([]);
-
-    function onSelectChange(selectedRowKeys) {
-        selectedRowKeyList.value = selectedRowKeys;
-    }
-
-    // 批量删除
-    function confirmBatchDelete() {
-        Modal.confirm({
-            title: '提示',
-            content: '确定要批量删除这些数据吗?',
-            okText: '删除',
-            okType: 'danger',
-            onOk() {
-                requestBatchDelete();
-            },
-            cancelText: '取消',
-            onCancel() {},
-        });
-    }
-
-    //请求批量删除
-    async function requestBatchDelete() {
-        try {
-            SmartLoading.show();
-            await salespersonApi.batchDelete(selectedRowKeyList.value);
-            message.success('删除成功');
-            queryData();
-        } catch (e) {
-            smartSentry.captureError(e);
-        } finally {
-            SmartLoading.hide();
-        }
-    }
-
-    // ------------------------------- 导出和导入 ---------------------------------
-    // 导入弹窗
-    const importModalShowFlag = ref(false);
-
-    const fileList = ref([]);
-
-    // 显示导入
-    function showImportModal() {
-      fileList.value = [];
-      importModalShowFlag.value = true;
-    }
-
-    // 关闭 导入
-    function hideImportModal() {
-      importModalShowFlag.value = false;
-    }
-    // 导入文件
-    async function onImportSalesperson() {
-      const formData = new FormData();
-      fileList.value.forEach((file) => {
-        formData.append('file', file.originFileObj);
-      });
-
-      SmartLoading.show();
-      try {
-        let res = await salespersonApi.importSalesperson(formData);
-        message.success(res.msg);
-      } catch (e) {
-        smartSentry.captureError(e);
-      } finally {
-        SmartLoading.hide();
-      }
-    }
-
-    // 导出excel文件
-    async function onExportSalesperson() {
-      await salespersonApi.exportSalesperson();
-    }
-
-    function handleRemove(file) {
-      const index = fileList.value.indexOf(file);
-      const newFileList = fileList.value.slice();
-      newFileList.splice(index, 1);
-      fileList.value = newFileList;
-    }
-
-    function beforeUpload(file) {
-      fileList.value = [...(fileList.value || []), file];
-      return false;
-    }
-    // 下载模板
-    function downloadExcel() {
-    }
 </script>

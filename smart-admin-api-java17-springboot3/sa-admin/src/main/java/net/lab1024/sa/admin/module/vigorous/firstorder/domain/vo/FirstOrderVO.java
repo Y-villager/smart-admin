@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -31,6 +30,7 @@ public class FirstOrderVO {
     private Long customerId;
 
     private String customerName;
+    private String customerCode;
 
     @Schema(description = "业务员编码")
     private Long salespersonId;
@@ -42,9 +42,6 @@ public class FirstOrderVO {
 
     @Schema(description = "首单日期")
     private LocalDate orderDate;
-
-    @Schema(description = "金额")
-    private BigDecimal amount;
 
     @Schema(description = "创建日期")
     private LocalDateTime createTime;

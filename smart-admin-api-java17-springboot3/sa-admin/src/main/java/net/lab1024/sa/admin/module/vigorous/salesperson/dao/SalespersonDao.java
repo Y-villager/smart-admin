@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.entity.SalespersonEntity;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.form.SalespersonQueryForm;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.vo.SalespersonVO;
+import net.lab1024.sa.admin.module.vigorous.salespersonlevel.domain.form.SalespersonLevelRecordAddForm;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Component;
@@ -57,4 +58,8 @@ public interface SalespersonDao extends BaseMapper<SalespersonEntity> {
     Collection<SalespersonVO> getSalespersonsByNames(@Param("salespersonNames") Set<String> salespersonNames);
 
     Collection<SalespersonVO> getSalespersonNamesByIds(@Param("salespersonIds") Set<Long> salespersonIds);
+
+    void updateLevel(@Param("form") SalespersonLevelRecordAddForm updateForm);
+
+    int getNowSalespersonLevel(@Param("id") Long salespersonId);
 }

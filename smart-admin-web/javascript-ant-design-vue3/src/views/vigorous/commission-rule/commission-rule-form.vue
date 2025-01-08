@@ -19,26 +19,17 @@
           <DictSelect width="100%" v-model:value="form.currencyType" keyCode="CURRENCY_TYPE" placeholder="币种"/>
         </a-form-item>
         <a-form-item label="业务员级别"  name="salespersonLevelId">
-          <SalespersonLevelSelect width="100%" v-model:value="form.salespersonLevelId"  placeholder="业务员级别id"/>
-        </a-form-item>
-        <a-form-item label="提成比例"  name="commissionRate">
-          <a-input-number style="width: 100%" v-model:value="form.commissionRate" placeholder="提成比例" />
+          <SalespersonLevelSelect width="100%" v-model:value="form.salespersonLevelId" enumName="" placeholder="业务员级别id"/>
         </a-form-item>
         <a-form-item label="首单比例"  name="firstOrderRate">
           <a-input-number style="width: 100%" v-model:value="form.firstOrderRate" placeholder="首单比例" />
         </a-form-item>
-        <a-form-item label="首年比例"  name="firstYearRate">
-          <a-input-number style="width: 100%" v-model:value="form.firstYearRate" placeholder="首年比例" />
+        <a-form-item label="基础比例"  name="baseRate">
+          <a-input-number style="width: 100%" v-model:value="form.baseRate" placeholder="基础比例" />
         </a-form-item>
-        <a-form-item label="逐年递减比例"  name="yearlyDecreaseRate">
-          <a-input-number style="width: 100%" v-model:value="form.yearlyDecreaseRate" placeholder="逐年递减比例" />
+        <a-form-item label="备注"  name="remark">
+          <a-input style="width: 100%" v-model:value="form.remark" placeholder="备注" />
         </a-form-item>
-        <a-form-item label="最低比例"  name="minRate">
-          <a-input-number style="width: 100%" v-model:value="form.minRate" placeholder="最低比例" />
-        </a-form-item>
-      <a-form-item label="备注"  name="remark">
-        <a-input style="width: 100%" v-model:value="form.remark" placeholder="备注" />
-      </a-form-item>
     </a-form>
 
     <template #footer>
@@ -74,10 +65,9 @@
       Object.assign(form, rowData);
     }
     // 使用字典时把下面这注释修改成自己的字典字段 有多个字典字段就复制多份同理修改 不然打开表单时不显示字典初始值
-    if (form.currencyType && form.currencyType.length > 0) {
-      form.currencyType = form.currencyType.map((e) => e.valueCode);
-    }
-
+    // if (form.status && form.status.length > 0) {
+    //   form.status = form.status.map((e) => e.valueCode);
+    // }
     visibleFlag.value = true;
     nextTick(() => {
       formRef.value.clearValidate();
@@ -95,13 +85,10 @@
   const formRef = ref();
 
   const formDefault = {
-      ruleId: undefined,
-      currencyType: undefined, //币种r
-      commissionRate: undefined, //提成比例
+      currencyType: undefined, //币种
+      salespersonLevelId: undefined, //业务员级别id
       firstOrderRate: undefined, //首单比例
-      firstYearRate: undefined, //首年比例
-      yearlyDecreaseRate: undefined, //逐年递减比例
-      minRate: undefined, //最低比例
+      baseRate: undefined, //基础比例
       remark: undefined, //备注
   };
 
@@ -109,12 +96,9 @@
 
   const rules = {
       currencyType: [{ required: true, message: '币种 必填' }],
-      salespersonLevelId: [{ required: true, message: '业务员级别id 必填' }],
-      commissionRate: [{ required: true, message: '提成比例 必填' }],
+      salespersonLevelId: [{ required: true, message: '业务员级别 必填' }],
       firstOrderRate: [{ required: true, message: '首单比例 必填' }],
-      firstYearRate: [{ required: true, message: '首年比例 必填' }],
-      yearlyDecreaseRate: [{ required: true, message: '逐年递减比例 必填' }],
-      minRate: [{ required: true, message: '最低比例 必填' }],
+      baseRate: [{ required: true, message: '基础比例 必填' }],
   };
 
   // 点击确定，验证表单

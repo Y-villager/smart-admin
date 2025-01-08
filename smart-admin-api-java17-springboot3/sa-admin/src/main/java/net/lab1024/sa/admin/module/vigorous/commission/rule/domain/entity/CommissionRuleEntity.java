@@ -2,6 +2,7 @@ package
 
         net.lab1024.sa.admin.module.vigorous.commission.rule.domain.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.math.BigDecimal;
@@ -22,7 +23,7 @@ public class CommissionRuleEntity {
     /**
      * 提成规则id
      */
-    @TableId
+    @TableId(type = IdType.AUTO)
     private Long ruleId;
 
     /**
@@ -36,29 +37,14 @@ public class CommissionRuleEntity {
     private Integer salespersonLevelId;
 
     /**
-     * 提成比例
-     */
-    private BigDecimal commissionRate;
-
-    /**
      * 首单比例
      */
     private BigDecimal firstOrderRate;
 
     /**
-     * 首年比例
+     * 基础比例
      */
-    private BigDecimal firstYearRate;
-
-    /**
-     * 逐年递减比例
-     */
-    private BigDecimal yearlyDecreaseRate;
-
-    /**
-     * 最低比例
-     */
-    private BigDecimal minRate;
+    private BigDecimal baseRate;
 
     /**
      * 备注

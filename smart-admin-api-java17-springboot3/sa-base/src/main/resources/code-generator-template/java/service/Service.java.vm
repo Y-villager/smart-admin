@@ -16,6 +16,8 @@ import static cn.dev33.satoken.SaManager.log;
 
 import jakarta.annotation.Resource;
 
+import java.util.ArrayList;
+
 /**
  * ${basic.description} Service
  *
@@ -116,10 +118,9 @@ public class ${name.upperCamel}Service {
      * @param file 上传文件
      * @return 结果
      */
-    public ResponseDTO<String> import${name.upperCamel}(MultipartFile file) {
+    public ResponseDTO<String> import${name.upperCamel}(MultipartFile file, Boolean mode) {
         List<${name.upperCamel}AddForm> dataList;
         List<${name.upperCamel}AddForm> failedDataList = new ArrayList<>();
-        List<${name.upperCamel}Entity> entityList = new ArrayList<>();
 
         try {
             dataList = EasyExcel.read(file.getInputStream()).head(${name.upperCamel}AddForm.class)
@@ -135,27 +136,63 @@ public class ${name.upperCamel}Service {
         }
 
         // 将 ${name.upperCamel}AddForm 转换为 ${name.upperCamel}Entity，同时记录失败的数据
-        for (${name.upperCamel}AddForm form : dataList) {
-
-            // 将有效的记录转换为实体
-            ${name.upperCamel}Entity entity = convertToEntity(form);
-            if (entity != null) {
-                entityList.add(entity);
-            } else {
-                // 如果转换失败，记录失败信息
-##                form.setErrorMessage("找不到${basic.description}");
-                failedDataList.add(form);
+        List<${name.upperCamel}Entity> entityList = createImportList(dataList, failedDataList, mode);
+        // true 为追加模式，false为按单据编号覆盖
+        int successTotal = 0;
+        try {
+            if (mode) {  // 追加
+                // 批量插入操作
+                List<BatchResult> insert = receivablesDao.insert(entityList);
+                for (BatchResult batchResult : insert) {
+                    successTotal += batchResult.getParameterObjects().size();
+                }
+            } else {  // 覆盖
+                // 执行批量更新操作
+                successTotal = doThreadUpdate(entityList);
             }
         }
-        // 批量插入有效数据
-        List<BatchResult> insert = ${name.lowerCamel}Dao.insert(entityList);
+        catch (DataAccessException e) {
+            // 捕获数据库访问异常
+            return ResponseDTO.error(SystemErrorCode.SYSTEM_ERROR, "数据库操作失败，更新或插入过程中出现异常："+e.getMessage());
+        } catch (Exception e) {
+            // 捕获其他异常
+            return ResponseDTO.error(SystemErrorCode.SYSTEM_ERROR, "发生未知错误："+e.getMessage());
+        }
+
+        String failed_data_path=null;
+        if (!failedDataList.isEmpty()) {
+            // 创建并保存失败的数据文件
+            failed_data_path = ExcelUtils.saveFailedDataToExcel(failedDataList, ${name.upperCamel}ImportForm.class, uploadPath,failedDataName );
+        }
 
         // 如果有失败的数据，导出失败记录到 Excel
-##        if (!failedDataList.isEmpty()) {
-##            return ResponseDTO.okMsg("成功导入" + insert.size() + "条，失败记录已保存至：" );
-##        }
-        return ResponseDTO.okMsg("总共"+dataList.size()+"条数据，成功导入" + insert.get(0).getParameterObjects().size() + "条，导入失败记录有："+failedDataList.size()+"条" );
+        return ResponseDTO.okMsg("总共"+dataList.size()+"条数据，成功导入" + successTotal + "条，导入失败记录有："+failedDataList.size()+"条", failed_data_path );
 
+    }
+
+    // 生成导入列表
+    private List<${name.upperCamel}Entity> createImportList(List<${name.upperCamel}ImportForm> dataList,
+                                                     List<${name.upperCamel}ImportForm> failedDataList,
+                                                     boolean mode) {
+    ##    Set<String> billNos = new HashSet<>();
+    
+        for (${name.upperCamel}ImportForm form : dataList) {
+    ##        billNos.add(form.getBillNo());
+        }
+        // 单据编号 map
+        List<${name.upperCamel}VO> receivablesVOList = receivablesDao.queryByBillNos(billNos);
+        Map<String, Integer> receivablesMap = receivablesVOList
+                .stream().filter(Objects::nonNull)
+                .collect(Collectors.toMap(${name.upperCamel}VO::getBillNo, ${name.upperCamel}VO::get${name.upperCamel}Id));
+    
+        // 需要的映射数据
+    ##    Map<String, Long> customerMap = customerService.queryByCustomerNames(customerNames);
+    
+        return dataList.parallelStream()
+                .map(form -> convertToEntity(form, failedDataList, mode))
+                .filter(Objects::nonNull)
+                .toList();
+    
     }
 
     // 将 ${name.upperCamel}AddForm 转换为 ${name.upperCamel}Entity
@@ -184,5 +221,34 @@ public class ${name.upperCamel}Service {
 //                .collect(Collectors.toList());
         return null;
 
+    }
+
+    private int doThreadUpdate(List<${name.upperCamel}Entity> entityList) {
+        List<${name.upperCamel}Entity> updateList = new ArrayList<>();
+        // 初始化线程池
+        ThreadPoolExecutor threadPool = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), 50,
+                4, TimeUnit.SECONDS, new ArrayBlockingQueue<>(10),
+                new ThreadPoolExecutor.CallerRunsPolicy());
+        // 将大集合拆分成N个小集合，使用多线程操作数据
+        List<List<${name.upperCamel}Entity>> splitList = SplitListUtils.splitList(entityList, 1000);
+        // 记录单个任务的执行次数
+        CountDownLatch countDownLatch = new CountDownLatch(splitList.size());
+        for (List<${name.upperCamel}Entity> subList : splitList) {
+            threadPool.execute(new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    System.out.println("当前线程："+ Thread.currentThread().getName());
+                    receivablesDao.update${name.upperCamel}ByBillNo(subList);
+                    countDownLatch.countDown();
+                }
+            }));
+        }
+        try {
+            // 让当前线程处于阻塞状态，知道锁存器计数为零
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        return 0;
     }
 }

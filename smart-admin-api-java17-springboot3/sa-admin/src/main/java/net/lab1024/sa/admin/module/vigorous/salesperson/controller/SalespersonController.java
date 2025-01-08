@@ -1,23 +1,23 @@
 package net.lab1024.sa.admin.module.vigorous.salesperson.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.form.SalespersonAddForm;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.form.SalespersonQueryForm;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.form.SalespersonUpdateForm;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.vo.SalespersonExcelVO;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.vo.SalespersonVO;
 import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
+import net.lab1024.sa.admin.module.vigorous.salespersonlevel.domain.form.SalespersonLevelRecordAddForm;
+import net.lab1024.sa.base.common.domain.PageResult;
+import net.lab1024.sa.base.common.domain.ResponseDTO;
 import net.lab1024.sa.base.common.domain.ValidateList;
 import net.lab1024.sa.base.common.util.SmartExcelUtil;
 import org.springframework.web.bind.annotation.*;
-import net.lab1024.sa.base.common.domain.ResponseDTO;
-import net.lab1024.sa.base.common.domain.PageResult;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.Operation;
-
-import jakarta.annotation.Resource;
-import jakarta.validation.Valid;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -87,6 +87,12 @@ public class SalespersonController {
     public void exportSalesperson(HttpServletResponse response) throws IOException {
         List<SalespersonExcelVO> goodsList = salespersonService.getAllSalesperson();
         SmartExcelUtil.exportExcel(response,"商品列表.xlsx","商品",SalespersonExcelVO.class, goodsList);
+    }
+
+    @Operation(summary = "更新 @author yxz")
+    @PostMapping("/salesperson/updateLevel")
+    public ResponseDTO<String> updateLevel(@RequestBody @Valid SalespersonLevelRecordAddForm updateForm) {
+        return salespersonService.updateLevel(updateForm);
     }
 
 }

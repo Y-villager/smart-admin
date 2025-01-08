@@ -17,6 +17,9 @@ let businessOAInitTableId = 30000;
 
 let businessERPInitTableId = 40000;
 
+// 朗翔业务表格初始化id
+let vigorousInitTableId = 50000;
+
 export const TABLE_ID_CONST = {
   /**
    * 业务
@@ -57,4 +60,18 @@ export const TABLE_ID_CONST = {
     JOB: supportInitTableId + 9, //Job
     JOB_LOG: supportInitTableId + 10, //JobLog
   },
+
+  /**
+   * 朗翔
+   */
+  VIGOROUS:{
+    SALES_OUTBOUND: vigorousInitTableId + 1, //销售出库
+    CUSTOMER: vigorousInitTableId +2,
+    SALESPERSON: vigorousInitTableId+3,
+    SALESPERSON_LEVEL: vigorousInitTableId+4,
+    RECEIVABLES: vigorousInitTableId+4,
+    FIRST_ORDER: vigorousInitTableId+5,
+    COMMISSION_RULE: vigorousInitTableId+6,
+
+  }
 };

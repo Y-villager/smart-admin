@@ -22,8 +22,10 @@ import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
 import net.lab1024.sa.base.common.domain.ValidateList;
 import net.lab1024.sa.base.common.util.SmartExcelUtil;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -83,12 +85,12 @@ public class FirstOrderController {
         return firstOrderService.delete(firstOrderId);
     }
 
-//    @Operation(summary = "导入")
-//    @PostMapping("/firstOrder/import")
-//    @SaCheckPermission("firstOrder:import")
-//    public ResponseDTO<String> importFirstOrder(@RequestParam MultipartFile file) {
-//        return firstOrderService.importFirstOrder(file);
-//    }
+    @Operation(summary = "导入")
+    @PostMapping("/firstOrder/import")
+    @SaCheckPermission("firstOrder:import")
+    public ResponseDTO<String> importFirstOrder(@RequestParam MultipartFile file, @Param("mode") Boolean mode) {
+        return firstOrderService.importFirstOrder(file, mode);
+    }
 
     // --------------- 导出 -------------------
     @Operation(summary = "导出")
@@ -101,7 +103,7 @@ public class FirstOrderController {
 
 
     @Operation(summary = "初始化客户首单信息")
-    @PostMapping("/firstOrder/init")
+//    @PostMapping("/firstOrder/init")
     public ResponseDTO<String> initCustomerFirstOrder(HttpServletResponse response) throws IOException {
         // 查询首单为空的客户
 //        LambdaQueryWrapper<CustomerEntity> queryWrapper = new LambdaQueryWrapper<>();
@@ -123,7 +125,6 @@ public class FirstOrderController {
             firstOrder.setBillNo(salesOutboundVO.getBillNo());
             firstOrder.setSalespersonId(salesOutboundVO.getSalespersonId());
             firstOrder.setOrderDate(salesOutboundVO.getSalesBoundDate());
-            firstOrder.setAmount(salesOutboundVO.getAmount());
             // 要插入的首单记录
             initList.add(firstOrder);
             // 要更新的用户

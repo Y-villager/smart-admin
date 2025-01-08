@@ -23,7 +23,7 @@
         v_sales_outbound.amount
     </sql>
 
-    <resultMap id="salesOutboundMap" type="net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO2">
+    <resultMap id="salesOutboundVO2Map" type="net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO2">
         <id property="salesBoundId" column="sales_bound_id"/>
         <result property="billNo" column="bill_no"/>
         <result property="salesBoundDate" column="sales_bound_date"/>
@@ -49,19 +49,39 @@
         </association>
     </resultMap>
 
+    <resultMap id="salesOutboundVOMap" type="net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO">
+        <id property="salesBoundId" column="sales_bound_id"/>
+        <result property="billNo" column="bill_no"/>
+        <result property="salesBoundDate" column="sales_bound_date"/>
+        <result property="customerId" column="customer_id"/>
+        <result property="customerName" column="customer_name"/>
+        <result property="salespersonId" column="salesperson_id"/>
+        <result property="salespersonName" column="salesperson_name"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="amount" column="amount"/>
+        <result property="rate" column="rate"/>
+        <result property="currencyType" column="currency_type"/>
+    </resultMap>
+
     <!-- 分页查询 -->
-    <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO">
+    <select id="queryPage" resultMap="salesOutboundVOMap">
         SELECT
-        <include refid="base_columns"/>
-        FROM v_sales_outbound
+        <include refid="base_columns"/>,
+        vc.customer_name,
+        vs.id,
+        vs.salesperson_name
+        FROM   v_sales_outbound
+        left join v_customer vc on vc.customer_id= v_sales_outbound.customer_id
+        left join v_salesperson vs on vs.id = v_sales_outbound.salesperson_id
         <where>
             <!--客户编码-->
-            <if test="queryForm.customerId != null">
-                        AND INSTR(v_sales_outbound.customer_id,#{queryForm.customerId})
+            <if test="queryForm.customerName != null and queryForm.customerName != ''">
+                AND INSTR(vc.customer_name,#{queryForm.customerName})
             </if>
             <!--业务员-->
-            <if test="queryForm.salespersonId != null">
-                        AND INSTR(v_sales_outbound.salesperson_id,#{queryForm.salespersonId})
+            <if test="queryForm.salespersonName != null and queryForm.salespersonName != '' ">
+                AND INSTR(vs.salesperson_name, #{queryForm.salespersonName})
             </if>
             <if test="queryForm.billNo != null and queryForm.billNo != '' ">
                 AND INSTR(v_sales_outbound.bill_no,#{queryForm.billNo})
@@ -76,6 +96,32 @@
         </where>
         order by v_sales_outbound.sales_bound_date desc
     </select>
+<!--    <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO">-->
+<!--        SELECT-->
+<!--        <include refid="base_columns"/>-->
+<!--        FROM v_sales_outbound-->
+<!--        <where>-->
+<!--            &lt;!&ndash;客户编码&ndash;&gt;-->
+<!--            <if test="queryForm.customerId != null">-->
+<!--                        AND INSTR(v_sales_outbound.customer_id,#{queryForm.customerId})-->
+<!--            </if>-->
+<!--            &lt;!&ndash;业务员&ndash;&gt;-->
+<!--            <if test="queryForm.salespersonId != null">-->
+<!--                        AND INSTR(v_sales_outbound.salesperson_id,#{queryForm.salespersonId})-->
+<!--            </if>-->
+<!--            <if test="queryForm.billNo != null and queryForm.billNo != '' ">-->
+<!--                AND INSTR(v_sales_outbound.bill_no,#{queryForm.billNo})-->
+<!--            </if>-->
+<!--            &lt;!&ndash;出库日期&ndash;&gt;-->
+<!--            <if test="queryForm.salesBoundDateBegin != null ">-->
+<!--                AND DATE_FORMAT(v_sales_outbound.sales_bound_date, '%Y-%m-%d') &gt;= #{queryForm.salesBoundDateBegin}-->
+<!--            </if>-->
+<!--            <if test="queryForm.salesBoundDateEnd != null ">-->
+<!--                AND DATE_FORMAT(v_sales_outbound.sales_bound_date, '%Y-%m-%d') &lt;= #{queryForm.salesBoundDateEnd}-->
+<!--            </if>-->
+<!--        </where>-->
+<!--        order by v_sales_outbound.sales_bound_date desc-->
+<!--    </select>-->
 
     <select id="queryByBillNo"
             resultType="net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.entity.SalesOutboundEntity">
@@ -107,7 +153,7 @@
             resultType="net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO">
         SELECT
         <include refid="commission_columns"/>,
-        FROM v_sales_outbound inner join v_receivables vr on v_sales_outbound.bill_no = vr.origin_bill_no
+        FROM v_sales_outbound left join v_receivables vr on v_sales_outbound.bill_no = vr.origin_bill_no
         <where>
             <!--客户编码-->
             <if test="queryForm.customerId != null">
@@ -162,7 +208,7 @@
         order by v_sales_outbound.sales_bound_date desc
     </select>
 
-    <select id="queryPage2" resultMap="salesOutboundMap">
+    <select id="queryPage2" resultMap="salesOutboundVO2Map">
         SELECT
         <include refid="base_columns"/>,
             vc.customer_name,

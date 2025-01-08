@@ -12,6 +12,8 @@ import net.lab1024.sa.admin.module.vigorous.salesperson.domain.form.SalespersonQ
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.form.SalespersonUpdateForm;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.vo.SalespersonExcelVO;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.vo.SalespersonVO;
+import net.lab1024.sa.admin.module.vigorous.salespersonlevel.domain.form.SalespersonLevelRecordAddForm;
+import net.lab1024.sa.admin.module.vigorous.salespersonlevel.service.SalespersonLevelRecordService;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
 import net.lab1024.sa.base.common.exception.BusinessException;
@@ -21,6 +23,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.executor.BatchResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -44,6 +47,8 @@ public class SalespersonService {
     private SalespersonDao salespersonDao;
     @Autowired
     private DepartmentService departmentService;
+    @Autowired
+    private SalespersonLevelRecordService salespersonLevelRecordService;
 
     /**
      * 分页查询
@@ -56,10 +61,6 @@ public class SalespersonService {
         Page<?> page = SmartPageUtil.convert2PageQuery(queryForm);
         List<SalespersonVO> list = salespersonDao.queryPage(page, queryForm);
 
-        // 查询部门、业务员级别名称
-        list.forEach(e -> {
-            e.setDepartmentName(departmentService.queryDepartmentName(e.getDepartmentId()));
-        });
         return SmartPageUtil.convert2PageResult(page, list);
     }
 
@@ -248,5 +249,14 @@ public class SalespersonService {
         }
         return salespersonDao.getSalespersonNamesByIds(salespersonIds).stream()
                 .collect(Collectors.toMap(SalespersonVO::getId, SalespersonVO::getSalespersonName));
+    }
+
+    @Transactional
+    public ResponseDTO<String> updateLevel(SalespersonLevelRecordAddForm form) {
+        salespersonDao.updateLevel(form);
+        int nowSalespersonLevelId =  salespersonDao.getNowSalespersonLevel(form.getSalespersonId());
+
+        salespersonLevelRecordService.add(form);
+        return ResponseDTO.ok();
     }
 }

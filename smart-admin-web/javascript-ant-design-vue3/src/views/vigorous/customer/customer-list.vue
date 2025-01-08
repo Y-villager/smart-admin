@@ -125,32 +125,40 @@
 
     <a-modal v-model:open="importModalShowFlag" title="导入" @onCancel="hideImportModal" @ok="hideImportModal">
       <div style="text-align: center; width: 400px; margin: 0 auto">
-        <a-button @click="downloadExcel">
-          <download-outlined />
-          第一步：下载模板
-        </a-button>
-        <br />
-        <br />
+        <div id="app">
+          <span>导入模式：</span>
+
+          <!-- 绑定 radio 按钮 -->
+          <label>
+            <input type="radio" v-model="importMode" value="1"/> 追加
+          </label>
+          <label>
+            <input type="radio" v-model="importMode" value="0"/> 覆盖
+          </label>
+        </div>
+        <br/>
         <a-upload
-          v-model:fileList="fileList"
-          name="file"
-          :multiple="false"
-          action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
-          accept=".xls,.xlsx"
-          :before-upload="beforeUpload"
-          @remove="handleRemove"
+            v-model:fileList="fileList"
+            name="file"
+            :multiple="false"
+            action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
+            accept=".xls,.xlsx"
+            :before-upload="beforeUpload"
+            @remove="handleRemove"
         >
           <a-button>
             <upload-outlined />
-            第二步：选择文件
+            选择文件
           </a-button>
         </a-upload>
 
         <br />
         <a-button @click="onImportCustomer">
           <ImportOutlined />
-          第三步：开始导入
+          开始导入
         </a-button>
+        <br/>
+        <a-button type="text" @click="downloadFailedData">下载失败数据</a-button>
       </div>
     </a-modal>
   </a-card>
@@ -164,6 +172,7 @@
   import { smartSentry } from '/@/lib/smart-sentry';
   import TableOperator from '/@/components/support/table-operator/index.vue';
   import CustomerForm from './customer-form.vue';
+  import {receivablesApi as excelApi} from "/@/api/vigorous/excel-api.js";
   //import FilePreview from '/@/components/support/file-preview/index.vue'; // 图片预览组件
 
   // ---------------------------- 表格列 ----------------------------
@@ -360,23 +369,6 @@
   function hideImportModal() {
     importModalShowFlag.value = false;
   }
-  // 导入文件
-  async function onImportCustomer() {
-    const formData = new FormData();
-    fileList.value.forEach((file) => {
-      formData.append('file', file.originFileObj);
-    });
-
-    SmartLoading.show();
-    try {
-      let res = await customerApi.importCustomer(formData);
-      message.success(res.msg);
-    } catch (e) {
-      smartSentry.captureError(e);
-    } finally {
-      SmartLoading.hide();
-    }
-  }
 
   // 导出excel文件
   async function onExportCustomer() {
@@ -396,4 +388,39 @@
   }
   // 下载模板
   function downloadExcel() {}
+
+  const importMode = ref(1)
+  // 导入文件
+  async function onImportCustomer() {
+    const formData = new FormData();
+    fileList.value.forEach((file) => {
+      formData.append('file', file.originFileObj);
+      formData.append('mode', importMode.value);
+    });
+
+    SmartLoading.show();
+    try {
+      let res = await customerApi.importCustomer(formData);
+      failed_import_data.value = res.data;
+      message.success(res.msg);
+    } catch (e) {
+      smartSentry.captureError(e);
+    } finally {
+      SmartLoading.hide();
+    }
+  }
+
+  // 下载导入失败数据
+  const failed_import_data = ref();
+  function downloadFailedData(){
+    if (failed_import_data.value != null){
+      try{
+        excelApi.downloadFailedImportData();
+      }catch (e){
+        smartSentry.captureError(e)
+      }
+    }else {
+      message.error("当前没有导入失败数据")
+    }
+  }
 </script>

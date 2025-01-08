@@ -78,8 +78,8 @@ public class CustomerController {
     @Operation(summary = "导入")
     @PostMapping("/customer/import")
     @SaCheckPermission("customer:import")
-    public ResponseDTO<String> importCustomer(@RequestParam MultipartFile file) {
-        return customerService.importCustomer(file);
+    public ResponseDTO<String> importCustomer(@RequestParam MultipartFile file, @RequestParam("mode") Boolean mode) {
+        return customerService.importCustomer(file, mode);
     }
 
     @Operation(summary = "导出")

@@ -128,6 +128,16 @@
         </foreach>
     </select>
 
+    <select id="queryByCustomerCodes"
+            resultType="net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerVO">
+        select <include refid="base_columns"/>
+        from v_customer
+        where customer_code in
+        <foreach collection="customerCodes" index="index" item="code" open="(" close=")" separator=",">
+            #{code}
+        </foreach>
+    </select>
+
     <update id="updateFirstOrderIdsBatch">
         <foreach collection="list" item="item" index="index" separator=";">
             update v_customer
