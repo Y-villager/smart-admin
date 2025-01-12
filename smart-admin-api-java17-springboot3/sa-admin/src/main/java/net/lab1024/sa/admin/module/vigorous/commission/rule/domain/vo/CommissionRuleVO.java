@@ -2,10 +2,8 @@ package
 
         net.lab1024.sa.admin.module.vigorous.commission.rule.domain.vo;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import net.lab1024.sa.base.common.json.serializer.DictValueVoSerializer;
 
 import java.math.BigDecimal;
 
@@ -24,14 +22,13 @@ public class CommissionRuleVO {
     @Schema(description = "提成规则id")
     private Long ruleId;
 
-    @Schema(description = "币种")
-    @JsonSerialize(using = DictValueVoSerializer.class)
-    private String currencyType;
-
     @Schema(description = "业务员级别id")
     private Integer salespersonLevelId;
 
     private String salespersonLevelName;
+
+    @Schema(description = "客户分组(1内贸 2外贸)")
+    private Integer customerGroup;
 
     @Schema(description = "首单比例")
     private BigDecimal firstOrderRate;

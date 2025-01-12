@@ -1,12 +1,9 @@
 package net.lab1024.sa.admin.module.vigorous.commission.rule.domain.form;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import lombok.Data;
-import net.lab1024.sa.base.common.json.deserializer.DictValueVoDeserializer;
 
 /**
  * 提成规则 新建表单
@@ -18,11 +15,6 @@ import net.lab1024.sa.base.common.json.deserializer.DictValueVoDeserializer;
 
 @Data
 public class CommissionRuleAddForm {
-
-    @Schema(description = "币种", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotBlank(message = "币种 不能为空")
-    @JsonDeserialize(using = DictValueVoDeserializer.class)
-    private String currencyType;
 
     @Schema(description = "业务员级别id", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "业务员级别id 不能为空")

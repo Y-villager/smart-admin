@@ -83,10 +83,10 @@ public class CustomerController {
     }
 
     @Operation(summary = "导出")
-    @GetMapping("/customer/export")
+    @PostMapping("/customer/export")
     @SaCheckPermission("customer:export")
-    public void exportCustomer(HttpServletResponse response) throws IOException {
-        List<CustomerExcelVO> goodsList = customerService.exportCustomers();
+    public void exportCustomer(HttpServletResponse response, @RequestBody @Valid CustomerQueryForm queryForm) throws IOException {
+        List<CustomerExcelVO> goodsList = customerService.exportCustomers(queryForm);
         SmartExcelUtil.exportExcel(response,"顾客.xlsx","顾客",CustomerExcelVO.class, goodsList);
     }
 

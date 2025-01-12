@@ -22,9 +22,11 @@
         </where>
     </select>
 
-    <select id="getAll"
-            resultType="net.lab1024.sa.admin.module.vigorous.salespersonlevel.domain.vo.SalespersonLevelVO">
-        select <include refid="base_columns"/>
+
+
+    <select id="getAllDto"
+            resultType="net.lab1024.sa.admin.common.dto.GenericDTO">
+        select salesperson_level_id as id, salesperson_level_name as name
         from v_salesperson_level
         limit 100;
     </select>

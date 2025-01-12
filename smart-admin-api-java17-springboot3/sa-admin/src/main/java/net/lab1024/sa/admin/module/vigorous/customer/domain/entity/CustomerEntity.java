@@ -1,8 +1,12 @@
-package net.lab1024.sa.admin.module.vigorous.customer.domain.entity;
+package
 
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+        net.lab1024.sa.admin.module.vigorous.customer.domain.entity;
+
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * 顾客 实体类
@@ -19,7 +23,7 @@ public class CustomerEntity {
     /**
      * 主键
      */
-    @TableId
+    @TableId(type = IdType.AUTO)
     private Long customerId;
 
     /**
@@ -38,14 +42,9 @@ public class CustomerEntity {
     private String country;
 
     /**
-     * 客户分组
-     */
-    private String customerGroup;
-
-    /**
      * 客户类别
      */
-    private String customerCategory;
+    private Integer customerCategory;
 
     /**
      * 业务员编码
@@ -58,8 +57,35 @@ public class CustomerEntity {
     private String customerCode;
 
     /**
-     * 首单信息编号
+     * 首单日期
      */
-    private Long firstOrderId;
+    private LocalDate firstOrderDate;
+
+    /**
+     * 是否转交
+     */
+    private Integer transferStatus;
+
+    /**
+     * 转交历史
+     */
+    private String transferHistory;
+
+    /**
+     * 客户分组 （1内贸 2外贸
+     */
+    private Integer customerGroup;
+
+    /**
+     * 更新时间
+     */
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private LocalDateTime updateTime;
+
+    /**
+     * 创建时间
+     */
+    @TableField(fill = FieldFill.INSERT)
+    private LocalDateTime createTime;
 
 }

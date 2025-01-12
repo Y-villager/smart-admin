@@ -24,11 +24,8 @@
       <a-form-item label="现在级别"  name="newLevel">
         <SalespersonLevelSelect width="100%" v-model:value="form.newLevel" enumName="" placeholder="选择业务员级别"/>
       </a-form-item>
-      <a-form-item label="开始时间"  name="startDate">
-        <a-date-picker valueFormat="YYYY-MM-DD" v-model:value="form.startDate" style="width: 100%" placeholder="开始时间"/>
-      </a-form-item>
-      <a-form-item label="结束时间"  name="endDate">
-        <a-date-picker valueFormat="YYYY-MM-DD" v-model:value="form.endDate" style="width: 100%" placeholder="结束时间"/>
+      <a-form-item label="结束时间"  name="changeDate">
+        <a-date-picker valueFormat="YYYY-MM-DD" v-model:value="form.changeDate" style="width: 100%" placeholder="变动日期"/>
       </a-form-item>
       <a-form-item label="变动原因"  name="changeReason">
         <a-input style="width: 100%" v-model:value="form.changeReason" placeholder="变动原因" />
@@ -89,6 +86,13 @@ function onClose() {
   visibleFlag.value = false;
 }
 
+function formatDate(date) {
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 // ------------------------ 表单 ------------------------
 
 // 组件ref
@@ -98,8 +102,7 @@ const formDefault = {
   salespersonId: undefined, //业务员id
   oldLevel: undefined, //先前级别
   newLevel: undefined, //现在级别
-  startDate: undefined, //开始时间
-  endDate: undefined, //结束时间
+  changeDate: formatDate(new Date()), //结束时间
   changeReason: undefined, //变动原因
 };
 
@@ -107,9 +110,9 @@ let form = reactive({ ...formDefault });
 
 const rules = {
   salespersonId: [{ required: true, message: '业务员编号 必填' }],
-  oldLevel: [{ required: true, message: '先前级别 必填' }],
   newLevel: [{ required: true, message: '现在级别 必填' }],
-  startDate: [{ required: true, message: '开始时间 必填' }],
+  changeReason: [{ required: true, message: '变动原因 必填' }],
+  changeDate: [{ required: true, message: '变动日期 必填' }],
 };
 
 // 点击确定，验证表单

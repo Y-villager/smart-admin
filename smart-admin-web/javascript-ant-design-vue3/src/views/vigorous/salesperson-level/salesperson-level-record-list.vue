@@ -13,7 +13,7 @@
                 <a-input style="width: 200px" v-model:value="queryForm.salespersonName" placeholder="业务员名称" />
             </a-form-item>
             <a-form-item label="变动时间" class="smart-query-form-item">
-                <a-range-picker v-model:value="queryForm.createTime" :presets="defaultTimeRanges" style="width: 200px" @change="onChangeCreateTime" />
+                <a-range-picker v-model:value="queryForm.changeDate" :presets="defaultTimeRanges" style="width: 200px" @change="onChangeCreateTime" />
             </a-form-item>
             <a-form-item class="smart-query-form-item">
                 <a-button type="primary" @click="onSearch">
@@ -69,15 +69,17 @@
 
 	    <!-- 使用字典时 注释解开并把下面的'dict'修改成自己的字典字段名即可 有多个字典字段就复制多份同理修改 不然不显示字典 -->
               <!-- 方便修改tag的颜色 orange green purple success processing error default warning -->
-              <!-- <template v-if="column.dataIndex === 'dict'">
-                <a-tag color="cyan">
-                  {{ text && text.length > 0 ? text.map((e) => e.valueName).join(',') : '暂无' }}
-                </a-tag>
-              </template> -->
+              <template v-if="column.dataIndex === 'oldLevel'">
+                <generic-dto :selected-id="text" :list="salespersonLevelList"/>
+              </template>
+              <template v-if="column.dataIndex === 'newLevel'">
+                <generic-dto :selected-id="text" :list="salespersonLevelList"/>
+              </template>
 
                 <template v-if="column.dataIndex === 'action'">
                     <div class="smart-table-operate">
                         <a-button @click="showForm(record)" type="link">编辑</a-button>
+                        <a-button @click="onDelete(record)" danger type="link">删除</a-button>
                     </div>
                 </template>
             </template>
@@ -102,49 +104,20 @@
 
         <SalespersonLevelRecordForm  ref="formRef" @reloadList="queryData"/>
 
-      <a-modal v-model:open="importModalShowFlag" title="导入" @onCancel="hideImportModal" @ok="hideImportModal">
-        <div style="text-align: center; width: 400px; margin: 0 auto">
-          <a-button @click="downloadExcel">
-            <download-outlined />
-            第一步：下载模板
-          </a-button>
-          <br />
-          <br />
-          <a-upload
-              v-model:fileList="fileList"
-              name="file"
-              :multiple="false"
-              action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
-              accept=".xls,.xlsx"
-              :before-upload="beforeUpload"
-              @remove="handleRemove"
-          >
-            <a-button>
-              <upload-outlined />
-              第二步：选择文件
-            </a-button>
-          </a-upload>
-
-          <br />
-          <a-button @click="onImportSalespersonLevelRecord">
-            <ImportOutlined />
-            第三步：开始导入
-          </a-button>
-        </div>
-      </a-modal>
-
     </a-card>
 </template>
 <script setup>
     import { reactive, ref, onMounted } from 'vue';
-    import { message, Modal } from 'ant-design-vue';
-    import { SmartLoading } from '/@/components/framework/smart-loading';
     import { salespersonLevelRecordApi } from '/@/api/vigorous/salesperson-level-record-api';
     import { PAGE_SIZE_OPTIONS } from '/@/constants/common-const';
     import { smartSentry } from '/@/lib/smart-sentry';
     import TableOperator from '/@/components/support/table-operator/index.vue';
     import SalespersonLevelRecordForm from './salesperson-level-record-form.vue';
     import { defaultTimeRanges } from '/@/lib/default-time-ranges';
+    import {message, Modal} from "ant-design-vue";
+    import {SmartLoading} from "/@/components/framework/smart-loading/index.js";
+    import {salespersonLevelApi} from "/@/api/vigorous/salesperson-level-api.js";
+    import GenericDto from "/@/components/vigorous/GenericDto/index.vue";
     //import FilePreview from '/@/components/support/file-preview/index.vue'; // 图片预览组件
 
     // ---------------------------- 表格列 ----------------------------
@@ -152,7 +125,7 @@
     const columns = ref([
         {
             title: '业务员',
-            dataIndex: 'salespersonId',
+            dataIndex: 'salespersonName',
             ellipsis: true,
         },
         {
@@ -166,13 +139,8 @@
             ellipsis: true,
         },
         {
-            title: '开始时间',
-            dataIndex: 'startDate',
-            ellipsis: true,
-        },
-        {
-            title: '结束时间',
-            dataIndex: 'endDate',
+            title: '变动日期',
+            dataIndex: 'changeDate',
             ellipsis: true,
         },
         {
@@ -197,9 +165,9 @@
 
     const queryFormState = {
         salespersonName: undefined, //业务员名称
-        createTime: [], //变动时间
-        createTimeBegin: undefined, //变动时间 开始
-        createTimeEnd: undefined, //变动时间 结束
+        changeDate: [], //变动时间
+        changeDateBegin: undefined, //变动时间 开始
+        changeDateEnd: undefined, //变动时间 结束
         pageNum: 1,
         pageSize: 10,
     };
@@ -241,18 +209,98 @@
     }
 
     function onChangeCreateTime(dates, dateStrings){
-        queryForm.createTimeBegin = dateStrings[0];
-        queryForm.createTimeEnd = dateStrings[1];
+        queryForm.changeDateBegin = dateStrings[0];
+        queryForm.changeDateEnd = dateStrings[1];
     }
 
 
     onMounted(queryData);
+    onMounted(getAllSalespersonLevel);
+    // ----------------------------  ----------------------------
+    const salespersonLevelList = ref();
+    function getAllSalespersonLevel() {
+      salespersonLevelApi.queryList().then(res =>{
+        console.log('---------------------level-record')
+        console.log(res)
+        salespersonLevelList.value = res.data
+      })
+    }
 
     // ---------------------------- 添加/修改 ----------------------------
     const formRef = ref();
 
     function showForm(data) {
         formRef.value.show(data);
+    }
+    // ---------------------------- 单个删除 ----------------------------
+    //确认删除
+    function onDelete(data){
+      Modal.confirm({
+        title: '提示',
+        content: '确定要删除选吗?',
+        okText: '删除',
+        okType: 'danger',
+        onOk() {
+          requestDelete(data);
+        },
+        cancelText: '取消',
+        onCancel() {},
+      });
+    }
+
+    //请求删除
+    async function requestDelete(data){
+      SmartLoading.show();
+      try {
+        let deleteForm = {
+          goodsIdList: selectedRowKeyList.value,
+        };
+        await salespersonLevelRecordApi.delete(data.id);
+        message.success('删除成功');
+        queryData();
+      } catch (e) {
+        smartSentry.captureError(e);
+      } finally {
+        SmartLoading.hide();
+      }
+    }
+
+    // ---------------------------- 批量删除 ----------------------------
+
+    // 选择表格行
+    const selectedRowKeyList = ref([]);
+
+    function onSelectChange(selectedRowKeys) {
+      selectedRowKeyList.value = selectedRowKeys;
+    }
+
+    // 批量删除
+    function confirmBatchDelete() {
+      Modal.confirm({
+        title: '提示',
+        content: '确定要批量删除这些数据吗?',
+        okText: '删除',
+        okType: 'danger',
+        onOk() {
+          requestBatchDelete();
+        },
+        cancelText: '取消',
+        onCancel() {},
+      });
+    }
+
+    //请求批量删除
+    async function requestBatchDelete() {
+      try {
+        SmartLoading.show();
+        await salespersonLevelRecordApi.batchDelete(selectedRowKeyList.value);
+        message.success('删除成功');
+        await queryData();
+      } catch (e) {
+        smartSentry.captureError(e);
+      } finally {
+        SmartLoading.hide();
+      }
     }
 
 </script>

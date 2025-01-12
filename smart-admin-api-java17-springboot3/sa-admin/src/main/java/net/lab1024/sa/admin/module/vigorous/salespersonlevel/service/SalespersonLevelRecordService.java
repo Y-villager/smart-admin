@@ -3,7 +3,6 @@ package net.lab1024.sa.admin.module.vigorous.salespersonlevel.service;
 import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
-import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
 import net.lab1024.sa.admin.module.vigorous.salespersonlevel.dao.SalespersonLevelRecordDao;
 import net.lab1024.sa.admin.module.vigorous.salespersonlevel.domain.entity.SalespersonLevelRecordEntity;
 import net.lab1024.sa.admin.module.vigorous.salespersonlevel.domain.form.SalespersonLevelRecordAddForm;
@@ -71,6 +70,32 @@ public class SalespersonLevelRecordService {
     public ResponseDTO<String> update(SalespersonLevelRecordUpdateForm updateForm) {
         SalespersonLevelRecordEntity salespersonLevelRecordEntity = SmartBeanUtil.copy(updateForm, SalespersonLevelRecordEntity.class);
         salespersonLevelRecordDao.updateById(salespersonLevelRecordEntity);
+        return ResponseDTO.ok();
+    }
+
+    /**
+     * 批量删除
+     *
+     * @param idList
+     * @return
+     */
+    public ResponseDTO<String> batchDelete(List<Integer> idList) {
+        if (CollectionUtils.isEmpty(idList)){
+            return ResponseDTO.ok();
+        }
+        salespersonLevelRecordDao.deleteBatchIds(idList);
+        return ResponseDTO.ok();
+    }
+
+    /**
+     * 单个删除
+     */
+    public ResponseDTO<String> delete(Integer id) {
+        if (null == id){
+            return ResponseDTO.ok();
+        }
+
+        salespersonLevelRecordDao.deleteById(id);
         return ResponseDTO.ok();
     }
 

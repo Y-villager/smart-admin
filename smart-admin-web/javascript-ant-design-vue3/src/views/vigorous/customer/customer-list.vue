@@ -9,14 +9,23 @@
   <!---------- 查询表单form begin ----------->
   <a-form class="smart-query-form">
     <a-row class="smart-query-form-row">
-      <a-form-item label="顾客名称" class="smart-query-form-item">
-        <a-input style="width: 200px" v-model:value="queryForm.customerName" placeholder="顾客名称" />
+      <a-form-item label="客户编码" class="smart-query-form-item">
+        <a-input style="width: 200px" v-model:value="queryForm.customerCode" placeholder="客户编码" />
       </a-form-item>
-      <a-form-item label="简称" class="smart-query-form-item">
-        <a-input style="width: 200px" v-model:value="queryForm.shortName" placeholder="简称" />
+      <a-form-item label="客户" class="smart-query-form-item">
+        <a-input style="width: 200px" v-model:value="queryForm.customerName" placeholder="客户" />
       </a-form-item>
       <a-form-item label="业务员" class="smart-query-form-item">
-        <a-input style="width: 200px" v-model:value="queryForm.SalespersonId" placeholder="业务员" />
+        <a-input style="width: 200px" v-model:value="queryForm.salespersonName" placeholder="业务员" />
+      </a-form-item>
+<!--      <a-form-item label="转交情况" class="smart-query-form-item">-->
+<!--        <SmartEnumSelect enum-name="TRANSFER_STATUS_ENUM" v-model:value="queryForm.transferStatus" width="160px" />-->
+<!--      </a-form-item>-->
+      <a-form-item label="客户分组" class="smart-query-form-item">
+        <SmartEnumSelect enum-name="CUSTOMER_GROUP_ENUM" v-model:value="queryForm.customerGroup" width="160px" />
+      </a-form-item>
+      <a-form-item label="国家" class="smart-query-form-item">
+        <a-input style="width: 200px" v-model:value="queryForm.country" placeholder="国家" />
       </a-form-item>
       <a-form-item class="smart-query-form-item">
         <a-button type="primary" @click="onSearch">
@@ -94,6 +103,12 @@
                   {{ text && text.length > 0 ? text.map((e) => e.valueName).join(',') : '暂无' }}
                 </a-tag>
               </template> -->
+        <template v-if="column.dataIndex === 'customerGroup'">
+          <span>{{$smartEnumPlugin.getDescByValue('CUSTOMER_GROUP_ENUM', text)}}</span>
+        </template>
+        <template v-if="column.dataIndex === 'transferStatus'">
+          <span>{{$smartEnumPlugin.getDescByValue('TRANSFER_STATUS_ENUM', text)}}</span>
+        </template>
 
         <template v-if="column.dataIndex === 'action'">
           <div class="smart-table-operate">
@@ -173,6 +188,9 @@
   import TableOperator from '/@/components/support/table-operator/index.vue';
   import CustomerForm from './customer-form.vue';
   import {receivablesApi as excelApi} from "/@/api/vigorous/excel-api.js";
+  import {CUSTOMER_GROUP_ENUM} from "/@/constants/vigorous/customer-const.js";
+  import SmartEnumSelect from "/@/components/framework/smart-enum-select/index.vue";
+  import SalespersonLevelSelect from "/@/components/vigorous/salesperson-level-select/index.vue";
   //import FilePreview from '/@/components/support/file-preview/index.vue'; // 图片预览组件
 
   // ---------------------------- 表格列 ----------------------------
@@ -204,19 +222,24 @@
       ellipsis: true,
     },
     {
-      title: '客户类别',
-      dataIndex: 'customerCategory',
-      ellipsis: true,
-    },
-    {
       title: '业务员',
-      dataIndex: 'salesperson',
+      dataIndex: 'salespersonName',
       ellipsis: true,
     },
 
     {
-      title: '首单信息',
-      dataIndex: 'firstOrder',
+      title: '首单日期',
+      dataIndex: 'firstOrderDate',
+      ellipsis: true,
+    },
+    {
+      title: '转交状态',
+      dataIndex: 'transferStatus',
+      ellipsis: true,
+    },
+    {
+      title: '创建日期',
+      dataIndex: 'createTime',
       ellipsis: true,
     },
     {
@@ -230,9 +253,12 @@
   // ---------------------------- 查询数据表单和方法 ----------------------------
 
   const queryFormState = {
-    customerName: undefined, //顾客名称
-    shortName: undefined, //简称
-    salespersonName: undefined, //业务员
+    customerCode: undefined, //客户编码
+    customerName: undefined, //客户
+    salespersonName: undefined,
+    customerGroup: undefined, //客户分组
+    country: undefined, //国家
+    transferStatus: undefined,
     pageNum: 1,
     pageSize: 10,
   };
@@ -372,7 +398,7 @@
 
   // 导出excel文件
   async function onExportCustomer() {
-    await customerApi.exportCustomer();
+    await customerApi.exportCustomer(queryForm);
   }
 
   function handleRemove(file) {
@@ -389,7 +415,7 @@
   // 下载模板
   function downloadExcel() {}
 
-  const importMode = ref(1)
+  const importMode = ref(1) //
   // 导入文件
   async function onImportCustomer() {
     const formData = new FormData();

@@ -69,6 +69,7 @@
         SELECT
         <include refid="base_columns"/>,
         vc.customer_name,
+        vc.customer_code,
         vs.id,
         vs.salesperson_name
         FROM   v_sales_outbound

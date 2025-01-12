@@ -8,8 +8,7 @@
         v_salesperson_level_record.salesperson_id,
         v_salesperson_level_record.old_level,
         v_salesperson_level_record.new_level,
-        v_salesperson_level_record.start_date,
-        v_salesperson_level_record.end_date,
+        v_salesperson_level_record.change_date,
         v_salesperson_level_record.change_reason,
         v_salesperson_level_record.create_time
     </sql>
@@ -17,21 +16,23 @@
     <!-- 分页查询 -->
     <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.salespersonlevel.domain.vo.SalespersonLevelRecordVO">
         SELECT
-        <include refid="base_columns"/>
+        <include refid="base_columns"/>, vs.salesperson_name
         FROM v_salesperson_level_record
+            left join v_salesperson vs on v_salesperson_level_record.salesperson_id = vs.id
         <where>
             <!--业务员名称-->
             <if test="queryForm.salespersonName != null and queryForm.salespersonName != ''">
-                        AND INSTR(v_salesperson_level_record.salesperson_id,#{queryForm.salespersonName})
+                AND INSTR(vs.salesperson_name,#{queryForm.salespersonName})
             </if>
             <!--变动时间-->
-            <if test="queryForm.createTimeBegin != null">
-                AND v_salesperson_level_record.create_time &gt;= #{queryForm.createTimeBegin}
+            <if test="queryForm.changeDateBegin != null">
+                AND v_salesperson_level_record.change_date &gt;= #{queryForm.changeDateBegin}
             </if>
-            <if test="queryForm.createTimeEnd != null">
-                AND v_salesperson_level_record.create_time &lt;= #{queryForm.createTimeEnd}
+            <if test="queryForm.changeDateEnd != null">
+                AND v_salesperson_level_record.change_date &lt;= #{queryForm.changeDateEnd}
             </if>
         </where>
+        order by create_time desc
     </select>
 
 

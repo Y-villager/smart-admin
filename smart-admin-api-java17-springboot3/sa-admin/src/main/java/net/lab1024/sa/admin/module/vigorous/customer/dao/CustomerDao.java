@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.entity.CustomerEntity;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.form.CustomerQueryForm;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerVO;
-import net.lab1024.sa.admin.module.vigorous.firstorder.domain.entity.FirstOrderEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Component;
@@ -48,13 +47,11 @@ public interface CustomerDao extends BaseMapper<CustomerEntity> {
 
     String getCustomerNameById(@Param("customerId") Long customerId);
 
-    List<CustomerVO> getCustomerOfFONull();
-
-    int updateFirstOrderIdsBatch(@Param("list") List<FirstOrderEntity> subInsertedFirstOrderIds);
-
     Collection<CustomerVO> queryByCustomerNames(@Param("customerNames") Set<String> customerNames);
 
     Collection<CustomerVO> getCustomerNamesByIds(@Param("customerIds") Set<Long> customerIds);
 
     List<CustomerVO> queryByCustomerCodes(@Param("customerCodes") Set<String> customerCodes);
+
+    void batchUpdate(@Param("list") List<CustomerEntity> subList);
 }

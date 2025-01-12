@@ -1,5 +1,5 @@
 <!--
-  * 业务员级别 下拉选择框 
+  * 业务员级别 下拉选择框
   *
 -->
 <template>
@@ -14,8 +14,8 @@
       :disabled="disabled"
       optionFilterProp="label"
   >
-    <a-select-option v-for="item in dataList" :key="item.salespersonLevelId" :label="item.salespersonLevelName">
-      {{ item.salespersonLevelName }}
+    <a-select-option v-for="item in dataList" :key="item.id" :label="item.name">
+      {{ item.name }}
     </a-select-option>
   </a-select>
 </template>

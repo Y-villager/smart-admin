@@ -2,6 +2,9 @@ package net.lab1024.sa.admin.module.vigorous.customer.domain.form;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import net.lab1024.sa.admin.enumeration.CustomerGroupEnum;
+import net.lab1024.sa.admin.enumeration.TransferStatusEnum;
+import net.lab1024.sa.base.common.swagger.SchemaEnum;
 
 import javax.validation.constraints.NotBlank;
 
@@ -16,6 +19,10 @@ import javax.validation.constraints.NotBlank;
 @Data
 public class CustomerAddForm {
 
+    @Schema(description = "客户编码", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotBlank(message = "客户编码 不能为空")
+    private String customerCode;
+
     @Schema(description = "客户名称", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "客户名称 不能为空")
     private String customerName;
@@ -26,18 +33,18 @@ public class CustomerAddForm {
     @Schema(description = "国家")
     private String country;
 
-    @Schema(description = "客户分组")
-    private String customerGroup;
+    @SchemaEnum(CustomerGroupEnum.class)
+    private Integer customerGroup;
 
     @Schema(description = "客户类别")
     private String customerCategory;
 
-    @Schema(description = "业务员编码", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotBlank(message = "业务员编码 不能为空")
-    private String salespersonId;
+    @Schema(description = "业务员", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotBlank(message = "业务员 不能为空")
+    private String salespersonName;
 
-    @Schema(description = "客户编码", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotBlank(message = "客户编码 不能为空")
-    private String customerCode;
+    @SchemaEnum(TransferStatusEnum.class)
+    private Integer transferStatus;
+
 
 }

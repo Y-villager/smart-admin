@@ -15,6 +15,9 @@
       :destroyOnClose="true"
   >
     <a-form ref="formRef" :model="form" :rules="rules" :label-col="{ span: 5 }" >
+        <a-form-item label="客户编码"  name="customerCode">
+          <a-input style="width: 100%" v-model:value="form.customerCode" placeholder="客户编码" />
+        </a-form-item>
         <a-form-item label="客户名称"  name="customerName">
           <a-input style="width: 100%" v-model:value="form.customerName" placeholder="客户名称" />
         </a-form-item>
@@ -25,17 +28,15 @@
           <a-input style="width: 100%" v-model:value="form.country" placeholder="国家" />
         </a-form-item>
         <a-form-item label="客户分组"  name="customerGroup">
-          <a-input style="width: 100%" v-model:value="form.customerGroup" placeholder="客户分组" />
+          <SmartEnumSelect enum-name="CUSTOMER_GROUP_ENUM" v-model:value="form.customerGroup" width="100%"/>
         </a-form-item>
         <a-form-item label="客户类别"  name="customerCategory">
           <a-input style="width: 100%" v-model:value="form.customerCategory" placeholder="客户类别" />
         </a-form-item>
-        <a-form-item label="业务员编码"  name="salespersonId">
-          <a-input style="width: 100%" v-model:value="form.salespersonId" placeholder="客户类别" />
+        <a-form-item label="业务员"  name="salespersonName">
+          <a-input style="width: 100%" v-model:value="form.salespersonName" placeholder="业务员" />
         </a-form-item>
-        <a-form-item label="客户编码"  name="customerCode">
-          <a-input style="width: 100%" v-model:value="form.customerCode" placeholder="客户编码" />
-        </a-form-item>
+
     </a-form>
 
     <template #footer>
@@ -53,6 +54,8 @@
   import { SmartLoading } from '/@/components/framework/smart-loading';
   import { customerApi } from '/@/api/vigorous/customer-api';
   import { smartSentry } from '/@/lib/smart-sentry';
+  import SmartEnumSelect from '/@/components/framework/smart-enum-select/index.vue';
+
   // ------------------------ 数据 ------------------------
   const salespersons = []
   const loading = ref(false)
@@ -96,7 +99,7 @@
       country: undefined, //国家
       customerGroup: undefined, //客户分组
       customerCategory: undefined, //客户类别
-      salespersonId: undefined, //业务员编码
+      salespersonName: undefined, //业务员
       customerCode: undefined, //客户编码
   };
 

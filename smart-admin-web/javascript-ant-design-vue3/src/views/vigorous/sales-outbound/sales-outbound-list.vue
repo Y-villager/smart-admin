@@ -207,16 +207,6 @@
               ellipsis: true,
           },
           {
-            title: '应收比例(%)',
-            dataIndex: 'rate',
-            ellipsis: true,
-          },
-          {
-            title: '应收币种',
-            dataIndex: 'currencyType',
-            ellipsis: true,
-          },
-          {
               title: '金额',
               dataIndex: 'amount',
               ellipsis: true,

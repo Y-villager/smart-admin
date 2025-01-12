@@ -4,6 +4,8 @@ import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
+import net.lab1024.sa.admin.enumeration.CustomerGroupEnum;
+import net.lab1024.sa.admin.enumeration.TransferStatusEnum;
 import net.lab1024.sa.admin.module.system.login.service.LoginService;
 import net.lab1024.sa.admin.module.vigorous.customer.dao.CustomerDao;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.entity.CustomerEntity;
@@ -13,30 +15,35 @@ import net.lab1024.sa.admin.module.vigorous.customer.domain.form.CustomerQueryFo
 import net.lab1024.sa.admin.module.vigorous.customer.domain.form.CustomerUpdateForm;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerExcelVO;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerVO;
-import net.lab1024.sa.admin.module.vigorous.firstorder.domain.entity.FirstOrderEntity;
-import net.lab1024.sa.admin.module.vigorous.firstorder.domain.result.InsertResult;
 import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
+import net.lab1024.sa.admin.util.ExcelUtils;
+import net.lab1024.sa.admin.util.SplitListUtils;
+import net.lab1024.sa.base.common.code.SystemErrorCode;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
 import net.lab1024.sa.base.common.exception.BusinessException;
 import net.lab1024.sa.base.common.util.SmartBeanUtil;
+import net.lab1024.sa.base.common.util.SmartEnumUtil;
 import net.lab1024.sa.base.common.util.SmartPageUtil;
 import net.lab1024.sa.base.common.util.SmartRequestUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.executor.BatchResult;
-import org.apache.ibatis.session.ExecutorType;
-import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -68,10 +75,6 @@ public class CustomerService {
      */
     public PageResult<CustomerVO> queryPage(CustomerQueryForm queryForm) {
         Page<?> page = SmartPageUtil.convert2PageQuery(queryForm);
-        List<Long> ids = customerDao.getCustomerIdByCustomerName(queryForm.getCustomerName());
-        if (ids.size() == 1){
-            queryForm.setCustomerId(ids.get(0));
-        }
 
         List<CustomerVO> list = customerDao.queryPage(page, queryForm);
         PageResult<CustomerVO> pageResult = SmartPageUtil.convert2PageResult(page, list);
@@ -136,7 +139,6 @@ public class CustomerService {
         List<CustomerImportForm> dataList;
         List<CustomerImportForm> failedDataList = new ArrayList<>();
 
-
         try {
             dataList = EasyExcel.read(file.getInputStream()).head(CustomerImportForm.class)
                     .sheet()
@@ -152,21 +154,69 @@ public class CustomerService {
         // 将 CustomerImportForm 转换为 CustomerEntity，同时记录失败的数据
         List<CustomerEntity> entityList  = createImportList(dataList, failedDataList, mode);
 
-        // 批量插入有效数据
-        List<BatchResult> insert = customerDao.insert(entityList);
+        // true 为追加模式，false为按单据编号覆盖
+        int successTotal = 0;
+        try {
+            if (mode) {  // 追加
+                // 批量插入操作
+                List<BatchResult> insert = customerDao.insert(entityList);
+                for (BatchResult batchResult : insert) {
+                    successTotal += batchResult.getParameterObjects().size();
+                }
+            } else {  // 覆盖
+                // 执行批量更新操作
+                successTotal = doThreadUpdate(entityList);
+            }
+        }
+        catch (DataAccessException e) {
+            // 捕获数据库访问异常
+            return ResponseDTO.error(SystemErrorCode.SYSTEM_ERROR, "数据库操作失败，更新或插入过程中出现异常："+e.getMessage());
+        } catch (Exception e) {
+            // 捕获其他异常
+            return ResponseDTO.error(SystemErrorCode.SYSTEM_ERROR, "发生未知错误："+e.getMessage());
+        }
 
+        String failed_data_path=null;
         if (!failedDataList.isEmpty()) {
             // 创建并保存失败的数据文件
-            File failedFile = saveFailedDataToExcel(failedDataList);
+            failed_data_path = ExcelUtils.saveFailedDataToExcel(failedDataList, CustomerImportForm.class );
         }
 
-        if (insert.isEmpty()){
-            return ResponseDTO.okMsg("全部导入失败");
-        }
+        // 如果有失败的数据，导出失败记录到 Excel
+        return ResponseDTO.okMsg("总共"+dataList.size()+"条数据，成功导入" + successTotal + "条，导入失败记录有："+failedDataList.size()+"条", failed_data_path );
 
-
-        return ResponseDTO.okMsg("总共"+dataList.size()+"条数据，成功导入" + insert.get(0).getParameterObjects().size() + "条，导入失败记录有："+failedDataList.size()+"条" );
     }
+
+
+    private int doThreadUpdate(List<CustomerEntity> entityList) {
+        List<CustomerEntity> updateList = new ArrayList<>();
+        // 初始化线程池
+        ThreadPoolExecutor threadPool = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), 50,
+                4, TimeUnit.SECONDS, new ArrayBlockingQueue<>(10),
+                new ThreadPoolExecutor.CallerRunsPolicy());
+        // 将大集合拆分成N个小集合，使用多线程操作数据
+        List<List<CustomerEntity>> splitList = SplitListUtils.splitList(entityList, 1000);
+        // 记录单个任务的执行次数
+        CountDownLatch countDownLatch = new CountDownLatch(splitList.size());
+        for (List<CustomerEntity> subList : splitList) {
+            threadPool.execute(new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    customerDao.batchUpdate(subList);
+                    countDownLatch.countDown();
+                }
+            }));
+        }
+        try {
+            // 让当前线程处于阻塞状态，知道锁存器计数为零
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        return 0;
+    }
+
+
 
     // 生成导入列表
     private List<CustomerEntity> createImportList(List<CustomerImportForm> dataList,
@@ -224,21 +274,20 @@ public class CustomerService {
             }
         }
 
-        List<Long> salespersonIds = salespersonService.getSalespersonIdByName(form.getSalespersonName());
-        if (salespersonIds.size() > 1){
-            form.setErrorMsg("有业务员同名，业务层出错");
-            return null;
-        }else if (salespersonIds.isEmpty()){
-            form.setErrorMsg("没有找到业务员");
+        if (!salespersonMap.containsKey(form.getSalespersonName())){
+            form.setErrorMsg("没有该业务员");
             return null;
         }
-
-        entity.setCustomerName(form.getCustomerName());
-        entity.setShortName(form.getShortName());
-        entity.setCountry(form.getCountry());
-        entity.setCustomerCode(form.getCustomerCode());
-        entity.setCustomerGroup(form.getCustomerGroup());
-        entity.setSalespersonId(salespersonIds.get(0));
+        if (form.getOrderDate()!=null){
+            entity.setFirstOrderDate( LocalDate.parse(form.getOrderDate()));// 首单日期
+        }
+        entity.setCustomerName(form.getCustomerName()); // 客户名
+        entity.setShortName(form.getShortName());   // 客户简称
+        entity.setCountry(form.getCountry());   // 国家
+        entity.setCustomerCode(form.getCustomerCode()); // 客户编码
+        entity.setCustomerGroup(form.getCustomerGroup());   // 客户分组
+        entity.setTransferStatus(form.getTransferStatus()); // 转交状态
+        entity.setSalespersonId(salespersonMap.get(form.getSalespersonName())); // 业务员id
 
         return entity;
     }
@@ -247,24 +296,30 @@ public class CustomerService {
      * 导出
      * 需要修改
      */
-    public List<CustomerExcelVO> exportCustomers() {
-        List<CustomerEntity> entityList = customerDao.selectList(null);
+    public List<CustomerExcelVO> exportCustomers(CustomerQueryForm queryForm) {
+//        List<CustomerEntity> entityList = customerDao.selectList(null);
+        List<CustomerVO> entityList = customerDao.queryPage(null,queryForm);
+
+        Set<Long> salespersonIds = new HashSet<>();
+        for (CustomerVO customerVO : entityList) {
+            salespersonIds.add(customerVO.getSalespersonId());
+        }
+        Map<Long, String> salespersonMap = salespersonService.getSalespersonNamesByIds(salespersonIds);
+
+
         return entityList.stream()
                 .map(e ->
-                        {
-//                            String salespersonName = salespersonService.getSalespersonNameById(e.getSalespersonId());
-//                            if (salespersonName==null){
-//                                return null;
-//                            }
-                            return CustomerExcelVO.builder()
-                                    .customerCode(e.getCustomerCode())
-                                    .customerName(e.getCustomerName())
-                                    .shortName(e.getShortName())
-                                    .country(e.getCountry())
-                                    .customerGroup(e.getCustomerGroup())
-                                    .salespersonName(salespersonService.getSalespersonNameById(e.getSalespersonId()))
-                                    .build();
-                        }
+                        CustomerExcelVO.builder()
+                                .customerCode(e.getCustomerCode())
+                                .customerName(e.getCustomerName())
+                                .shortName(e.getShortName())
+                                .orderDate(ExcelUtils.convertLocalDateToString(e.getFirstOrderDate()))
+                                .country(e.getCountry())
+                                .country(e.getCountry())
+                                .customerGroup(SmartEnumUtil.getEnumDescByValue(e.getCustomerGroup(), CustomerGroupEnum.class))
+                                .transferStatus(SmartEnumUtil.getEnumDescByValue(e.getTransferStatus(), TransferStatusEnum.class))
+                                .salespersonName(salespersonMap.get(e.getSalespersonId()))
+                                .build()
                 )
                 .collect(Collectors.toList());
 
@@ -334,59 +389,7 @@ public class CustomerService {
     }
 
 
-    /**
-     * 查询首单id为null
-     * @return
-     */
-    public List<CustomerVO> getCustomerOfFONull() {
-        return customerDao.getCustomerOfFONull();
-    }
 
-
-    @Transactional
-    public InsertResult updateFirstOrderIds(List<Long> customerIdToUpdate, List<FirstOrderEntity> insertedFirstOrderIds) {
-        if (customerIdToUpdate != null && insertedFirstOrderIds != null && customerIdToUpdate.size() == insertedFirstOrderIds.size()) {
-            int batchSize = 500; // 每批处理 500 条
-            SqlSession sqlSession = null;
-
-            try {
-                // 使用 ExecutorType.BATCH 提高批量执行性能
-                sqlSession = sqlSessionFactory.openSession(ExecutorType.BATCH, false);
-                CustomerDao batchCustomerDao = sqlSession.getMapper(CustomerDao.class);
-
-                // 分批次执行
-                for (int i = 0; i < customerIdToUpdate.size(); i += batchSize) {
-                    int end = Math.min(i + batchSize, customerIdToUpdate.size());
-//                    List<Long> subCustomerIdToUpdate = customerIdToUpdate.subList(i, end);
-                    List<FirstOrderEntity> subInsertedFirstOrderIds = insertedFirstOrderIds.subList(i, end);
-
-                    // 执行每批次的更新操作
-                    batchCustomerDao.updateFirstOrderIdsBatch(subInsertedFirstOrderIds);
-                }
-
-                // 提交批量操作
-                sqlSession.commit();
-
-                // 返回操作结果
-                return new InsertResult(true, "批量更新成功");
-
-            } catch (Exception e) {
-                // 发生异常时回滚事务
-                if (sqlSession != null) {
-                    sqlSession.rollback();
-                }
-                // 记录异常并抛出
-                return new InsertResult(false, "批量更新失败: " + e.getMessage());
-
-            } finally {
-                // 关闭 sqlSession
-                if (sqlSession != null) {
-                    sqlSession.close();
-                }
-            }
-        }
-        return new InsertResult(false, "输入参数错误");
-    }
 
     public CustomerEntity queryById(Long customerId) {
         return customerDao.selectById(customerId);

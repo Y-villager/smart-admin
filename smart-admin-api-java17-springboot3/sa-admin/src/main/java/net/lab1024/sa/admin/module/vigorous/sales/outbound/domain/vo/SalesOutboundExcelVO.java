@@ -28,6 +28,9 @@ public class SalesOutboundExcelVO {
     @ExcelProperty(value = "日期")
     private LocalDate salesBoundDate;
 
+    @ExcelProperty("客户编码")
+    private String customerCode;
+
     @ExcelProperty("客户")
     private String customerName;
 

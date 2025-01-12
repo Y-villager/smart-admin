@@ -35,6 +35,9 @@ public class SalesOutboundVO {
     @Schema(description = "客户编号")
     private Long customerId;
 
+    @Schema(description = "客户编号")
+    private String customerCode;
+
     @Schema(description = "客户名称")
     private String customerName;
 

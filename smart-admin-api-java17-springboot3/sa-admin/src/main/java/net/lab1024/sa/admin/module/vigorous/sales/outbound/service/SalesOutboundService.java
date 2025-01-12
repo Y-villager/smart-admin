@@ -252,6 +252,7 @@ public class SalesOutboundService {
         // 使用并行流进行转换，提高处理速度
         return entityList.parallelStream()
                 .map(e -> SalesOutboundExcelVO.builder()
+                        .customerCode(e.getCustomerCode())
                         .salespersonName(e.getSalespersonName())
                         .billNo(e.getBillNo())
                         .salesBoundDate(e.getSalesBoundDate())

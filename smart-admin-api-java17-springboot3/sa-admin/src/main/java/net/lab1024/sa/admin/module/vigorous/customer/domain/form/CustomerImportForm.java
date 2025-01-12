@@ -1,7 +1,10 @@
 package net.lab1024.sa.admin.module.vigorous.customer.domain.form;
 
 import com.alibaba.excel.annotation.ExcelProperty;
+import com.alibaba.excel.annotation.format.DateTimeFormat;
 import lombok.Data;
+import net.lab1024.sa.admin.convert.CustomerGroupEnumConverter;
+import net.lab1024.sa.admin.convert.TransferStatusEnumConverter;
 
 /**
  * 顾客 导入表单
@@ -13,7 +16,11 @@ import lombok.Data;
 
 @Data
 public class CustomerImportForm {
-    @ExcelProperty("客户名称")
+
+    @ExcelProperty("客户编码")
+    private String customerCode;
+
+    @ExcelProperty(value = "客户名称")
     private String customerName;
 
     @ExcelProperty("简称")
@@ -22,15 +29,20 @@ public class CustomerImportForm {
     @ExcelProperty("国家")
     private String country;
 
-    @ExcelProperty("客户分组")
-    private String customerGroup;
-
     @ExcelProperty("销售员")
     private String salespersonName;
 
-    @ExcelProperty("客户编码")
-    private String customerCode;
+    @ExcelProperty(value = "客户分组", converter = CustomerGroupEnumConverter.class)
+    private Integer customerGroup;
 
+    @ExcelProperty(value = "首单日期")
+    @DateTimeFormat("yyyy-MM-dd")
+    private String orderDate;
+
+    @ExcelProperty(value = "转交状态", converter = TransferStatusEnumConverter.class)
+    private Integer transferStatus;
+
+    @ExcelProperty(value = "错误信息")
     private String errorMsg;
 
 }

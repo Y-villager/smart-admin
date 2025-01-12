@@ -13,6 +13,7 @@ import net.lab1024.sa.admin.module.vigorous.salespersonlevel.domain.vo.Salespers
 import net.lab1024.sa.admin.module.vigorous.salespersonlevel.service.SalespersonLevelRecordService;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
+import net.lab1024.sa.base.common.domain.ValidateList;
 import net.lab1024.sa.base.common.util.SmartExcelUtil;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -54,6 +55,20 @@ public class SalespersonLevelRecordController {
     @SaCheckPermission("salespersonLevelRecord:update")
     public ResponseDTO<String> update(@RequestBody @Valid SalespersonLevelRecordUpdateForm updateForm) {
         return salespersonLevelRecordService.update(updateForm);
+    }
+
+    @Operation(summary = "批量删除 @author yxz")
+    @PostMapping("/salespersonLevelRecord/batchDelete")
+    @SaCheckPermission("salespersonLevelRecord:delete")
+    public ResponseDTO<String> batchDelete(@RequestBody ValidateList<Integer> idList) {
+        return salespersonLevelRecordService.batchDelete(idList);
+    }
+
+    @Operation(summary = "单个删除 @author yxz")
+    @GetMapping("/salespersonLevelRecord/delete/{id}")
+    @SaCheckPermission("salespersonLevelRecord:delete")
+    public ResponseDTO<String> batchDelete(@PathVariable Integer id) {
+        return salespersonLevelRecordService.delete(id);
     }
 
 

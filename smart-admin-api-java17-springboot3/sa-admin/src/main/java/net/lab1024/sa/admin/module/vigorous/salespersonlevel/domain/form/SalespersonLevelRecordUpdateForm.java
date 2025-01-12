@@ -34,12 +34,9 @@ public class SalespersonLevelRecordUpdateForm {
     @NotNull(message = "现在级别 不能为空")
     private Integer newLevel;
 
-    @Schema(description = "开始时间", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotNull(message = "开始时间 不能为空")
-    private LocalDate startDate;
-
-    @Schema(description = "结束时间")
-    private LocalDate endDate;
+    @Schema(description = "变动日期", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "变动日期 不能为空")
+    private LocalDate changeDate;
 
     @Schema(description = "变动原因", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "变动原因 不能为空")

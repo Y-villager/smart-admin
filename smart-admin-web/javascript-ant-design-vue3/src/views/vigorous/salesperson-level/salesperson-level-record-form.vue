@@ -19,16 +19,13 @@
         <a-input-number style="width: 100%" v-model:value="form.salespersonId" placeholder="业务员id" />
       </a-form-item>
       <a-form-item label="先前级别"  name="oldLevel">
-        <a-input style="width: 100%" v-model:value="form.oldLevel" placeholder="先前级别" />
+        <SalespersonLevelSelect width="100%" v-model:value="form.oldLevel" enumName="" placeholder="先前级别"/>
       </a-form-item>
       <a-form-item label="现在级别"  name="newLevel">
-        <a-input style="width: 100%" v-model:value="form.newLevel" placeholder="现在级别" />
+        <SalespersonLevelSelect width="100%" v-model:value="form.newLevel" enumName="" placeholder="现在级别"/>
       </a-form-item>
-      <a-form-item label="开始时间"  name="startDate">
-        <a-date-picker valueFormat="YYYY-MM-DD" v-model:value="form.startDate" style="width: 100%" placeholder="开始时间"/>
-      </a-form-item>
-      <a-form-item label="结束时间"  name="endDate">
-        <a-date-picker valueFormat="YYYY-MM-DD" v-model:value="form.endDate" style="width: 100%" placeholder="结束时间"/>
+      <a-form-item label="变动日期"  name="startDate">
+        <a-date-picker valueFormat="YYYY-MM-DD" v-model:value="form.changeDate" style="width: 100%" placeholder="开始时间"/>
       </a-form-item>
       <a-form-item label="变动原因"  name="changeReason">
         <a-input style="width: 100%" v-model:value="form.changeReason" placeholder="变动原因" />
@@ -50,6 +47,8 @@ import { message } from 'ant-design-vue';
 import { SmartLoading } from '/@/components/framework/smart-loading';
 import { salespersonLevelRecordApi } from '/@/api/vigorous/salesperson-level-record-api';
 import { smartSentry } from '/@/lib/smart-sentry';
+import SalespersonLevelSelect from '/@/components/vigorous/salesperson-level-select/index.vue';
+
 
 // ------------------------ 事件 ------------------------
 
@@ -88,8 +87,7 @@ const formDefault = {
   salespersonId: undefined, //业务员id
   oldLevel: undefined, //先前级别
   newLevel: undefined, //现在级别
-  startDate: undefined, //开始时间
-  endDate: undefined, //结束时间
+  changeDate: undefined, //开始时间
   changeReason: undefined, //变动原因
 };
 

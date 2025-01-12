@@ -29,6 +29,19 @@ export const salespersonLevelRecordApi = {
   update: (param) => {
       return postRequest('/salespersonLevelRecord/update', param);
   },
+    /**
+     * 删除  @author  yxz
+     */
+    delete: (id) => {
+        return getRequest(`/salespersonLevelRecord/delete/${id}`);
+    },
+
+    /**
+     * 批量删除  @author  yxz
+     */
+    batchDelete: (idList) => {
+        return postRequest('/salespersonLevelRecord/batchDelete', idList);
+    },
 
 
 

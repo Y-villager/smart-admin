@@ -27,14 +27,14 @@ public class CommissionRuleEntity {
     private Long ruleId;
 
     /**
-     * 币种
-     */
-    private String currencyType;
-
-    /**
      * 业务员级别id
      */
     private Integer salespersonLevelId;
+
+    /**
+     * 客户分组(1内贸 2外贸)
+     */
+    private Integer customerGroup;
 
     /**
      * 首单比例

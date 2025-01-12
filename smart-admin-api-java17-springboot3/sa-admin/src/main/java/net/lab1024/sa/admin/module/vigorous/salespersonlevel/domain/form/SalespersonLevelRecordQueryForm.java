@@ -18,14 +18,13 @@ import java.time.LocalDate;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class SalespersonLevelRecordQueryForm extends PageParam {
-
-    @Schema(description = "业务员名称")
+    @Schema(description = "业务员")
     private String salespersonName;
 
     @Schema(description = "变动时间")
-    private LocalDate createTimeBegin;
+    private LocalDate changeDateBegin;
 
     @Schema(description = "变动时间")
-    private LocalDate createTimeEnd;
+    private LocalDate changeDateEnd;
 
 }

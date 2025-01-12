@@ -243,6 +243,7 @@ public class SalespersonService {
     }
 
 
+
     public Map<Long, String> getSalespersonNamesByIds(Set<Long> salespersonIds) {
         if (salespersonIds == null || salespersonIds.isEmpty()) {
             return Collections.emptyMap();
@@ -253,9 +254,8 @@ public class SalespersonService {
 
     @Transactional
     public ResponseDTO<String> updateLevel(SalespersonLevelRecordAddForm form) {
+        // 查询之前变动记录
         salespersonDao.updateLevel(form);
-        int nowSalespersonLevelId =  salespersonDao.getNowSalespersonLevel(form.getSalespersonId());
-
         salespersonLevelRecordService.add(form);
         return ResponseDTO.ok();
     }

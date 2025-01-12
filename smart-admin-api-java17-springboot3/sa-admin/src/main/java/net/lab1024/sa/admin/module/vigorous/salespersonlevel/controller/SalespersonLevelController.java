@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import net.lab1024.sa.admin.common.dto.GenericDTO;
 import net.lab1024.sa.admin.module.vigorous.salespersonlevel.domain.form.SalespersonLevelAddForm;
 import net.lab1024.sa.admin.module.vigorous.salespersonlevel.domain.form.SalespersonLevelQueryForm;
 import net.lab1024.sa.admin.module.vigorous.salespersonlevel.domain.form.SalespersonLevelUpdateForm;
@@ -39,8 +40,8 @@ public class SalespersonLevelController {
 
     @Operation(summary = "获取所有业务员")
     @PostMapping("/salespersonLevel/getAll")
-    public ResponseDTO<List<SalespersonLevelVO>> getAll(HttpServletResponse response) {
-        return ResponseDTO.ok(salespersonLevelService.getAll());
+    public ResponseDTO<List<GenericDTO>> getAll(HttpServletResponse response) {
+        return ResponseDTO.ok(salespersonLevelService.getAllDto());
     }
 
     @Operation(summary = "分页查询 @author yxz")

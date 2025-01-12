@@ -5,25 +5,57 @@
     <!-- 查询结果列 -->
     <sql id="base_columns">
         v_customer.customer_id,
+        v_customer.customer_code,
         v_customer.customer_name,
         v_customer.short_name,
+        v_customer.salesperson_id,
         v_customer.country,
         v_customer.customer_group,
         v_customer.customer_category,
-        v_customer.customer_code
-    </sql>
-
-    <sql id="first_order_columns">
-        v_first_order.first_order_id,
-        v_first_order.bill_no,
-        v_first_order.order_date
+        v_customer.first_order_date,
+        v_customer.transfer_status,
+        v_customer.create_time,
+        v_customer.update_time
     </sql>
 
     <sql id="salesperson_columns">
-        v_salesperson.id,
         v_salesperson.salesperson_code,
         v_salesperson.salesperson_name
     </sql>
+
+    <update id="batchUpdate">
+        <foreach collection="list" item="item" separator=";">
+            UPDATE v_customer
+            SET
+            <trim prefix="" suffix="" suffixOverrides=",">
+                <if test="item.customerCode != null">
+                    customer_code = #{item.customerCode},
+                </if>
+                <if test="item.customerName != null">
+                    customer_name = #{item.customerName},
+                </if>
+                <if test="item.customerName != null">
+                    short_name = #{item.shortName},
+                </if>
+                <if test="item.country != null">
+                    country = #{item.country},
+                </if>
+                <if test="item.customerGroup != null">
+                    customer_group = #{item.customerGroup},
+                </if>
+                <if test="item.salespersonId != null">
+                    salesperson_id = #{item.salespersonId},
+                </if>
+                <if test="item.firstOrderDate != null">
+                    first_order_date = #{item.firstOrderDate},
+                </if>
+                <if test="item.transferStatus != null">
+                    transfer_status = #{item.transferStatus},
+                </if>
+            </trim>
+            WHERE customer_code = #{item.customerCode}
+        </foreach>
+    </update>
 
     <resultMap id="customerResultMap" type="net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerVO">
         <id property="customerId" column="customer_id"/>
@@ -34,11 +66,6 @@
         <result property="customerCategory" column="customer_category"/>
         <result property="customerGroup" column="customer_group"/>
 
-        <association property="firstOrder" column="first_order_id" javaType="net.lab1024.sa.admin.module.vigorous.firstorder.domain.vo.FirstOrderVO">
-            <id property="firstOrderId" column="first_order_id"/>
-            <result property="billNo" column="bill_no"/>
-            <result property="orderDate" column="order_date"/>
-        </association>
         <association property="salesperson" column="id" javaType="net.lab1024.sa.admin.module.vigorous.salesperson.domain.vo.SalespersonVO">
             <id property="id" column="id"/>
             <result property="salespersonCode" column="salesperson_code"/>
@@ -48,27 +75,34 @@
     </resultMap>
 
     <!-- 分页查询 -->
-<!--    <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerVO">-->
-    <select id="queryPage" resultMap="customerResultMap">
+    <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerVO">
+<!--    <select id="queryPage" resultMap="customerResultMap">-->
         SELECT
-        <include refid="base_columns"/>,
-            <include refid="first_order_columns"/>,
+            <include refid="base_columns"/>,
             <include refid="salesperson_columns"/>
         FROM   v_customer
-            left JOIN  v_first_order ON v_customer.first_order_id = v_first_order.first_order_id
             left join v_salesperson ON v_customer.salesperson_id = v_salesperson.id
         <where>
+            <!--顾客编码-->
+            <if test="queryForm.customerCode != null and queryForm.customerCode != ''">
+                AND INSTR(v_customer.customer_code,#{queryForm.customerCode})
+            </if>
             <!--顾客名称-->
             <if test="queryForm.customerName != null and queryForm.customerName != ''">
-                        AND INSTR(v_customer.customer_name,#{queryForm.customerName})
-            </if>
-            <!--简称-->
-            <if test="queryForm.shortName != null and queryForm.shortName != ''">
-                        AND INSTR(v_customer.short_name,#{queryForm.shortName})
+                AND (
+                INSTR(v_customer.customer_name, #{queryForm.customerName}) > 0
+                OR INSTR(v_customer.short_name, #{queryForm.customerName}) > 0
+                )
             </if>
             <!--业务员-->
-            <if test="queryForm.salespersonId != null and queryForm.salespersonId != ''">
-                        AND INSTR(v_customer.salesperson_id,#{queryForm.salespersonId})
+            <if test="queryForm.salespersonName != null and queryForm.salespersonName != ''">
+                AND INSTR(v_salesperson.salesperson_name,#{queryForm.salespersonName})
+            </if>
+            <if test="queryForm.customerGroup != null and queryForm.customerGroup != ''">
+                AND INSTR(v_customer.customer_group,#{queryForm.customerGroup})
+            </if>
+            <if test="queryForm.country != null and queryForm.country != ''">
+                AND INSTR(v_customer.country,#{queryForm.country})
             </if>
         </where>
     </select>
@@ -95,17 +129,6 @@
         where customer_id = #{customerId}
     </select>
 
-    <select id="getCustomerOfFONull"
-            resultType="net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerVO">
-        SELECT
-        <include refid="base_columns"/>,
-        s.salesperson_name
-        FROM
-        v_customer
-        LEFT JOIN v_salesperson s ON v_customer.salesperson_id = s.id
-        WHERE
-        v_customer.first_order_id IS NULL
-    </select>
 
     <select id="queryByCustomerNames"
             resultType="net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerVO">
@@ -138,15 +161,6 @@
         </foreach>
     </select>
 
-    <update id="updateFirstOrderIdsBatch">
-        <foreach collection="list" item="item" index="index" separator=";">
-            update v_customer
-            <set>
-                first_order_id = (select fo.first_order_id from v_first_order fo where fo.customer_id=#{item.customerId})
-            </set>
-            where customer_id = #{item.customerId}
-        </foreach>
-    </update>
 
 
 

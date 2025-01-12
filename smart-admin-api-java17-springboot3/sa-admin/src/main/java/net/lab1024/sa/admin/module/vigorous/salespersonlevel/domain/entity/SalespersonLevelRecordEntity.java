@@ -2,14 +2,11 @@ package
 
         net.lab1024.sa.admin.module.vigorous.salespersonlevel.domain.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
+import lombok.Data;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import lombok.Data;
 
 /**
  * 业务员级别变动记录 实体类
@@ -45,14 +42,9 @@ public class SalespersonLevelRecordEntity {
     private Integer newLevel;
 
     /**
-     * 开始时间
+     * 变动日期
      */
-    private LocalDate startDate;
-
-    /**
-     * 结束时间
-     */
-    private LocalDate endDate;
+    private LocalDate changeDate;
 
     /**
      * 变动原因

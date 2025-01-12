@@ -5,7 +5,7 @@
  * @Date:      2024-12-12 14:51:07
  * @Copyright  (c)2024 yxz
  */
-import {postRequest, getRequest, getDownload} from '/@/lib/axios';
+import {postRequest, getRequest, getDownload, postDownload} from '/@/lib/axios';
 
 export const customerApi = {
 
@@ -51,8 +51,8 @@ export const customerApi = {
     },
 
     // 导出
-    exportCustomer : () =>{
-        return getDownload('/customer/export');
+    exportCustomer : (data) =>{
+        return postDownload('/customer/export', data);
     }
 
 };

@@ -13,7 +13,7 @@
         <SalespersonLevelSelect width="200px" v-model:value="queryForm.salespersonLevelId" enumName="" placeholder="选择业务员级别"/>
       </a-form-item>
       <a-form-item label="币别" class="smart-query-form-item">
-        <DictSelect width="200px" v-model:aria-valuemax="queryForm.currencyType" keyCode="CURRENCY_TYPE" placeholder="币别"/>
+        <DictSelect width="200px" v-model:aria-valuemax="queryForm.customerGroup" keyCode="CURRENCY_TYPE" placeholder="币别"/>
       </a-form-item>
       <a-form-item class="smart-query-form-item">
         <a-button type="primary" @click="onSearch">
@@ -81,8 +81,8 @@
         :row-selection="{ selectedRowKeys: selectedRowKeyList, onChange: onSelectChange }"
     >
       <template #bodyCell="{ text, record, column }">
-        <template v-if="column.dataIndex === 'currencyType'">
-          {{ text && text.length > 0 ? text.map((e) => e.valueName).join(',') : '暂无' }}
+        <template v-if="column.dataIndex === 'customerGroup'">
+          <span>{{$smartEnumPlugin.getDescByValue('CUSTOMER_GROUP_ENUM', text)}}</span>
         </template>
         <!-- 有图片预览时 注释解开并把下面的'picture'修改成自己的图片字段名即可 -->
         <!-- <template v-if="column.dataIndex === 'picture'">
@@ -183,8 +183,8 @@ const columns = ref([
     ellipsis: true,
   },
   {
-    title: '币别',
-    dataIndex: 'currencyType',
+    title: '客户分组',
+    dataIndex: 'customerGroup',
     ellipsis: true,
   },
   {
@@ -219,7 +219,7 @@ const columns = ref([
 
 const queryFormState = {
   salespersonLevelId: undefined, //业务员级别名称
-  currencyType: undefined, //币种
+  customerGroup: undefined, //币种
   pageNum: 1,
   pageSize: 10,
 };

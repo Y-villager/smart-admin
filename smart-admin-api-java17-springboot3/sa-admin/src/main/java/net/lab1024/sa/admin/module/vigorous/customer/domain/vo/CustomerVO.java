@@ -1,11 +1,12 @@
-package net.lab1024.sa.admin.module.vigorous.customer.domain.vo;
+package
+
+        net.lab1024.sa.admin.module.vigorous.customer.domain.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import net.lab1024.sa.admin.module.vigorous.firstorder.domain.vo.FirstOrderVO;
-import net.lab1024.sa.admin.module.vigorous.salesperson.domain.vo.SalespersonVO;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * 顾客 列表VO
@@ -14,9 +15,8 @@ import net.lab1024.sa.admin.module.vigorous.salesperson.domain.vo.SalespersonVO;
  * @Date 2024-12-12 14:51:07
  * @Copyright (c)2024 yxz
  */
+
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class CustomerVO {
 
 
@@ -32,19 +32,33 @@ public class CustomerVO {
     @Schema(description = "国家")
     private String country;
 
-    @Schema(description = "客户分组")
-    private String customerGroup;
-
     @Schema(description = "客户类别")
-    private String customerCategory;
+    private Integer customerCategory;
 
-    @Schema(description = "业务员")
-    private SalespersonVO salesperson;
+    @Schema(description = "业务员编码")
+    private Long salespersonId;
+
+    private String salespersonName;
 
     @Schema(description = "客户编码")
     private String customerCode;
 
-    @Schema(description = "首单信息编号")
-    private FirstOrderVO firstOrder;
+    @Schema(description = "首单日期")
+    private LocalDate firstOrderDate;
+
+    @Schema(description = "转交状态")
+    private Integer transferStatus;
+
+    @Schema(description = "转交历史")
+    private String transferHistory;
+
+    @Schema(description = "客户分组")
+    private Integer customerGroup;
+
+    @Schema(description = "更新时间")
+    private LocalDateTime updateTime;
+
+    @Schema(description = "创建时间")
+    private LocalDateTime createTime;
 
 }

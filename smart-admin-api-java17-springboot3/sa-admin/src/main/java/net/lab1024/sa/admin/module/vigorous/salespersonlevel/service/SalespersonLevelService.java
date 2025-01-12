@@ -3,6 +3,7 @@ package net.lab1024.sa.admin.module.vigorous.salespersonlevel.service;
 import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
+import net.lab1024.sa.admin.common.dto.GenericDTO;
 import net.lab1024.sa.admin.module.vigorous.salespersonlevel.dao.SalespersonLevelDao;
 import net.lab1024.sa.admin.module.vigorous.salespersonlevel.domain.entity.SalespersonLevelEntity;
 import net.lab1024.sa.admin.module.vigorous.salespersonlevel.domain.form.SalespersonLevelAddForm;
@@ -17,6 +18,9 @@ import net.lab1024.sa.base.common.util.SmartBeanUtil;
 import net.lab1024.sa.base.common.util.SmartPageUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.executor.BatchResult;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -40,6 +44,12 @@ public class SalespersonLevelService {
 
     @Resource
     private SalespersonLevelDao salespersonLevelDao;
+
+    @Qualifier("redisTemplate")
+    @Autowired
+    private RedisTemplate redisTemplate;
+
+    private static final String LEVEL_CACHE_KEY = "salesperson_levels";
 
     /**
      * 分页查询
@@ -179,8 +189,13 @@ public class SalespersonLevelService {
      * 获取所有业务员
      * @return
      */
-    public List<SalespersonLevelVO> getAll() {
-        return salespersonLevelDao.getAll();
+    public List<GenericDTO> getAllDto() {
+        List<GenericDTO> dtos = redisTemplate.opsForList().range(LEVEL_CACHE_KEY, 0, -1);
+        if (dtos == null || dtos.isEmpty()) {
+            dtos = salespersonLevelDao.getAllDto();
+            redisTemplate.opsForList().leftPushAll(LEVEL_CACHE_KEY, dtos);
+        }
+        return dtos;
     }
 
     public String getSalespersonLevelNameById(String salespersonLevelId) {

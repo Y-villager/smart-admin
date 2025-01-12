@@ -36,4 +36,7 @@ public class CustomerExcelVO {
     @ExcelProperty("首单日期")
     private String orderDate;
 
+    @ExcelProperty("转交状态")
+    private String transferStatus;
+
 }

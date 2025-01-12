@@ -102,7 +102,7 @@
                 <template v-if="column.dataIndex === 'action'">
                     <div class="smart-table-operate">
                         <a-button @click="showForm(record)" type="link">编辑</a-button>
-                        <a-button @click="changeLevel(record)" type="link">调成级别</a-button>
+                        <a-button @click="showChangeLevel(record)" type="link">调成级别</a-button>
                         <a-button @click="onDelete(record)" danger type="link">删除</a-button>
                     </div>
                 </template>
@@ -128,7 +128,7 @@
 
         <SalespersonForm  ref="formRef" @reloadList="queryData"/>
 
-        <LevelChangeForm  ref="levelFormRef" />
+        <LevelChangeForm  ref="levelFormRef" @reloadList="queryData"/>
 
       <a-modal v-model:open="importModalShowFlag" title="导入" @onCancel="hideImportModal" @ok="hideImportModal">
         <div style="text-align: center; width: 400px; margin: 0 auto">
@@ -275,7 +275,7 @@
 
     // ---------------------------- 调整级别 ----------------------------
     const levelFormRef = ref();
-    function changeLevel(data){
+    function showChangeLevel(data){
       levelFormRef.value.show(data)
     }
 
