@@ -23,6 +23,7 @@ import changeLogConst from './support/change-log-const';
 import jobConst from './support/job-const.js';
 import {SALESPERSON_LEVEL_ENUM} from "/@/constants/vigorous/commission-rule-const.js";
 import customerConst from "/@/constants/vigorous/customer-const.js";
+import commissionConst from "/@/constants/vigorous/commission-const.js";
 
 export default {
   FLAG_NUMBER_ENUM,
@@ -43,4 +44,5 @@ export default {
   ...changeLogConst,
   ...jobConst,
   ...customerConst,
+  ...commissionConst
 };

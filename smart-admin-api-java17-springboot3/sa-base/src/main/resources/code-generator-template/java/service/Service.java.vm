@@ -17,6 +17,9 @@ import static cn.dev33.satoken.SaManager.log;
 import jakarta.annotation.Resource;
 
 import java.util.ArrayList;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 
 /**
  * ${basic.description} Service
@@ -119,11 +122,11 @@ public class ${name.upperCamel}Service {
      * @return 结果
      */
     public ResponseDTO<String> import${name.upperCamel}(MultipartFile file, Boolean mode) {
-        List<${name.upperCamel}AddForm> dataList;
-        List<${name.upperCamel}AddForm> failedDataList = new ArrayList<>();
+        List<${name.upperCamel}ImportForm> dataList;
+        List<${name.upperCamel}ImportForm> failedDataList = new ArrayList<>();
 
         try {
-            dataList = EasyExcel.read(file.getInputStream()).head(${name.upperCamel}AddForm.class)
+            dataList = EasyExcel.read(file.getInputStream()).head(${name.upperCamel}ImportForm.class)
                     .sheet()
                     .doReadSync();
         } catch (IOException e) {
@@ -135,14 +138,14 @@ public class ${name.upperCamel}Service {
             return ResponseDTO.userErrorParam("数据为空");
         }
 
-        // 将 ${name.upperCamel}AddForm 转换为 ${name.upperCamel}Entity，同时记录失败的数据
+        // 将 ${name.upperCamel}ImportForm 转换为 ${name.upperCamel}Entity，同时记录失败的数据
         List<${name.upperCamel}Entity> entityList = createImportList(dataList, failedDataList, mode);
         // true 为追加模式，false为按单据编号覆盖
         int successTotal = 0;
         try {
             if (mode) {  // 追加
                 // 批量插入操作
-                List<BatchResult> insert = receivablesDao.insert(entityList);
+                List<BatchResult> insert = ${name.lowerCamel}Dao.insert(entityList);
                 for (BatchResult batchResult : insert) {
                     successTotal += batchResult.getParameterObjects().size();
                 }
@@ -162,7 +165,7 @@ public class ${name.upperCamel}Service {
         String failed_data_path=null;
         if (!failedDataList.isEmpty()) {
             // 创建并保存失败的数据文件
-            failed_data_path = ExcelUtils.saveFailedDataToExcel(failedDataList, ${name.upperCamel}ImportForm.class, uploadPath,failedDataName );
+            failed_data_path = ExcelUtils.saveFailedDataToExcel(failedDataList, ${name.upperCamel}ImportForm.class);
         }
 
         // 如果有失败的数据，导出失败记录到 Excel
@@ -180,10 +183,10 @@ public class ${name.upperCamel}Service {
     ##        billNos.add(form.getBillNo());
         }
         // 单据编号 map
-        List<${name.upperCamel}VO> receivablesVOList = receivablesDao.queryByBillNos(billNos);
-        Map<String, Integer> receivablesMap = receivablesVOList
-                .stream().filter(Objects::nonNull)
-                .collect(Collectors.toMap(${name.upperCamel}VO::getBillNo, ${name.upperCamel}VO::get${name.upperCamel}Id));
+##        List<${name.upperCamel}VO> ${name.loweCamel}VOList = receivablesDao.queryByBillNos(billNos);
+##        Map<String, Integer> receivablesMap = receivablesVOList
+##                .stream().filter(Objects::nonNull)
+##                .collect(Collectors.toMap(${name.upperCamel}VO::getBillNo, ${name.upperCamel}VO::get${name.upperCamel}Id));
     
         // 需要的映射数据
     ##    Map<String, Long> customerMap = customerService.queryByCustomerNames(customerNames);
@@ -195,8 +198,10 @@ public class ${name.upperCamel}Service {
     
     }
 
-    // 将 ${name.upperCamel}AddForm 转换为 ${name.upperCamel}Entity
-    private ${name.upperCamel}Entity convertToEntity(${name.upperCamel}AddForm form) {
+    // 将 ${name.upperCamel}ImportForm 转换为 ${name.upperCamel}Entity
+    private ${name.upperCamel}Entity convertToEntity(${name.upperCamel}ImportForm form,
+                                                     List<CommissionRecordImportForm> failedDataList,
+                                                     boolean mode) {
         ${name.upperCamel}Entity entity = new ${name.upperCamel}Entity();
 
 
@@ -211,8 +216,9 @@ public class ${name.upperCamel}Service {
      * 导出
      * 需要修改
      */
-    public List<${name.upperCamel}VO> getAll${name.upperCamel}() {
-        List<${name.upperCamel}Entity> entityList = ${name.lowerCamel}Dao.selectList(null);
+    public List<${name.upperCamel}VO> export${name.upperCamel}(${name.upperCamel}QueryForm queryForm) {
+        //List<${name.upperCamel}VO> entityList = ${name.lowerCamel}Dao.selectList(null);
+        List<${name.upperCamel}VO> entityList = ${name.lowerCamel}Dao.queryPage(null,queryForm);
 //        return entityList.stream()
 //                .map(e ->
 //                        ${name.upperCamel}VO.builder()
@@ -238,7 +244,7 @@ public class ${name.upperCamel}Service {
                 @Override
                 public void run() {
                     System.out.println("当前线程："+ Thread.currentThread().getName());
-                    receivablesDao.update${name.upperCamel}ByBillNo(subList);
+                    //${name.lowerCamel}Dao.update${name.upperCamel}ByBillNo(subList);
                     countDownLatch.countDown();
                 }
             }));

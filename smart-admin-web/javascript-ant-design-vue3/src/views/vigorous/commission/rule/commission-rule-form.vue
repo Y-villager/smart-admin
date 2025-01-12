@@ -15,8 +15,8 @@
       :destroyOnClose="true"
   >
     <a-form ref="formRef" :model="form" :rules="rules" :label-col="{ span: 5 }" >
-        <a-form-item label="币种"  name="currencyType">
-          <DictSelect width="100%" v-model:value="form.currencyType" keyCode="CURRENCY_TYPE" placeholder="币种"/>
+        <a-form-item label="客户分组"  name="currencyType">
+          <SmartEnumSelect enum-name="CUSTOMER_GROUP_ENUM" width="100%" v-model:value="form.currencyType" placeholder="客户分组"/>
         </a-form-item>
         <a-form-item label="业务员级别"  name="salespersonLevelId">
           <SalespersonLevelSelect width="100%" v-model:value="form.salespersonLevelId" enumName="" placeholder="业务员级别id"/>
@@ -44,12 +44,12 @@
   import { reactive, ref, nextTick } from 'vue';
   import _ from 'lodash';
   import { message } from 'ant-design-vue';
-  import { SmartLoading } from '/@/components/framework/smart-loading';
-  import { commissionRuleApi } from '/@/api/vigorous/commission-rule-api';
-  import { smartSentry } from '/@/lib/smart-sentry';
-  import DictSelect from '/@/components/support/dict-select/index.vue';
-  import SmartEnumSelect from '/@/components/framework/smart-enum-select/index.vue';
-  import SalespersonLevelSelect from "/@/components/vigorous/salesperson-level-select/index.vue";
+  import { SmartLoading } from '/src/components/framework/smart-loading';
+  import { smartSentry } from '/src/lib/smart-sentry';
+  import DictSelect from '/src/components/support/dict-select/index.vue';
+  import SmartEnumSelect from '/src/components/framework/smart-enum-select/index.vue';
+  import SalespersonLevelSelect from "/src/components/vigorous/salesperson-level-select/index.vue";
+  import {commissionRecordApi} from "/@/api/vigorous/commission-record-api.js";
 
   // ------------------------ 事件 ------------------------
 
@@ -116,9 +116,9 @@
     SmartLoading.show();
     try {
       if (form.ruleId) {
-        await commissionRuleApi.update(form);
+        await commissionRecordApi.update(form);
       } else {
-        await commissionRuleApi.add(form);
+        await commissionRecordApi.add(form);
       }
       message.success('操作成功');
       emits('reloadList');

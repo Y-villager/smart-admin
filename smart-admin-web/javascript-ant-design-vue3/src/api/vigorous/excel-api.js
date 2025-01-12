@@ -1,6 +1,6 @@
 import {getDownload} from "/@/lib/axios.js";
 
-export const receivablesApi ={
+export const excelApi ={
     downloadFailedImportData:()=>{
         return getDownload('/excel/download_failed_data');
     }

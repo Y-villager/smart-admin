@@ -19,12 +19,12 @@ import net.lab1024.sa.base.common.enumeration.BaseEnum;
 public enum CustomerGroupEnum implements BaseEnum {
 
     /**
-     * 1 预约中
+     * 1 内贸客户
      */
     DOMESTIC(1, "内贸客户"),
 
     /**
-     * 2 售卖
+     * 2 外贸客户
      */
     FOREIGN(2, "外贸客户"),
 

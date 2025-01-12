@@ -28,7 +28,7 @@
                 AND v_commission_rule.customer_group = #{queryForm.customerGroup}
             </if>
         </where>
-        order by rule_id
+        order by customer_group
     </select>
 
 

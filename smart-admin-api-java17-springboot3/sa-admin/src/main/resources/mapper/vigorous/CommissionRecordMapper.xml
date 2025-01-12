@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.lab1024.sa.admin.module.vigorous.commission.calc.dao.CommissionRecordDao">
+
+    <!-- 查询结果列 -->
+    <sql id="base_columns">
+        v_commission_record.commission_id,
+        v_commission_record.salesperson_id,
+        v_commission_record.customer_id,
+        v_commission_record.commission_type,
+        v_commission_record.amout,
+        v_commission_record.sales_outbound_id,
+        v_commission_record.create_time,
+        v_commission_record.remark
+    </sql>
+
+    <!-- 分页查询 -->
+    <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.commission.calc.domain.vo.CommissionRecordVO">
+        SELECT
+        <include refid="base_columns"/>
+        FROM v_commission_record
+        <where>
+            <!--业务员-->
+            <if test="queryForm.salespersonName != null and queryForm.salespersonName != ''">
+                        AND INSTR(v_commission_record.salesperson_id,#{queryForm.salespersonName})
+            </if>
+            <!--客户名称-->
+            <if test="queryForm.customerName != null and queryForm.customerName != ''">
+                        AND INSTR(v_commission_record.customer_id,#{queryForm.customerName})
+            </if>
+            <!--提成类型-->
+            <if test="queryForm.commssionType != null and queryForm.commssionType != ''">
+                        AND INSTR(v_commission_record.commission_type,#{queryForm.commssionType})
+            </if>
+            <!--销售出库日期-->
+            <if test="queryForm.orderDateBegin != null">
+                AND v_commission_record.create_time &gt;= #{queryForm.orderDateBegin}
+            </if>
+            <if test="queryForm.orderDateEnd != null">
+                AND v_commission_record.create_time &lt;= #{queryForm.orderDateEnd}
+            </if>
+        </where>
+    </select>
+
+
+</mapper>

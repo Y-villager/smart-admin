@@ -178,7 +178,7 @@ import SmartEnumSelect from '/@/components/framework/smart-enum-select/index.vue
 import { defaultTimeRanges } from '/@/lib/default-time-ranges';
 //import FilePreview from '/@/components/support/file-preview/index.vue'; // 图片预览组件
 import DictSelect from '/@/components/support/dict-select/index.vue';
-import {receivablesApi as excelApi} from "/@/api/vigorous/excel-api.js";
+import {excelApi} from "/@/api/vigorous/excel-api.js";
 
 
 // ---------------------------- 表格列 ----------------------------

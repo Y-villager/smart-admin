@@ -161,16 +161,16 @@
 <script setup>
 import { reactive, ref, onMounted } from 'vue';
 import { message, Modal } from 'ant-design-vue';
-import { SmartLoading } from '/@/components/framework/smart-loading';
-import { commissionRuleApi } from '/@/api/vigorous/commission-rule-api';
-import { PAGE_SIZE_OPTIONS } from '/@/constants/common-const';
-import { smartSentry } from '/@/lib/smart-sentry';
-import TableOperator from '/@/components/support/table-operator/index.vue';
+import { SmartLoading } from '/src/components/framework/smart-loading';
+import { commissionRuleApi } from '/src/api/vigorous/commission-rule-api';
+import { PAGE_SIZE_OPTIONS } from '/src/constants/common-const';
+import { smartSentry } from '/src/lib/smart-sentry';
+import TableOperator from '/src/components/support/table-operator/index.vue';
 import CommissionRuleForm from './commission-rule-form.vue';
-import DictSelect from "/@/components/support/dict-select/index.vue";
-import {salespersonLevelApi} from "/@/api/vigorous/salesperson-level-api.js";
-import SmartEnumSelect from "/@/components/framework/smart-enum-select/index.vue";
-import SalespersonLevelSelect from "/@/components/vigorous/salesperson-level-select/index.vue";
+import DictSelect from "/src/components/support/dict-select/index.vue";
+import {salespersonLevelApi} from "/src/api/vigorous/salesperson-level-api.js";
+import SmartEnumSelect from "/src/components/framework/smart-enum-select/index.vue";
+import SalespersonLevelSelect from "/src/components/vigorous/salesperson-level-select/index.vue";
 
 //import FilePreview from '/@/components/support/file-preview/index.vue'; // 图片预览组件
 

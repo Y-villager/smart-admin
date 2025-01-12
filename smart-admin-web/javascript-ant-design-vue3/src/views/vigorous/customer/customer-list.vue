@@ -187,7 +187,7 @@
   import { smartSentry } from '/@/lib/smart-sentry';
   import TableOperator from '/@/components/support/table-operator/index.vue';
   import CustomerForm from './customer-form.vue';
-  import {receivablesApi as excelApi} from "/@/api/vigorous/excel-api.js";
+  import {excelApi} from "/@/api/vigorous/excel-api.js";
   import {CUSTOMER_GROUP_ENUM} from "/@/constants/vigorous/customer-const.js";
   import SmartEnumSelect from "/@/components/framework/smart-enum-select/index.vue";
   import SalespersonLevelSelect from "/@/components/vigorous/salesperson-level-select/index.vue";
