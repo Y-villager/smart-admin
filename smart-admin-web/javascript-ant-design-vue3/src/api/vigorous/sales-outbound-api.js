@@ -55,9 +55,9 @@ export const salesOutboundApi = {
         return postDownload('/salesOutbound/export', param);
     },
 
-    // 导出
-    exportCommission : (param) =>{
-        return postDownload('/salesOutbound/exportCommission', param);
+    // 生成业绩提成
+    createCommission : (param) =>{
+        return postDownload('/salesOutbound/createCommission', param);
     }
 
 };

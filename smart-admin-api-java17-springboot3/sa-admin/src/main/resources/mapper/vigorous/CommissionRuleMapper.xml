@@ -5,30 +5,66 @@
     <!-- 查询结果列 -->
     <sql id="base_columns">
         v_commission_rule.rule_id,
-        v_commission_rule.salesperson_level_id,
+        v_commission_rule.transfer_status,
         v_commission_rule.customer_group,
-        v_commission_rule.first_order_rate,
-        v_commission_rule.base_rate,
-        v_commission_rule.remark
+        v_commission_rule.commission_type,
+        v_commission_rule.use_dynamic_formula,
+        v_commission_rule.commission_rate,
+        v_commission_rule.formula_id,
+        v_commission_rule.remark,
+        v_commission_rule.create_time,
+        v_commission_rule.update_time
     </sql>
+
 
     <!-- 分页查询 -->
     <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.commission.rule.domain.vo.CommissionRuleVO">
         SELECT
-        <include refid="base_columns"/>, vsl.salesperson_level_name
+        <include refid="base_columns"/>
         FROM v_commission_rule
-            left join v_salesperson_level vsl on v_commission_rule.salesperson_level_id = vsl.salesperson_level_id
         <where>
-            <!--业务员级别名称-->
-            <if test="queryForm.salespersonLevelName != null and queryForm.salespersonLevelName != ''">
-                        AND INSTR(v_commission_rule.salesperson_level_id,#{queryForm.salespersonLevelName})
-            </if>
             <!--客户分组-->
             <if test="queryForm.customerGroup != null">
                 AND v_commission_rule.customer_group = #{queryForm.customerGroup}
             </if>
+            <!--转交状态（0自主开发，非0转交）-->
+            <if test="queryForm.transferStatus != null">
+                AND v_commission_rule.transfer_status = #{queryForm.transferStatus}
+            </if>
+            <!--提成类型（1业务 2管理）-->
+            <if test="queryForm.commissionType != null">
+                AND v_commission_rule.commission_type = #{queryForm.commissionType}
+            </if>
         </where>
-        order by customer_group
+        order by v_commission_rule.transfer_status asc,
+            v_commission_rule.customer_group asc,
+        v_commission_rule.commission_type asc
+    </select>
+
+    <select id="queryCommissionRule"
+            resultType="net.lab1024.sa.admin.module.vigorous.commission.rule.domain.vo.CommissionRuleVO">
+        select <include refid="base_columns"/>
+            from v_commission_rule
+        <where>
+            <!--客户分组-->
+            <if test="commissionRule.customerGroup != null">
+                AND v_commission_rule.customer_group = #{commissionRule.customerGroup}
+            </if>
+            <!--转交状态（0自主开发，非0转交）-->
+            <if test="commissionRule.transferStatus != null">
+                AND v_commission_rule.transfer_status = #{commissionRule.transferStatus}
+            </if>
+            <!--提成类型（1业务 2管理）-->
+            <if test="commissionRule.commissionType != null">
+                AND v_commission_rule.commission_type = #{commissionRule.commissionType}
+            </if>
+        </where>
+    </select>
+
+    <select id="findAll"
+            resultType="net.lab1024.sa.admin.module.vigorous.commission.rule.domain.vo.CommissionRuleVO">
+        select <include refid="base_columns"/>
+            from v_commission_rule
     </select>
 
 

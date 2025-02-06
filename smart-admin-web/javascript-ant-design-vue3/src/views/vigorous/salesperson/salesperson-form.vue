@@ -21,7 +21,10 @@
         <a-form-item label="业务员名称"  name="salespersonName">
           <a-input style="width: 100%" v-model:value="form.salespersonName" placeholder="业务员名称" />
         </a-form-item>
-        <a-form-item label="部门编码"  name="departmentId">
+        <a-form-item label="业务员级别"  name="salespersonLevel">
+          <SalespersonLevelSelect width="100%" v-model:value="form.salespersonLevelId" enumName="" placeholder="选择业务员级别"/>
+        </a-form-item>
+        <a-form-item label="部门"  name="departmentId">
           <a-input-number style="width: 100%" v-model:value="form.departmentId" placeholder="部门编码" />
         </a-form-item>
         <a-form-item label="上级id"  name="parentId">

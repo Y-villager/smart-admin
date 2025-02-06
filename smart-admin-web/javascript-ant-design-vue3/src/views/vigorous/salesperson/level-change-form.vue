@@ -111,7 +111,6 @@ let form = reactive({ ...formDefault });
 const rules = {
   salespersonId: [{ required: true, message: '业务员编号 必填' }],
   newLevel: [{ required: true, message: '现在级别 必填' }],
-  changeReason: [{ required: true, message: '变动原因 必填' }],
   changeDate: [{ required: true, message: '变动日期 必填' }],
 };
 

@@ -3,8 +3,14 @@ package net.lab1024.sa.admin.module.vigorous.sales.outbound.service;
 import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
+import net.lab1024.sa.admin.enumeration.CommissionTypeEnum;
+import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.vo.CommissionRecordVO;
+import net.lab1024.sa.admin.module.vigorous.commission.calc.service.CommissionRecordService;
+import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.vo.CommissionRuleVO;
+import net.lab1024.sa.admin.module.vigorous.commission.rule.service.CommissionRuleService;
 import net.lab1024.sa.admin.module.vigorous.customer.service.CustomerService;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.dao.SalesOutboundDao;
+import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.dto.SalesCommissionDto;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.entity.SalesOutboundEntity;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutboundAddForm;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutboundImportForm;
@@ -13,6 +19,7 @@ import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutb
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundExcelVO;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO;
 import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
+import net.lab1024.sa.admin.module.vigorous.salespersonlevel.service.SalespersonLevelService;
 import net.lab1024.sa.admin.util.ExcelUtils;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
@@ -22,6 +29,7 @@ import net.lab1024.sa.base.common.util.SmartPageUtil;
 import net.lab1024.sa.base.common.util.SmartRequestUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.executor.BatchResult;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -31,7 +39,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -60,6 +71,13 @@ public class SalesOutboundService {
     private String failedDataName;
     @Value("${file.excel.failed-import.upload-path}")
     private String uploadPath;
+    @Autowired
+    private CommissionRuleService commissionRuleService;
+    @Autowired
+    private CommissionRecordService commissionRecordService;
+    @Autowired
+    private SalespersonLevelService salespersonLevelService;
+
 
     /**
      * 分页查询
@@ -294,45 +312,144 @@ public class SalesOutboundService {
     }
 
     /**
-     * 查询客户首单信息
-     * @param customerId
+     * 生成业绩提成
+     * @param queryForm 查询条件
      * @return
      */
-    public SalesOutboundVO queryFirstOrderOfCustomer(Long customerId) {
-        return salesOutboundDao.queryFirstOrderOfCustomer(customerId);
+    public ResponseDTO<String> createCommission(SalesOutboundQueryForm queryForm) {
+        // 需要生成业绩提成 的列表
+        List<SalesCommissionDto> list = salesOutboundDao.queryPageWithReceivables(null, queryForm);
+        List<CommissionRecordVO> commissionRecordVOList = new ArrayList<>();
+
+        // 缓存常用的计算值，避免在每次遍历时重复计算
+        BigDecimal hundred = BigDecimal.valueOf(100);
+
+        // 提前缓存业务和管理规则
+        CommissionRuleVO business = null;
+        CommissionRuleVO management = null;
+
+        for (SalesCommissionDto salesCommission : list) {
+
+            // 从缓存查询条件
+            if (business == null) {
+                business = commissionRuleService.queryCommissionRuleFromCache(salesCommission, CommissionTypeEnum.BUSINESS);
+            }
+            if (management == null) {
+                management = commissionRuleService.queryCommissionRuleFromCache(salesCommission, CommissionTypeEnum.MANAGEMENT);
+            }
+
+            if (business == null){
+                queryForm.setErrorMsg("缺少业务规则");
+            }else {
+            }
+            if (management == null){
+                queryForm.setErrorMsg("缺少管理提成规则");
+            }else {
+            }
+            CommissionRecordVO recordVO = initCommissionRecordVO(salesCommission, business, management, hundred);
+            commissionRecordVOList.add(recordVO);
+        }
+        commissionRecordService.batchInsertCommissionRecord(commissionRecordVOList);
+        return ResponseDTO.okMsg("s");
     }
 
-    public PageResult<SalesOutboundVO> queryPageWithReceivables(SalesOutboundQueryForm queryForm) {
-        Page<?> page = SmartPageUtil.convert2PageQuery(queryForm);
+    private @NotNull CommissionRecordVO initCommissionRecordVO(SalesCommissionDto salesOutbound,
+                                                               CommissionRuleVO business,
+                                                               CommissionRuleVO management,
+                                                               BigDecimal hundred) {
+        CommissionRecordVO recordVO = new CommissionRecordVO();
 
-//        if (queryForm.getCustomerName() != null && !queryForm.getCustomerName().isEmpty()) {
-//            queryForm.setCustomerId(customerService.getCustomerIdByCustomerName(queryForm.getCustomerName()));
-//        }
-//        if (queryForm.getSalespersonName() != null && !queryForm.getSalespersonName().isEmpty()) {
-//            queryForm.setSalespersonId(salespersonService.getIdBySalespersonName(queryForm.getSalespersonName()));
-//        }
+        // 计算百分比时使用 hundred 的倒数
+        BigDecimal hundredInverse = BigDecimal.ONE.divide(hundred, 4, RoundingMode.HALF_UP);
 
-        List<SalesOutboundVO> list = salesOutboundDao.queryPageWithReceivables(page, queryForm);
+        //
+        BigDecimal amount = Optional.ofNullable(salesOutbound.getSalesAmount()).orElse(BigDecimal.ZERO);
+        BigDecimal levelRate = Optional.ofNullable(salesOutbound.getLevelRate()).orElse(BigDecimal.ZERO);
+        BigDecimal pLevelRate = Optional.ofNullable(salesOutbound.getPLevelRate()).orElse(BigDecimal.ZERO);
 
-        // 获取所有需要的业务员和客户信息
-        Set<Long> salespersonIds = list.stream()
-                .map(SalesOutboundVO::getSalespersonId)
-                .collect(Collectors.toSet());
-        Set<Long> customerIds = list.stream()
-                .map(SalesOutboundVO::getCustomerId)
-                .collect(Collectors.toSet());
+        Integer customerYear = calculateCooperationYears(salesOutbound.getFirstOrderDate(), LocalDate.now());
+        BigDecimal customerYearRate = calcCustomerYearRate(customerYear); // 客户年份系数
 
-        Map<Long, String> salespersonNames = salespersonService.getSalespersonNamesByIds(salespersonIds);
-        Map<Long, String> customerNames = customerService.getCustomerNamesByIds(customerIds);
+        // 设置基本信息
+        recordVO.setSalesOutboundId(salesOutbound.getSalesOutboundId());   // 销售出库id
+        recordVO.setSalesBillNo(salesOutbound.getSalesBillNo());   // 销售出库id
+        recordVO.setSalespersonId(salesOutbound.getSalespersonId());    // 业务员id
+        recordVO.setCustomerId(salesOutbound.getCustomerId());  // 客户id
+        recordVO.setSalesAmount(salesOutbound.getSalesAmount()); // 销售金额
+        recordVO.setOrderDate(salesOutbound.getSalesBoundDate()); // 销售出库日期 / 业务日期
+        recordVO.setSalesBillNo(salesOutbound.getSalesBillNo()); // 销售-单据编号
+        recordVO.setCustomerYear(customerYear); // 客户合作年数
+        recordVO.setCustomerYearRate(customerYearRate);
 
+        BigDecimal businessCommissionRate = BigDecimal.ZERO;
+        BigDecimal businessCommission = BigDecimal.ZERO;
+        // 业务提成
+        if (business != null){
+            // 是否是动态计算
+            if (business.getUseDynamicFormula() != null && business.getUseDynamicFormula().equals(1)){ // 动态计算 需要根据当前的
+                BigDecimal resRate = levelRate.multiply(customerYearRate).multiply(hundredInverse);
+                businessCommission = amount.multiply(resRate);
+                businessCommissionRate = resRate;
+            }else {
+                businessCommissionRate = Optional.ofNullable(business.getCommissionRate()).orElse(BigDecimal.ZERO);
+                businessCommission = businessCommissionRate.multiply(amount).multiply(hundredInverse);
+            }
+            recordVO.setBusinessCommissionAmount(businessCommission);
+            recordVO.setBusinessCommissionRate(businessCommissionRate);
+        }
 
-        // 填充业务员和客户名称
-        list.forEach(e -> {
-            e.setSalespersonName(salespersonNames.get(e.getSalespersonId()));
-            e.setCustomerName(customerNames.get(e.getCustomerId()));
-        });
+        BigDecimal managementCommissionRate = BigDecimal.ZERO;
+        BigDecimal managementCommission = BigDecimal.ZERO;
+        // 管理提成
+        if (management != null){
+            if (management.getUseDynamicFormula() != null) {
+                // 如果存在上级id，计算 管理提成
+                if (salesOutbound.getPLevelRate() != null){
+                    if (pLevelRate.compareTo(levelRate) > 0){ // 上级系数不能比自身小
+                        // 管理提成比例：客户年份系数 * （上级 - 自身系数）
+                        BigDecimal rate = customerYearRate.multiply(pLevelRate.subtract(levelRate)).multiply(hundredInverse);
+                        managementCommissionRate = rate;
+                        managementCommission = amount.multiply(rate);
+                    }else {
+                        throw new RuntimeException();
+                    }
+                }
 
-        PageResult<SalesOutboundVO> pageResult = SmartPageUtil.convert2PageResult(page, list);
-        return pageResult;
+            }else {
+                managementCommissionRate = Optional.ofNullable(management.getCommissionRate()).orElse(BigDecimal.ZERO);
+                managementCommission = levelRate.multiply(amount);
+            }
+            recordVO.setManagementCommissionAmount(managementCommission);
+            recordVO.setManagementCommissionRate(managementCommissionRate);
+        }
+        return recordVO;
+    }
+
+    /**
+     * 计算客户年份系数
+     * @param year
+     * @return
+     */
+    public static BigDecimal calcCustomerYearRate(Integer year){
+        if (year == null || year == 0){
+            return BigDecimal.ZERO;
+        }
+        return BigDecimal.valueOf(1.0 - Math.max(0,  year-1) * 0.1);
+    }
+
+    // 计算客户合作年数
+    public static int calculateCooperationYears(LocalDate startDate, LocalDate today) {
+        // 计算开始日期与今天的日期差距
+        Period period = Period.between(startDate, today);
+
+        // 通过年数判断合作年数
+        if (period.getYears() > 0) {
+            return period.getYears() + 1; // 已经完成某年数，并加1
+        } else if (period.getMonths() == 0 && period.getDays() == 0) {
+            // 如果正好一年，返回合作的第1年
+            return 1;
+        } else {
+            return 0; // 不满1年的合作
+        }
     }
 }

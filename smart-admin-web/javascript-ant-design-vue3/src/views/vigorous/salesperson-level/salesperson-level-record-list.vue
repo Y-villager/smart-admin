@@ -214,12 +214,15 @@
     }
 
 
-    onMounted(queryData);
-    onMounted(getAllSalespersonLevel);
+    // 使用 onMounted 加载数据
+    onMounted(() => {
+      queryData();
+      getAllSalespersonLevel();
+    });
     // ----------------------------  ----------------------------
-    const salespersonLevelList = ref();
-    function getAllSalespersonLevel() {
-      salespersonLevelApi.queryList().then(res =>{
+    const salespersonLevelList = ref([]);
+    async function getAllSalespersonLevel() {
+      await salespersonLevelApi.queryList().then(res =>{
         console.log('---------------------level-record')
         console.log(res)
         salespersonLevelList.value = res.data

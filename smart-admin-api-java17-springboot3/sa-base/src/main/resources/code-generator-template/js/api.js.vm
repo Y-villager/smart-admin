@@ -5,7 +5,7 @@
  * @Date:      ${basic.frontDate}
  * @Copyright  ${basic.copyright}
  */
-import { postRequest, getRequest, getDownload } from '/@/lib/axios';
+import { postRequest, getRequest, postDownload } from '/@/lib/axios';
 
 export const ${name.lowerCamel}Api = {
 
@@ -81,8 +81,8 @@ export const ${name.lowerCamel}Api = {
     },
 
     // 导出
-    export${name.upperCamel} : () =>{
-        return getDownload('/${name.lowerCamel}/export');
+    export${name.upperCamel} : (data) =>{
+        return postDownload('/${name.lowerCamel}/export', data);
     }
 
 };

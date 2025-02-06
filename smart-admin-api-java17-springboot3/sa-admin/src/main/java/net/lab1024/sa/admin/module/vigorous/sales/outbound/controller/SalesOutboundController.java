@@ -88,11 +88,10 @@ class SalesOutboundController {
         SmartExcelUtil.exportExcel(response,"销售出库.xlsx","销售出库",SalesOutboundExcelVO.class, list);
     }
 
-    @Operation(summary = "导出业绩提成")
-    @PostMapping("/salesOutbound/exportCommission")
-    public void exportCommission(HttpServletResponse response, @RequestBody @Valid SalesOutboundQueryForm queryForm) throws IOException {
-        List<SalesOutboundExcelVO> list = salesOutboundService.getExportList(queryForm);
-        SmartExcelUtil.exportExcel(response,"销售业绩表.xlsx","销售业绩表",SalesOutboundExcelVO.class, list);
+    @Operation(summary = "生成业绩提成")
+    @PostMapping("/salesOutbound/createCommission")
+    public ResponseDTO<String>  exportCommission(HttpServletResponse response, @RequestBody @Valid SalesOutboundQueryForm queryForm) throws IOException {
+        return salesOutboundService.createCommission(queryForm);
     }
 
 }

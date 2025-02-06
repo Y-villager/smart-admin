@@ -41,11 +41,22 @@ public class SalesOutboundVO {
     @Schema(description = "客户名称")
     private String customerName;
 
+    private Integer customerGroup;
+
+    private Integer transferStatus;
+
+    private LocalDate firstOrderDate;
+
     @Schema(description = "业务员编号")
     private Long salespersonId;
 
     @Schema(description = "销售员")
     private String salespersonName;
+
+    private Integer salespersonLevelId;
+    @Schema(description = "级别提成基准")
+    private BigDecimal commissionRate;
+
 
     @Schema(description = "金额")
     private BigDecimal amount;

@@ -5,7 +5,7 @@
  * @Date:      2024-12-23 16:14:00
  * @Copyright  (c)2024 yxz
  */
-import { postRequest, getRequest, getDownload } from '/src/lib/axios';
+import {postRequest, getRequest, getDownload, postDownload} from '/src/lib/axios';
 
 export const commissionRuleApi = {
 
@@ -51,8 +51,8 @@ export const commissionRuleApi = {
     },
 
     // 导出
-    exportCommissionRule : () =>{
-        return getDownload('/commissionRule/export');
+    exportCommissionRule : (data) =>{
+        return postDownload('/commissionRule/export', data);
     }
 
 };

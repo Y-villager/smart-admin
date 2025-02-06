@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerVO;
-import net.lab1024.sa.admin.module.vigorous.receivables.domain.entity.ReceivablesEntity;
+import net.lab1024.sa.admin.module.vigorous.receivables.domain.vo.ReceivablesVO;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.vo.SalespersonVO;
 
 import java.math.BigDecimal;
@@ -45,7 +45,7 @@ public class SalesOutboundVO2 {
     private BigDecimal amount;
 
     @Schema(description = "应收单")
-    private ReceivablesEntity receivables;
+    private ReceivablesVO receivables;
 
     @Schema(description = "创建时间")
     private LocalDateTime createTime;

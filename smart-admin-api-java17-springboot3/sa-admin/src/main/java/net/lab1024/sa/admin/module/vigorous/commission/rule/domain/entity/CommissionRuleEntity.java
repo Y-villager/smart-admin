@@ -2,11 +2,11 @@ package
 
         net.lab1024.sa.admin.module.vigorous.commission.rule.domain.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import java.math.BigDecimal;
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
  * 提成规则 实体类
@@ -27,9 +27,9 @@ public class CommissionRuleEntity {
     private Long ruleId;
 
     /**
-     * 业务员级别id
+     * 转交状态（0自主开发，非0转交）
      */
-    private Integer salespersonLevelId;
+    private Integer transferStatus;
 
     /**
      * 客户分组(1内贸 2外贸)
@@ -37,18 +37,39 @@ public class CommissionRuleEntity {
     private Integer customerGroup;
 
     /**
-     * 首单比例
+     * 提成类型（1业务 2管理）
      */
-    private BigDecimal firstOrderRate;
+    private Integer commissionType;
 
     /**
-     * 基础比例
+     * 是否计算公式（0否 1是）
      */
-    private BigDecimal baseRate;
+    private Integer useDynamicFormula;
+
+    /**
+     * 提成系数
+     */
+    private BigDecimal commissionRate;
+
+    /**
+     * 计算公式id
+     */
+    private Long formulaId;
 
     /**
      * 备注
      */
     private String remark;
 
+    /**
+     * 创建
+     */
+    @TableField(fill = FieldFill.INSERT)
+    private LocalDateTime createTime;
+
+    /**
+     * 更新
+     */
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private LocalDateTime updateTime;
 }

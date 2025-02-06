@@ -2,14 +2,12 @@ package
 
         net.lab1024.sa.admin.module.vigorous.commission.calc.domain.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * 业务提成记录 实体类
@@ -30,6 +28,11 @@ public class CommissionRecordEntity {
     private Long commissionId;
 
     /**
+     * 销售出库id
+     */
+    private Long salesOutboundId;
+
+    /**
      * 业务员id
      */
     private Long salespersonId;
@@ -40,25 +43,45 @@ public class CommissionRecordEntity {
     private Long customerId;
 
     /**
-     * 提成类型(0业务1管理）
+     * 销售出库-单据编号
      */
-    private Integer commissionType;
+    private String salesBillNo;
 
     /**
-     * 提成金额
+     * 销售金额
      */
-    private BigDecimal amout;
+    private BigDecimal salesAmount;
 
     /**
-     * 销售出库id
+     * 用户合作年数
      */
-    private Long salesOutboundId;
+    private Integer customerYear;
+    private BigDecimal customerYearRate;
+
+    private BigDecimal businessCommissionAmount;
+    private BigDecimal businessCommissionRate;
+
+    private BigDecimal managementCommissionAmount;
+    private BigDecimal managementCommissionRate;
+
+
+    /**
+     * 销售出库日期/ 业务日期
+     */
+    private LocalDate orderDate;
+
 
     /**
      * 创建时间
      */
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
+
+    /**
+     *
+     */
+    @TableField(fill = FieldFill.INSERT)
+    private LocalDateTime updateTime;
 
     /**
      * 备注

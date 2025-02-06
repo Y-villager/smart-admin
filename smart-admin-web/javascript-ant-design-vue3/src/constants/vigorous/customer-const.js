@@ -17,6 +17,17 @@ export const CUSTOMER_GROUP_ENUM= {
     },
 };
 
+export const IS_TRANSFERRED_ENUM= {
+    NO: {
+        value: 0,
+        desc: '自主开发',
+    },
+    YES: {
+        value: 1,
+        desc: '转交',
+    }
+}
+
 export const TRANSFER_STATUS_ENUM= {
     INDEPENDENTLY: {
         value: 0,
@@ -46,5 +57,6 @@ export const TRANSFER_STATUS_ENUM= {
 
 export default {
     CUSTOMER_GROUP_ENUM,
-    TRANSFER_STATUS_ENUM
+    TRANSFER_STATUS_ENUM,
+    IS_TRANSFERRED_ENUM,
 }

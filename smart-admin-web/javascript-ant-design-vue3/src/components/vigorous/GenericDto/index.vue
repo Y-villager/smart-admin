@@ -5,27 +5,25 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "GenericDto",
-  props: {
-    // 传入的列表数据
-    list: {
-      type: Array,
-      required: true
-    },
-    // 需要显示的id
-    selectedId: {
-      type: Number,
-      required: true
-    }
+<script setup>
+import { defineProps } from 'vue';
+
+// 传入的props
+const props = defineProps({
+  list: {
+    type: Array,
+    required: true
   },
-  methods: {
-    // 根据id查找对应的name
-    getNameById(id) {
-      const item = this.list.find(item => item.id === id);
-      return item ? item.name : "未知"; // 如果没有找到，显示“未知”
-    }
+  selectedId: {
+    type: Number,
+    required: true
   }
+});
+
+// 根据id查找对应的name
+const getNameById = (id) => {
+  console.log(props.list);
+  const item = props.list.find(item => item.id === id);
+  return item ? item.name : "未知"; // 如果没有找到，显示“未知”
 };
 </script>

@@ -5,32 +5,39 @@
     <!-- 查询结果列 -->
     <sql id="base_columns">
         v_commission_record.commission_id,
+        v_commission_record.sales_bill_no,
+        v_commission_record.sales_outbound_id,
         v_commission_record.salesperson_id,
         v_commission_record.customer_id,
-        v_commission_record.commission_type,
-        v_commission_record.amout,
-        v_commission_record.sales_outbound_id,
+        v_commission_record.sales_amount,
+        v_commission_record.order_date,
+        v_commission_record.customer_year,
+        v_commission_record.customer_year_rate,
+        v_commission_record.business_commission_rate,
+        v_commission_record.business_commission_amount,
+        v_commission_record.management_commission_rate,
+        v_commission_record.management_commission_amount,
+        v_commission_record.remark,
         v_commission_record.create_time,
-        v_commission_record.remark
+        v_commission_record.update_time
     </sql>
+
 
     <!-- 分页查询 -->
     <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.commission.calc.domain.vo.CommissionRecordVO">
         SELECT
-        <include refid="base_columns"/>
+        <include refid="base_columns"/>, vc.customer_name, vs.salesperson_name
         FROM v_commission_record
+            left join v_customer vc on v_commission_record.customer_id = vc.customer_id
+            left join v_salesperson vs on v_commission_record.salesperson_id = vs.id
         <where>
             <!--业务员-->
             <if test="queryForm.salespersonName != null and queryForm.salespersonName != ''">
-                        AND INSTR(v_commission_record.salesperson_id,#{queryForm.salespersonName})
+                AND INSTR(v_commission_record.salesperson_id,#{queryForm.salespersonName})
             </if>
             <!--客户名称-->
             <if test="queryForm.customerName != null and queryForm.customerName != ''">
-                        AND INSTR(v_commission_record.customer_id,#{queryForm.customerName})
-            </if>
-            <!--提成类型-->
-            <if test="queryForm.commssionType != null and queryForm.commssionType != ''">
-                        AND INSTR(v_commission_record.commission_type,#{queryForm.commssionType})
+                AND INSTR(v_commission_record.customer_id,#{queryForm.customerName})
             </if>
             <!--销售出库日期-->
             <if test="queryForm.orderDateBegin != null">

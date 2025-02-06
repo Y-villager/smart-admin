@@ -15,17 +15,24 @@
       :destroyOnClose="true"
   >
     <a-form ref="formRef" :model="form" :rules="rules" :label-col="{ span: 5 }" >
-        <a-form-item label="客户分组"  name="currencyType">
-          <SmartEnumSelect enum-name="CUSTOMER_GROUP_ENUM" width="100%" v-model:value="form.currencyType" placeholder="客户分组"/>
+
+      <a-form-item label="客户分组" class="smart-query-form-item">
+        <SmartEnumSelect width="200px" v-model:value="form.customerGroup" enumName="CUSTOMER_GROUP_ENUM" placeholder="客户分组"/>
+      </a-form-item>
+      <a-form-item label="转交状态" class="smart-query-form-item">
+        <SmartEnumSelect width="200px" v-model:value="form.transferStatus" enumName="IS_TRANSFERRED_ENUM" placeholder="转交状态（0自主开发，非0转交）"/>
+      </a-form-item>
+      <a-form-item label="提成类型" class="smart-query-form-item">
+        <SmartEnumSelect width="200px" v-model:value="form.commissionType" enumName="COMMISSION_TYPE_ENUM" placeholder="提成类型（1业务 2管理）"/>
+      </a-form-item>
+      <a-form-item label="是否计算公式"  name="useDynamicFormula">
+        <SmartEnumSelect width="200px" v-model:value="form.useDynamicFormula" enumName="SYSTEM_YES_NO" placeholder="提成类型（1业务 2管理）"/>
+      </a-form-item>
+        <a-form-item label="提成系数"  name="commissionRate">
+          <a-input-number style="width: 100%" v-model:value="form.commissionRate" placeholder="提成系数" />
         </a-form-item>
-        <a-form-item label="业务员级别"  name="salespersonLevelId">
-          <SalespersonLevelSelect width="100%" v-model:value="form.salespersonLevelId" enumName="" placeholder="业务员级别id"/>
-        </a-form-item>
-        <a-form-item label="首单比例"  name="firstOrderRate">
-          <a-input-number style="width: 100%" v-model:value="form.firstOrderRate" placeholder="首单比例" />
-        </a-form-item>
-        <a-form-item label="基础比例"  name="baseRate">
-          <a-input-number style="width: 100%" v-model:value="form.baseRate" placeholder="基础比例" />
+        <a-form-item label="计算公式id"  name="formulaId">
+          <a-input-number style="width: 100%" v-model:value="form.formulaId" placeholder="计算公式id" />
         </a-form-item>
         <a-form-item label="备注"  name="remark">
           <a-input style="width: 100%" v-model:value="form.remark" placeholder="备注" />
@@ -44,12 +51,10 @@
   import { reactive, ref, nextTick } from 'vue';
   import _ from 'lodash';
   import { message } from 'ant-design-vue';
-  import { SmartLoading } from '/src/components/framework/smart-loading';
-  import { smartSentry } from '/src/lib/smart-sentry';
-  import DictSelect from '/src/components/support/dict-select/index.vue';
-  import SmartEnumSelect from '/src/components/framework/smart-enum-select/index.vue';
-  import SalespersonLevelSelect from "/src/components/vigorous/salesperson-level-select/index.vue";
-  import {commissionRecordApi} from "/@/api/vigorous/commission-record-api.js";
+  import { SmartLoading } from '/@/components/framework/smart-loading';
+  import { commissionRuleApi } from '/@/api/vigorous/commission-rule-api';
+  import { smartSentry } from '/@/lib/smart-sentry';
+  import SmartEnumSelect from "/@/components/framework/smart-enum-select/index.vue";
 
   // ------------------------ 事件 ------------------------
 
@@ -85,20 +90,22 @@
   const formRef = ref();
 
   const formDefault = {
-      currencyType: undefined, //币种
-      salespersonLevelId: undefined, //业务员级别id
-      firstOrderRate: undefined, //首单比例
-      baseRate: undefined, //基础比例
+      transferStatus: undefined, //转交状态（0自主开发，非0转交）
+      customerGroup: undefined, //客户分组(1内贸 2外贸)
+      commissionType: undefined, //提成类型（1业务 2管理）
+      useDynamicFormula: 0, //是否计算公式（0否 1是）
+      commissionRate: undefined, //提成系数
+      formulaId: undefined, //计算公式id
       remark: undefined, //备注
   };
 
   let form = reactive({ ...formDefault });
 
   const rules = {
-      currencyType: [{ required: true, message: '币种 必填' }],
-      salespersonLevelId: [{ required: true, message: '业务员级别 必填' }],
-      firstOrderRate: [{ required: true, message: '首单比例 必填' }],
-      baseRate: [{ required: true, message: '基础比例 必填' }],
+      transferStatus: [{ required: true, message: '转交状态 必填' }],
+      customerGroup: [{ required: true, message: '客户分组 必填' }],
+      commissionType: [{ required: true, message: '提成类型 必填' }],
+      useDynamicFormula: [{ required: true, message: '是否计算公式 必填' }],
   };
 
   // 点击确定，验证表单
@@ -116,9 +123,9 @@
     SmartLoading.show();
     try {
       if (form.ruleId) {
-        await commissionRecordApi.update(form);
+        await commissionRuleApi.update(form);
       } else {
-        await commissionRecordApi.add(form);
+        await commissionRuleApi.add(form);
       }
       message.success('操作成功');
       emits('reloadList');

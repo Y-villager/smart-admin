@@ -21,6 +21,9 @@
       <a-form-item label="出库日期" class="smart-query-form-item">
         <a-range-picker v-model:value="queryForm.salesBoundDate" :presets="defaultTimeRanges" style="width: 220px" @change="onChangeSalesBoundDate" />
       </a-form-item>
+      <a-form-item label="单据状态" class="smart-query-form-item">
+        <DictSelect keyCode="BILL_STATUS" placeholder="单据状态" v-model:value="queryForm.billStatus" width="200px" />
+      </a-form-item>
       <a-form-item class="smart-query-form-item">
         <a-button type="primary" @click="onSearch">
           <template #icon>
@@ -72,7 +75,7 @@
           <template #icon>
             <ExportOutlined />
           </template>
-          导出业绩提成
+          生成业绩提成
         </a-button>
       </div>
       <div class="smart-table-setting-block">
@@ -183,6 +186,7 @@
       import SalesOutboundForm from './sales-outbound-form.vue';
       import {defaultTimeRanges} from "/@/lib/default-time-ranges.js";
       import {TABLE_ID_CONST} from "/@/constants/support/table-id-const.js";
+      import DictSelect from "/@/components/support/dict-select/index.vue";
       //import FilePreview from '/@/components/support/file-preview/index.vue'; // 图片预览组件
 
       // ---------------------------- 表格列 ----------------------------
@@ -192,6 +196,10 @@
               title: '单据编号',
               dataIndex: 'billNo',
           },
+        {
+          title: '单据状态',
+          dataIndex: 'billStatus',
+        },
           {
               title: '出库日期',
               dataIndex: 'salesBoundDate',
@@ -238,6 +246,7 @@
           salespersonName: undefined, //业务员
           salesBoundDateBegin: undefined, //出库日期 开始
           salesBoundDateEnd: undefined, //出库日期 结束
+        billStatus: undefined,
           pageNum: 1,
           pageSize: 10,
       };
@@ -403,7 +412,7 @@
   }
 
   async function onExportCommission(){
-    await salesOutboundApi.exportCommission(queryForm);
+    await salesOutboundApi.createCommission(queryForm);
   }
 
   function handleRemove(file) {

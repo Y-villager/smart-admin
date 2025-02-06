@@ -15,9 +15,6 @@
             <a-form-item label="客户名称" class="smart-query-form-item">
                 <a-input style="width: 200px" v-model:value="queryForm.customerName" placeholder="客户名称" />
             </a-form-item>
-            <a-form-item label="提成类型" class="smart-query-form-item">
-              <SmartEnumSelect width="100%" v-model:value="queryForm.commissionType" enumName="COMMISSION_TYPE_ENUM" placeholder="提成类型(0业务1管理）"/>
-            </a-form-item>
             <a-form-item label="销售出库日期" class="smart-query-form-item">
                 <a-range-picker v-model:value="queryForm.orderDate" :presets="defaultTimeRanges" style="width: 200px" @change="onChangeOrderDate" />
             </a-form-item>
@@ -189,43 +186,38 @@
 
     const columns = ref([
         {
-            title: '提成id',
-            dataIndex: 'commissionId',
+            title: '销售出库-单据编号',
+            dataIndex: 'salesBillNo',
             ellipsis: true,
         },
         {
-            title: '业务员id',
-            dataIndex: 'salespersonId',
+            title: '业务员',
+            dataIndex: 'salespersonName',
             ellipsis: true,
         },
         {
-            title: '客户id',
-            dataIndex: 'customerId',
+            title: '客户',
+            dataIndex: 'customerName',
             ellipsis: true,
         },
         {
-            title: '提成类型(0业务1管理）',
-            dataIndex: 'commissionType',
+            title: '业务提成',
+            dataIndex: 'businessCommissionAmount',
             ellipsis: true,
         },
-        {
-            title: '提成金额',
-            dataIndex: 'amout',
-            ellipsis: true,
-        },
-        {
-            title: '销售出库id',
-            dataIndex: 'salesOutboundId',
-            ellipsis: true,
-        },
+      {
+        title: '业务提成比例(%)',
+        dataIndex: 'businessCommissionRate',
+        ellipsis: true,
+      },
+      {
+        title: '管理提成',
+        dataIndex: 'managementCommissionAmount',
+        ellipsis: true,
+      },
         {
             title: '创建时间',
             dataIndex: 'createTime',
-            ellipsis: true,
-        },
-        {
-            title: '备注',
-            dataIndex: 'remark',
             ellipsis: true,
         },
         {
@@ -241,7 +233,6 @@
     const queryFormState = {
         salespersonName: undefined, //业务员
         customerName: undefined, //客户名称
-        commissionType: undefined, //提成类型
         orderDate: [], //销售出库日期
         orderDateBegin: undefined, //销售出库日期 开始
         orderDateEnd: undefined, //销售出库日期 结束

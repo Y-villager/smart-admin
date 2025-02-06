@@ -75,15 +75,15 @@ public class CommissionRuleController {
     @Operation(summary = "导入")
     @PostMapping("/commissionRule/import")
     @SaCheckPermission("commissionRule:import")
-    public ResponseDTO<String> importCommissionRule(@RequestParam MultipartFile file) {
-        return commissionRuleService.importCommissionRule(file);
+    public ResponseDTO<String> importCommissionRule(@RequestParam MultipartFile file, @RequestParam("mode") Boolean mode ) {
+        return commissionRuleService.importCommissionRule(file, mode);
     }
 
     @Operation(summary = "导出")
     @GetMapping("/commissionRule/export")
     @SaCheckPermission("commissionRule:export")
-    public void exportCommissionRule(HttpServletResponse response) throws IOException {
-        List<CommissionRuleVO> goodsList = commissionRuleService.getAllCommissionRule();
+    public void exportCommissionRule(HttpServletResponse response, @RequestBody @Valid CommissionRuleQueryForm queryForm) throws IOException {
+        List<CommissionRuleVO> goodsList = commissionRuleService.exportCommissionRule(queryForm);
         SmartExcelUtil.exportExcel(response,"提成规则.xlsx","提成规则",CommissionRuleVO.class, goodsList);
     }
 

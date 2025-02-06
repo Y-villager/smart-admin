@@ -200,7 +200,7 @@ public class ${name.upperCamel}Service {
 
     // 将 ${name.upperCamel}ImportForm 转换为 ${name.upperCamel}Entity
     private ${name.upperCamel}Entity convertToEntity(${name.upperCamel}ImportForm form,
-                                                     List<CommissionRecordImportForm> failedDataList,
+                                                     List<${name.upperCamel}ImportForm> failedDataList,
                                                      boolean mode) {
         ${name.upperCamel}Entity entity = new ${name.upperCamel}Entity();
 

@@ -21,6 +21,9 @@
       <a-form-item label="收款日期" class="smart-query-form-item">
         <a-range-picker v-model:value="queryForm.receivablesDate" :presets="defaultTimeRanges" style="width: 240px" @change="onChangeReceivablesDate" />
       </a-form-item>
+      <a-form-item label="单据状态" class="smart-query-form-item">
+        <DictSelect keyCode="BILL_STATUS" placeholder="单据状态" v-model:value="queryForm.billStatus" width="200px" />
+      </a-form-item>
       <a-form-item class="smart-query-form-item">
         <a-button type="primary" @click="onSearch">
           <template #icon>
@@ -190,6 +193,11 @@ const columns = ref([
     ellipsis: true,
   },
   {
+    title: '单据状态',
+    dataIndex: 'billStatus',
+    ellipsis: true,
+  },
+  {
     title: '应收日期',
     dataIndex: 'receivablesDate',
     ellipsis: true,
@@ -242,6 +250,7 @@ const queryFormState = {
   receivablesDate: [], //收款日期
   receivablesDateBegin: undefined, //收款日期 开始
   receivablesDateEnd: undefined, //收款日期 结束
+  billStatus: undefined,
   pageNum: 1,
   pageSize: 10,
 };

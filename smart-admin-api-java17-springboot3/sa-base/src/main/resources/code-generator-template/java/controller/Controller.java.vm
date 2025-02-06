@@ -81,7 +81,7 @@ public class ${name.upperCamel}Controller {
     }
 
     @Operation(summary = "导出")
-    @GetMapping("/${name.lowerCamel}/export")
+    @PostMapping("/${name.lowerCamel}/export")
     @SaCheckPermission("${name.lowerCamel}:export")
     public void export${name.upperCamel}(HttpServletResponse response, @RequestBody @Valid ${name.upperCamel}QueryForm queryForm) throws IOException {
         List<${name.upperCamel}VO> goodsList = ${name.lowerCamel}Service.export${name.upperCamel}(queryForm);

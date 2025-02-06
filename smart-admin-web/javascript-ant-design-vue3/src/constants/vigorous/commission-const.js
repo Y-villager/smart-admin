@@ -9,11 +9,11 @@
 
 export const COMMISSION_TYPE_ENUM= {
     MANAGEMENT: {
-        value: '1',
+        value: 1,
         desc: '业务提成',
     },
     BUSINESS: {
-        value: '2',
+        value: 2,
         desc: '管理提成',
     },
 };

@@ -3,9 +3,11 @@ package
         net.lab1024.sa.admin.module.vigorous.commission.calc.domain.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import lombok.Data;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * 业务提成记录 列表VO
@@ -22,23 +24,49 @@ public class CommissionRecordVO {
     @Schema(description = "提成id")
     private Long commissionId;
 
+    @Schema(description = "销售出库id")
+    private Long salesOutboundId;
+
     @Schema(description = "业务员id")
     private Long salespersonId;
+
+    private String salespersonName;
+
+    @Schema(description = "销售出库单据编号")
+    private String salesBillNo;
 
     @Schema(description = "客户id")
     private Long customerId;
 
-    @Schema(description = "提成类型(0业务1管理）")
-    private Integer commissionType;
+    private String customerName;
 
-    @Schema(description = "提成金额")
-    private BigDecimal amout;
+    @Schema(description = "销售金额")
+    private BigDecimal salesAmount;
 
-    @Schema(description = "销售出库id")
-    private Long salesOutboundId;
+    @Schema(description = "销售出库日期/业务日期")
+    private LocalDate orderDate;
+
+    @Schema(description = "客户合作年数")
+    private Integer customerYear;
+    @Schema(description = "客户系数")
+    private BigDecimal customerYearRate;
+
+    @Schema(description = "业务提成系数")
+    private BigDecimal businessCommissionRate;
+
+    @Schema(description = "业务提成金额")
+    private BigDecimal businessCommissionAmount;
+
+    @Schema(description = "管理提成系数")
+    private BigDecimal managementCommissionRate;
+    @Schema(description = "管理提成金额")
+    private BigDecimal managementCommissionAmount;
 
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
+
+    @Schema(description = "创建时间")
+    private LocalDateTime updateTime;
 
     @Schema(description = "备注")
     private String remark;

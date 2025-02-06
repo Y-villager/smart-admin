@@ -250,4 +250,38 @@ public class CommissionRecordService {
         }
         return 0;
     }
+
+    /**
+     * 批量插入
+     * @param commissionRecordVOList
+     */
+    public void batchInsertCommissionRecord(List<CommissionRecordVO> commissionRecordVOList) {
+        if (commissionRecordVOList == null || commissionRecordVOList.isEmpty()) {
+            return;
+        }else {
+            List<CommissionRecordEntity> list = new ArrayList<>();
+            for (CommissionRecordVO recordVO : commissionRecordVOList) {
+                CommissionRecordEntity entity = new CommissionRecordEntity();
+                entity.setSalesOutboundId(recordVO.getSalesOutboundId());   // 出库id
+                entity.setSalespersonId(recordVO.getSalespersonId());   // 业务员 id
+                entity.setSalesBillNo(recordVO.getSalesBillNo());   // 单据编号
+                entity.setCustomerId(recordVO.getCustomerId());   // 客户id
+                entity.setSalesBillNo(recordVO.getSalesBillNo());   // 销售-单据编号
+                entity.setSalesAmount(recordVO.getSalesAmount());   // 销售金额
+                entity.setCustomerYear(recordVO.getCustomerYear()); // 客户年数
+                entity.setCustomerYearRate(recordVO.getCustomerYearRate()); // 客户年数
+                // 业务提成
+                entity.setBusinessCommissionAmount(recordVO.getBusinessCommissionAmount());
+                entity.setBusinessCommissionRate(recordVO.getBusinessCommissionRate());
+                // 管理提成
+                entity.setManagementCommissionAmount(recordVO.getManagementCommissionAmount());
+                entity.setManagementCommissionRate(recordVO.getManagementCommissionRate());
+
+                list.add(entity);
+            }
+            List<BatchResult> insert = commissionRecordDao.insert(list);
+        }
+
+    }
+
 }

@@ -33,4 +33,8 @@ public interface CommissionRuleDao extends BaseMapper<CommissionRuleEntity> {
     List<CommissionRuleVO> queryPage(Page page, @Param("queryForm") CommissionRuleQueryForm queryForm);
 
 
+    CommissionRuleVO queryCommissionRule(@Param("commissionRule") CommissionRuleVO commissionRule);
+
+    List<CommissionRuleVO> findAll();
+
 }
