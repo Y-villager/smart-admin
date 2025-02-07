@@ -191,6 +191,11 @@
             ellipsis: true,
         },
         {
+          title: '业务金额',
+          dataIndex: 'salesAmount',
+          ellipsis: true,
+        },
+        {
             title: '业务员',
             dataIndex: 'salespersonName',
             ellipsis: true,
@@ -200,18 +205,39 @@
             dataIndex: 'customerName',
             ellipsis: true,
         },
-        {
-            title: '业务提成',
-            dataIndex: 'businessCommissionAmount',
-            ellipsis: true,
-        },
+      {
+        title: '首单日期',
+        dataIndex: 'firstOrderDate',
+        ellipsis: true,
+      },
+      {
+        title: '客户合作年数',
+        dataIndex: 'customerYear',
+        ellipsis: true,
+      },
+      {
+        title: '客户年份系数',
+        dataIndex: 'customerYearRate',
+        ellipsis: true,
+      },
       {
         title: '业务提成比例(%)',
         dataIndex: 'businessCommissionRate',
         ellipsis: true,
       },
+        {
+            title: '业务提成金额',
+            dataIndex: 'businessCommissionAmount',
+            ellipsis: true,
+        },
+
       {
-        title: '管理提成',
+        title: '管理提成比例(%)',
+        dataIndex: 'managementCommissionRate',
+        ellipsis: true,
+      },
+      {
+        title: '管理提成金额',
         dataIndex: 'managementCommissionAmount',
         ellipsis: true,
       },

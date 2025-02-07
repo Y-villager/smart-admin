@@ -219,7 +219,7 @@
                 AND INSTR(vs.salesperson_name,#{queryForm.salespersonName})
             </if>
             <if test="queryForm.billNo != null and queryForm.billNo != '' ">
-                AND INSTR(v_sales_outbound.bill_no,#{queryForm.billNo})
+                AND INSTR(vso.bill_no,#{queryForm.billNo})
             </if>
             <!--出库日期-->
             <if test="queryForm.salesBoundDateBegin != null ">

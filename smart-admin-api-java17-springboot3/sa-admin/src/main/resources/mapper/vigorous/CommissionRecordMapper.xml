@@ -26,10 +26,11 @@
     <!-- 分页查询 -->
     <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.commission.calc.domain.vo.CommissionRecordVO">
         SELECT
-        <include refid="base_columns"/>, vc.customer_name, vs.salesperson_name
+        <include refid="base_columns"/>, vc.customer_name, vc.first_order_date, vs.salesperson_name, vso.amount
         FROM v_commission_record
             left join v_customer vc on v_commission_record.customer_id = vc.customer_id
             left join v_salesperson vs on v_commission_record.salesperson_id = vs.id
+            left join v_sales_outbound vso on v_commission_record.sales_outbound_id = vso.sales_bound_id
         <where>
             <!--业务员-->
             <if test="queryForm.salespersonName != null and queryForm.salespersonName != ''">

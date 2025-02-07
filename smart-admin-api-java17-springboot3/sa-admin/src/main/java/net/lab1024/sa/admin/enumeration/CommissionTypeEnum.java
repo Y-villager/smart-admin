@@ -10,12 +10,12 @@ public enum CommissionTypeEnum implements BaseEnum {
     /**
      * 1 业务提成
      */
-    MANAGEMENT(1, "业务提成"),
+    BUSINESS(1, "业务提成"),
 
     /**
      * 2 管理提成
      */
-    BUSINESS(2, "管理提成"),
+    MANAGEMENT(2, "管理提成"),
 
     ;
 

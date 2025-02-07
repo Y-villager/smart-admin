@@ -40,6 +40,8 @@ public class CommissionRecordVO {
 
     private String customerName;
 
+    private LocalDate firstOrderDate;
+
     @Schema(description = "销售金额")
     private BigDecimal salesAmount;
 

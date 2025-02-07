@@ -331,12 +331,8 @@ public class SalesOutboundService {
         for (SalesCommissionDto salesCommission : list) {
 
             // 从缓存查询条件
-            if (business == null) {
-                business = commissionRuleService.queryCommissionRuleFromCache(salesCommission, CommissionTypeEnum.BUSINESS);
-            }
-            if (management == null) {
-                management = commissionRuleService.queryCommissionRuleFromCache(salesCommission, CommissionTypeEnum.MANAGEMENT);
-            }
+            business = commissionRuleService.queryCommissionRuleFromCache(salesCommission, CommissionTypeEnum.BUSINESS);
+            management = commissionRuleService.queryCommissionRuleFromCache(salesCommission, CommissionTypeEnum.MANAGEMENT);
 
             if (business == null){
                 queryForm.setErrorMsg("缺少业务规则");
@@ -386,11 +382,11 @@ public class SalesOutboundService {
         // 业务提成
         if (business != null){
             // 是否是动态计算
-            if (business.getUseDynamicFormula() != null && business.getUseDynamicFormula().equals(1)){ // 动态计算 需要根据当前的
-                BigDecimal resRate = levelRate.multiply(customerYearRate).multiply(hundredInverse);
-                businessCommission = amount.multiply(resRate);
+            if (business.getUseDynamicFormula() != null && business.getUseDynamicFormula().equals(1)){ // 动态计算 当前业务级别 * 客户年份系数
+                BigDecimal resRate = levelRate.multiply(customerYearRate);
                 businessCommissionRate = resRate;
-            }else {
+                businessCommission = amount.multiply(resRate).multiply(hundredInverse);
+            }else { // 规则表 固定系数
                 businessCommissionRate = Optional.ofNullable(business.getCommissionRate()).orElse(BigDecimal.ZERO);
                 businessCommission = businessCommissionRate.multiply(amount).multiply(hundredInverse);
             }
@@ -402,14 +398,14 @@ public class SalesOutboundService {
         BigDecimal managementCommission = BigDecimal.ZERO;
         // 管理提成
         if (management != null){
-            if (management.getUseDynamicFormula() != null) {
+            if (management.getUseDynamicFormula() != null) { // 动态计算：（上级系数-自身系数）* 客户年份系数
                 // 如果存在上级id，计算 管理提成
                 if (salesOutbound.getPLevelRate() != null){
                     if (pLevelRate.compareTo(levelRate) > 0){ // 上级系数不能比自身小
                         // 管理提成比例：客户年份系数 * （上级 - 自身系数）
-                        BigDecimal rate = customerYearRate.multiply(pLevelRate.subtract(levelRate)).multiply(hundredInverse);
+                        BigDecimal rate = customerYearRate.multiply(pLevelRate.subtract(levelRate));
                         managementCommissionRate = rate;
-                        managementCommission = amount.multiply(rate);
+                        managementCommission = amount.multiply(rate).multiply(hundredInverse);
                     }else {
                         throw new RuntimeException();
                     }
@@ -431,7 +427,7 @@ public class SalesOutboundService {
      * @return
      */
     public static BigDecimal calcCustomerYearRate(Integer year){
-        if (year == null || year == 0){
+        if (year == null ){
             return BigDecimal.ZERO;
         }
         return BigDecimal.valueOf(1.0 - Math.max(0,  year-1) * 0.1);
