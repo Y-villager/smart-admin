@@ -46,6 +46,9 @@ public class CustomerVO {
     @Schema(description = "首单日期")
     private LocalDate firstOrderDate;
 
+    @Schema(description = "修改后首单日期")
+    private LocalDate adjustedFirstOrderDate;
+
     @Schema(description = "转交状态")
     private Integer transferStatus;
 

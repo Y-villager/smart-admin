@@ -205,8 +205,8 @@
             ellipsis: true,
         },
         {
-            title: '上级id',
-            dataIndex: 'parentId',
+            title: '上级',
+            dataIndex: 'parentName',
             ellipsis: true,
         },
         {

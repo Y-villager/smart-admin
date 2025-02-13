@@ -1,7 +1,6 @@
 package net.lab1024.sa.admin.module.vigorous.salesperson.domain.vo;
 
 import com.alibaba.excel.annotation.ExcelProperty;
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,6 +22,9 @@ public class SalespersonExcelVO {
 
     @ExcelProperty("部门")
     private String department;
+
+    @ExcelProperty("上级业务员")
+    private String parentName;
 
 
 }

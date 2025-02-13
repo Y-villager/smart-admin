@@ -15,6 +15,9 @@
       <a-form-item label="客户名称" class="smart-query-form-item">
         <a-input style="width: 200px" v-model:value="queryForm.customerName" placeholder="客户名称" />
       </a-form-item>
+      <a-form-item label="部门名称" class="smart-query-form-item">
+        <a-input style="width: 200px" v-model:value="queryForm.departmentName" placeholder="部门名称" />
+      </a-form-item>
       <a-form-item label="销售员" class="smart-query-form-item">
         <a-input style="width: 200px" v-model:value="queryForm.salespersonName" placeholder="销售员" />
       </a-form-item>
@@ -71,7 +74,7 @@
           </template>
           导出
         </a-button>
-        <a-button @click="onExportCommission" danger v-privilege="'salesOutbound:export'">
+        <a-button @click="onExportCommission" danger v-privilege="'salesOutbound:export'" :disabled="initDisabled">
           <template #icon>
             <ExportOutlined />
           </template>
@@ -196,10 +199,6 @@
               title: '单据编号',
               dataIndex: 'billNo',
           },
-        {
-          title: '单据状态',
-          dataIndex: 'billStatus',
-        },
           {
               title: '出库日期',
               dataIndex: 'salesBoundDate',
@@ -207,6 +206,7 @@
           {
               title: '客户名称',
               dataIndex: 'customerName',
+              width: '200px',
               ellipsis: true,
           },
           {
@@ -219,12 +219,17 @@
               dataIndex: 'amount',
               ellipsis: true,
           },
-
+        {
+          title: '首单日期',
+          dataIndex: 'firstOrderDate',
+          ellipsis: true,
+        },
         {
           title: '创建时间',
           dataIndex: 'createTime',
           ellipsis: true,
         },
+
         {
           title: '更新时间',
           dataIndex: 'updateTime',
@@ -246,7 +251,8 @@
           salespersonName: undefined, //业务员
           salesBoundDateBegin: undefined, //出库日期 开始
           salesBoundDateEnd: undefined, //出库日期 结束
-        billStatus: undefined,
+          billStatus: undefined,
+          departmentName: "外贸部", // 部门名称
           pageNum: 1,
           pageSize: 10,
       };
@@ -411,8 +417,11 @@
     exportDisabled.value = false
   }
 
+  const initDisabled = ref(false)
   async function onExportCommission(){
+    initDisabled.value = true
     await salesOutboundApi.createCommission(queryForm);
+    initDisabled.value = false
   }
 
   function handleRemove(file) {

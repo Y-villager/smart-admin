@@ -30,6 +30,9 @@
         <a-form-item label="客户分组"  name="customerGroup">
           <SmartEnumSelect enum-name="CUSTOMER_GROUP_ENUM" v-model:value="form.customerGroup" width="100%"/>
         </a-form-item>
+        <a-form-item label="首单日期"  name="firstOrderDate">
+          <a-date-picker valueFormat="YYYY-MM-DD" v-model:value="form.firstOrderDate" style="width: 100%" placeholder="首单日期"/>
+        </a-form-item>
         <a-form-item label="客户类别"  name="customerCategory">
           <a-input style="width: 100%" v-model:value="form.customerCategory" placeholder="客户类别" />
         </a-form-item>
@@ -101,6 +104,7 @@
       customerCategory: undefined, //客户类别
       salespersonName: undefined, //业务员
       customerCode: undefined, //客户编码
+      firstOrderDate: undefined
   };
 
   let form = reactive({ ...formDefault });

@@ -9,6 +9,7 @@ import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form.Commissi
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form.CommissionRecordImportForm;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form.CommissionRecordQueryForm;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form.CommissionRecordUpdateForm;
+import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.vo.CommissionRecordExcelVO;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.vo.CommissionRecordVO;
 import net.lab1024.sa.admin.util.ExcelUtils;
 import net.lab1024.sa.admin.util.SplitListUtils;
@@ -32,6 +33,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static cn.dev33.satoken.SaManager.log;
 
@@ -207,18 +209,30 @@ public class CommissionRecordService {
 
     /**
      * 导出
-     * 需要修改
      */
-    public List<CommissionRecordVO> exportCommissionRecord(CommissionRecordQueryForm queryForm) {
+    public List<CommissionRecordExcelVO> exportCommissionRecord(CommissionRecordQueryForm queryForm) {
         //List<CommissionRecordVO> entityList = commissionRecordDao.selectList(null);
-        List<CommissionRecordVO> entityList = commissionRecordDao.queryPage(null,queryForm);
-//        return entityList.stream()
-//                .map(e ->
-//                        CommissionRecordVO.builder()
-//                                .build()
-//                )
-//                .collect(Collectors.toList());
-        return null;
+        List<CommissionRecordVO> entityList = commissionRecordDao.queryPage(null, queryForm);
+        return entityList.stream()
+                .map(e ->
+                        CommissionRecordExcelVO.builder()
+                                .salesBillNo(e.getSalesBillNo())
+                                .salesAmount(e.getSalesAmount())
+                                .currencyType(e.getCurrencyType())
+                                .salespersonName(e.getSalespersonName())
+                                .customerName(e.getCustomerName())
+                                .firstOrderDate(e.getFirstOrderDate())
+                                .customerYear(e.getCustomerYear())
+                                .businessCommissionRate(e.getBusinessCommissionRate())
+                                .businessCommissionAmount(e.getManagementCommissionAmount())
+                                .managementCommissionAmount(e.getBusinessCommissionAmount())
+                                .managementCommissionRate(e.getManagementCommissionRate())
+                                .isTransfer(e.getIsTransfer())
+                                .orderDate(e.getOrderDate())
+                                .build()
+                )
+                .collect(Collectors.toList());
+//        return null;
 
     }
 
@@ -267,6 +281,7 @@ public class CommissionRecordService {
                 entity.setSalesBillNo(recordVO.getSalesBillNo());   // 单据编号
                 entity.setCustomerId(recordVO.getCustomerId());   // 客户id
                 entity.setSalesBillNo(recordVO.getSalesBillNo());   // 销售-单据编号
+                entity.setOrderDate(recordVO.getOrderDate());   // 业务日期、出库日期
                 entity.setSalesAmount(recordVO.getSalesAmount());   // 销售金额
                 entity.setCustomerYear(recordVO.getCustomerYear()); // 客户年数
                 entity.setCustomerYearRate(recordVO.getCustomerYearRate()); // 客户年数

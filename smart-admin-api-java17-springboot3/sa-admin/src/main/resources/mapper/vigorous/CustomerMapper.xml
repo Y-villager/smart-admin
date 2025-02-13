@@ -57,6 +57,15 @@
         </foreach>
     </update>
 
+    <update id="adjustFirstOrderDate">
+        <foreach collection="list" item="item" separator=";">
+            update v_customer
+            set
+                adjusted_first_order_date = #{item.adjustedFirstOrderDate}
+            WHERE customer_id = #{item.customerId}
+        </foreach>
+    </update>
+
     <resultMap id="customerResultMap" type="net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerVO">
         <id property="customerId" column="customer_id"/>
         <result property="customerName" column="customer_name"/>

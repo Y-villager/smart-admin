@@ -2,6 +2,7 @@ package net.lab1024.sa.admin.module.vigorous.salesperson.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import net.lab1024.sa.admin.module.vigorous.salesperson.domain.dto.SalespersonDto;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.entity.SalespersonEntity;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.form.SalespersonQueryForm;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.vo.SalespersonVO;
@@ -62,4 +63,6 @@ public interface SalespersonDao extends BaseMapper<SalespersonEntity> {
     void updateLevel(@Param("form") SalespersonLevelRecordAddForm updateForm);
 
     int getNowSalespersonLevel(@Param("id") Long salespersonId);
+
+    List<SalespersonDto> getAllSalesperson();
 }

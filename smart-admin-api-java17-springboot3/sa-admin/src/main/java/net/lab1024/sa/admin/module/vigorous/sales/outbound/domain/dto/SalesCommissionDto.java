@@ -32,6 +32,9 @@ public class SalesCommissionDto {
     private Long customerId;
     private Integer customerGroup;
     private Integer transferStatus;
+
+    @Schema(description = "修改-首单日期")
+    private LocalDate adjustedFirstOrderDate;
     private LocalDate firstOrderDate;
 
     private Long salespersonId;
@@ -41,5 +44,6 @@ public class SalesCommissionDto {
     private Long pSalespersonId;
     private Integer pSalespersonLevelId;
     private BigDecimal pLevelRate;
+
 
 }

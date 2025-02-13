@@ -40,4 +40,7 @@ public class SalesOutboundExcelVO {
     @ExcelProperty("金额")
     private BigDecimal amount;
 
+    @ExcelProperty("首单日期")
+    private LocalDate firstOrderDate;
+
 }

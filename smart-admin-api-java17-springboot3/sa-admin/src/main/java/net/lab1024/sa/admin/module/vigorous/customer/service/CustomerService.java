@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
 import net.lab1024.sa.admin.enumeration.CustomerGroupEnum;
 import net.lab1024.sa.admin.enumeration.TransferStatusEnum;
-import net.lab1024.sa.admin.module.system.login.service.LoginService;
 import net.lab1024.sa.admin.module.vigorous.customer.dao.CustomerDao;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.entity.CustomerEntity;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.form.CustomerAddForm;
@@ -28,7 +27,6 @@ import net.lab1024.sa.base.common.util.SmartPageUtil;
 import net.lab1024.sa.base.common.util.SmartRequestUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.executor.BatchResult;
-import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
@@ -61,11 +59,6 @@ public class CustomerService {
     private CustomerDao customerDao;
     @Autowired
     private SalespersonService salespersonService;
-    @Autowired
-    private LoginService loginService;
-
-    @Autowired
-    private SqlSessionFactory sqlSessionFactory;
 
     /**
      * 分页查询
@@ -413,4 +406,5 @@ public class CustomerService {
         return customerDao.getCustomerNamesByIds(customerIds).stream()
                 .collect(Collectors.toMap(CustomerVO::getCustomerId, CustomerVO::getCustomerName));
     }
+
 }

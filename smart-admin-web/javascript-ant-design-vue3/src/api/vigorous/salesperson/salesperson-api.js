@@ -53,6 +53,10 @@ export const salespersonApi = {
     // 导出
     exportSalesperson : () =>{
         return getDownload('/salesperson/export');
+    },
+
+    getAllSalesperson : () =>{
+        return getRequest('/salesperson/getAllSalesperson');
     }
 
 

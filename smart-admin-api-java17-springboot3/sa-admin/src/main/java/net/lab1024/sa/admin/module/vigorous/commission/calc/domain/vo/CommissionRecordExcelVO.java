@@ -1,7 +1,10 @@
-package net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form;
+package net.lab1024.sa.admin.module.vigorous.commission.calc.domain.vo;
 
 import com.alibaba.excel.annotation.ExcelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -13,15 +16,17 @@ import java.time.LocalDate;
  * @Date 2025-01-12 15:25:35
  * @Copyright (c)2024 yxz
  */
-
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
-public class CommissionRecordImportForm {
+@Builder
+public class CommissionRecordExcelVO {
 
     @ExcelProperty("销售出库-单据编号")
     private String salesBillNo;
 
     @ExcelProperty("业务金额")
-    private String salesAmount;
+    private BigDecimal salesAmount;
 
     @ExcelProperty("币别")
     private String currencyType;
@@ -33,7 +38,7 @@ public class CommissionRecordImportForm {
     private String customerName;
 
     @ExcelProperty("首单日期")
-    private Integer firstOrderDate;
+    private LocalDate firstOrderDate;
 
     @ExcelProperty("客户合作年份")
     private Integer customerYear ;

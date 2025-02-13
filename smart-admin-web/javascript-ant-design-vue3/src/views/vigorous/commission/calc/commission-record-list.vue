@@ -82,6 +82,7 @@
             :loading="tableLoading"
             :pagination="false"
             :row-selection="{ selectedRowKeys: selectedRowKeyList, onChange: onSelectChange }"
+            :scroll="{ x: 'max-content', y: 'auto' }"
         >
             <template #bodyCell="{ text, record, column }">
 
@@ -189,63 +190,81 @@
             title: '销售出库-单据编号',
             dataIndex: 'salesBillNo',
             ellipsis: true,
+          width: '160px'
         },
+      {
+        title: '业务日期',
+        dataIndex: 'orderDate',
+        ellipsis: true,
+        width: '100px'
+      },
         {
           title: '业务金额',
           dataIndex: 'salesAmount',
           ellipsis: true,
+          width: '100px'
+        },
+        {
+          title: '币别',
+          dataIndex: 'currencyType',
+          ellipsis: true,
+          width: '80px'
         },
         {
             title: '业务员',
             dataIndex: 'salespersonName',
             ellipsis: true,
+            width: '80px'
         },
         {
             title: '客户',
             dataIndex: 'customerName',
             ellipsis: true,
+            width: '150px'
         },
       {
         title: '首单日期',
-        dataIndex: 'firstOrderDate',
+        dataIndex: 'adjustedFirstOrderDate',
         ellipsis: true,
+        width: '100px'
       },
       {
         title: '客户合作年数',
         dataIndex: 'customerYear',
         ellipsis: true,
+        width: '100px'
       },
       {
         title: '客户年份系数',
         dataIndex: 'customerYearRate',
         ellipsis: true,
+        width: '100px'
       },
       {
         title: '业务提成比例(%)',
         dataIndex: 'businessCommissionRate',
         ellipsis: true,
+        width: '130px'
+
       },
         {
             title: '业务提成金额',
             dataIndex: 'businessCommissionAmount',
             ellipsis: true,
+            width: '110px'
         },
-
       {
         title: '管理提成比例(%)',
         dataIndex: 'managementCommissionRate',
         ellipsis: true,
+        width: '130px'
       },
       {
         title: '管理提成金额',
         dataIndex: 'managementCommissionAmount',
         ellipsis: true,
+        width: '110px'
       },
-        {
-            title: '创建时间',
-            dataIndex: 'createTime',
-            ellipsis: true,
-        },
         {
             title: '操作',
             dataIndex: 'action',
@@ -407,7 +426,7 @@ function hideImportModal() {
 
 // 导出excel文件
 async function onExportCommissionRecord() {
-  await commissionRecordApi.exportCommissionRecord();
+  await commissionRecordApi.exportCommissionRecord(queryForm);
 }
 
 function handleRemove(file) {

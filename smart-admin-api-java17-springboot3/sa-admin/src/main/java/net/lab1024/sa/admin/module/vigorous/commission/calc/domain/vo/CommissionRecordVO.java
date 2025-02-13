@@ -3,7 +3,10 @@ package
         net.lab1024.sa.admin.module.vigorous.commission.calc.domain.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -16,8 +19,10 @@ import java.time.LocalDateTime;
  * @Date 2025-01-12 15:25:35
  * @Copyright (c)2024 yxz
  */
-
+@Builder
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class CommissionRecordVO {
 
 
@@ -40,6 +45,8 @@ public class CommissionRecordVO {
 
     private String customerName;
 
+    private LocalDate adjustedFirstOrderDate;
+
     private LocalDate firstOrderDate;
 
     @Schema(description = "销售金额")
@@ -48,8 +55,13 @@ public class CommissionRecordVO {
     @Schema(description = "销售出库日期/业务日期")
     private LocalDate orderDate;
 
+    private String currencyType;
+
+    private Integer isTransfer;
+
     @Schema(description = "客户合作年数")
     private Integer customerYear;
+
     @Schema(description = "客户系数")
     private BigDecimal customerYearRate;
 

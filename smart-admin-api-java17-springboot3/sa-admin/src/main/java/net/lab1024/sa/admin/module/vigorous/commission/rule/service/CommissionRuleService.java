@@ -4,7 +4,6 @@ import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
 import net.lab1024.sa.admin.enumeration.CommissionTypeEnum;
-import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.vo.CommissionRecordVO;
 import net.lab1024.sa.admin.module.vigorous.commission.rule.dao.CommissionRuleDao;
 import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.entity.CommissionRuleEntity;
 import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.form.CommissionRuleAddForm;
@@ -269,8 +268,13 @@ public class CommissionRuleService {
     public CommissionRuleVO queryCommissionRuleFromCache(SalesCommissionDto salesOutbound, CommissionTypeEnum commissionTypeEnum) {
         // 提供转交状态、客户分组和提成类型作为查询条件
         int transferStatus = salesOutbound.getTransferStatus() != null ? (salesOutbound.getTransferStatus() != 0 ? 1 : 0) : 0;
+        Integer customerGroup = salesOutbound.getCustomerGroup();
+        if (customerGroup==null){
+            return null;
+        }
+
         // 查询 Redis 中的提成规则
-        return commissionRuleCacheService.getCommissionRuleFromCache(transferStatus, salesOutbound.getCustomerGroup(), commissionTypeEnum.getValue());
+        return commissionRuleCacheService.getCommissionRuleFromCache(transferStatus, customerGroup, commissionTypeEnum.getValue());
     }
 
 

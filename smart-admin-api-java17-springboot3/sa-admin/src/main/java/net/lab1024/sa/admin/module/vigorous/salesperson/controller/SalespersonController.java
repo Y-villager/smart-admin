@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import net.lab1024.sa.admin.module.vigorous.salesperson.domain.dto.SalespersonDto;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.form.SalespersonAddForm;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.form.SalespersonQueryForm;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.form.SalespersonUpdateForm;
@@ -85,7 +86,7 @@ public class SalespersonController {
     @GetMapping("/salesperson/export")
     @SaCheckPermission("salesperson:export")
     public void exportSalesperson(HttpServletResponse response) throws IOException {
-        List<SalespersonExcelVO> goodsList = salespersonService.getAllSalesperson();
+        List<SalespersonExcelVO> goodsList = salespersonService.exportSalespersons();
         SmartExcelUtil.exportExcel(response,"商品列表.xlsx","商品",SalespersonExcelVO.class, goodsList);
     }
 
@@ -93,6 +94,13 @@ public class SalespersonController {
     @PostMapping("/salesperson/updateLevel")
     public ResponseDTO<String> updateLevel(@RequestBody @Valid SalespersonLevelRecordAddForm updateForm) {
         return salespersonService.updateLevel(updateForm);
+    }
+
+    @Operation(summary = "获取所有业务员")
+    @GetMapping("/salesperson/getAllSalesperson")
+    public ResponseDTO<List<SalespersonDto>> getAllSalesperson() {
+        List<SalespersonDto> allSalesperson = salespersonService.getAllSalesperson();
+        return ResponseDTO.ok(allSalesperson);
     }
 
 }

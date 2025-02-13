@@ -46,6 +46,7 @@ public class SalesOutboundVO {
     private Integer transferStatus;
 
     private LocalDate firstOrderDate;
+    private LocalDate adjustedFirstOrderDate;
 
     @Schema(description = "业务员编号")
     private Long salespersonId;

@@ -44,4 +44,6 @@ public class SalespersonVO {
     @Schema(description = "上级id")
     private Long parentId;
 
+    private String parentName;
+
 }

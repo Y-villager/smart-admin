@@ -26,11 +26,12 @@
     <!-- 分页查询 -->
     <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.commission.calc.domain.vo.CommissionRecordVO">
         SELECT
-        <include refid="base_columns"/>, vc.customer_name, vc.first_order_date, vs.salesperson_name, vso.amount
+        <include refid="base_columns"/>, vc.customer_name, vc.adjusted_first_order_date, vc.first_order_date, vs.salesperson_name, vso.amount, vr.currency_type
         FROM v_commission_record
             left join v_customer vc on v_commission_record.customer_id = vc.customer_id
             left join v_salesperson vs on v_commission_record.salesperson_id = vs.id
             left join v_sales_outbound vso on v_commission_record.sales_outbound_id = vso.sales_bound_id
+            left join v_receivables vr on v_commission_record.sales_bill_no = vr.origin_bill_no
         <where>
             <!--业务员-->
             <if test="queryForm.salespersonName != null and queryForm.salespersonName != ''">
@@ -42,12 +43,13 @@
             </if>
             <!--销售出库日期-->
             <if test="queryForm.orderDateBegin != null">
-                AND v_commission_record.create_time &gt;= #{queryForm.orderDateBegin}
+                AND v_commission_record.order_date &gt;= #{queryForm.orderDateBegin}
             </if>
             <if test="queryForm.orderDateEnd != null">
-                AND v_commission_record.create_time &lt;= #{queryForm.orderDateEnd}
+                AND v_commission_record.order_date &lt;= #{queryForm.orderDateEnd}
             </if>
         </where>
+        order by v_commission_record.order_date desc
     </select>
 
 

@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form.CommissionRecordAddForm;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form.CommissionRecordQueryForm;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form.CommissionRecordUpdateForm;
+import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.vo.CommissionRecordExcelVO;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.vo.CommissionRecordVO;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.service.CommissionRecordService;
 import net.lab1024.sa.base.common.domain.PageResult;
@@ -80,11 +81,11 @@ public class CommissionRecordController {
     }
 
     @Operation(summary = "导出")
-    @GetMapping("/commissionRecord/export")
+    @PostMapping("/commissionRecord/export")
     @SaCheckPermission("commissionRecord:export")
     public void exportCommissionRecord(HttpServletResponse response, @RequestBody @Valid CommissionRecordQueryForm queryForm) throws IOException {
-        List<CommissionRecordVO> goodsList = commissionRecordService.exportCommissionRecord(queryForm);
-        SmartExcelUtil.exportExcel(response,"业务提成记录.xlsx","业务提成记录",CommissionRecordVO.class, goodsList);
+        List<CommissionRecordExcelVO> goodsList = commissionRecordService.exportCommissionRecord(queryForm);
+        SmartExcelUtil.exportExcel(response,"业务提成记录.xlsx","业务提成记录", CommissionRecordExcelVO.class, goodsList);
     }
 
 }

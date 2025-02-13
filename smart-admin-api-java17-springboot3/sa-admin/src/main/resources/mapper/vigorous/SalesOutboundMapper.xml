@@ -57,6 +57,8 @@
         <result property="customerName" column="customer_name"/>
         <result property="salespersonId" column="salesperson_id"/>
         <result property="salespersonName" column="salesperson_name"/>
+        <result property="firstOrderDate" column="first_order_date"/>
+        <result property="adjustedFirstOrderDate" column="adjusted_first_order_date"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
         <result property="amount" column="amount"/>
@@ -70,11 +72,14 @@
         <include refid="base_columns"/>,
         vc.customer_name,
         vc.customer_code,
+        vc.first_order_date,
+        vc.adjusted_first_order_date,
         vs.id,
         vs.salesperson_name
         FROM   v_sales_outbound
         left join v_customer vc on vc.customer_id= v_sales_outbound.customer_id
         left join v_salesperson vs on vs.id = v_sales_outbound.salesperson_id
+            left join t_department d on vs.department_id = d.department_id
         <where>
             <!--客户编码-->
             <if test="queryForm.customerName != null and queryForm.customerName != ''">
@@ -86,6 +91,10 @@
             </if>
             <if test="queryForm.billNo != null and queryForm.billNo != '' ">
                 AND INSTR(v_sales_outbound.bill_no,#{queryForm.billNo})
+            </if>
+            <!-- 部门名称 -->
+            <if test="queryForm.departmentName != null and queryForm.departmentName != '' ">
+                AND INSTR(d.name,#{queryForm.departmentName})
             </if>
             <!--出库日期-->
             <if test="queryForm.salesBoundDateBegin != null ">
@@ -183,29 +192,34 @@
             resultType="net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.dto.SalesCommissionDto">
         SELECT
             vso.sales_bound_id as sales_outbound_id,
-        vso.bill_no AS sales_bill_no,
-        vso.sales_bound_date,
-        vso.amount AS sales_amount,
-        vc.customer_id,
-        vc.customer_group,
-        vc.transfer_status,
-        vc.first_order_date,
-        vs.id AS salesperson_id,
-        vs.salesperson_level_id,
-        vsl.commission_rate as level_rate,
-        pvs.id AS p_salesperson_id,
-        pvs.salesperson_level_id AS p_salesperson_level_id,
-        pvsl.commission_rate AS p_level_rate,
-        vr.bill_no,
-        vr.rate
+            vso.bill_no AS sales_bill_no,
+            vso.sales_bound_date,
+            vso.amount AS sales_amount,
+            vc.adjusted_first_order_date,
+            vc.customer_id,
+            vc.customer_group,
+            vc.transfer_status,
+            vc.first_order_date,
+            vs.id AS salesperson_id,
+            vs.salesperson_level_id,
+            vsl.commission_rate as level_rate,
+            pvs.id AS p_salesperson_id,
+            pvs.salesperson_level_id AS p_salesperson_level_id,
+            pvsl.commission_rate AS p_level_rate,
+            vr.bill_no,
+            vr.rate
         FROM
-        v_sales_outbound vso
-        LEFT JOIN v_receivables vr ON vso.bill_no = vr.origin_bill_no
-        LEFT JOIN v_customer vc ON vc.customer_id = vso.customer_id
-        LEFT JOIN v_salesperson vs ON vs.id = vso.salesperson_id
-        LEFT JOIN v_salesperson_level vsl ON vs.salesperson_level_id = vsl.salesperson_level_id
-        LEFT JOIN v_salesperson pvs ON vs.parent_id = pvs.id
-        LEFT JOIN v_salesperson_level pvsl ON pvs.salesperson_level_id = pvsl.salesperson_level_id
+            v_sales_outbound vso
+            LEFT JOIN v_receivables vr ON vso.bill_no = vr.origin_bill_no
+            LEFT JOIN v_customer vc ON vc.customer_id = vso.customer_id
+            LEFT JOIN v_salesperson vs ON vs.id = vso.salesperson_id
+            LEFT JOIN v_salesperson_level vsl ON vs.salesperson_level_id = vsl.salesperson_level_id
+            LEFT JOIN v_salesperson pvs ON vs.parent_id = pvs.id
+            LEFT JOIN v_salesperson_level pvsl ON pvs.salesperson_level_id = pvsl.salesperson_level_id
+            <if test="queryForm.departmentName != null and queryForm.departmentName != '' ">
+                LEFT JOIN t_department d ON d.department_id = vs.department_id
+                AND INSTR(d.name, #{queryForm.departmentName})
+            </if>
         <where>
             <if test="queryForm.salesOutboundId != null">
                 AND INSTR(vc.sales_bound_id,#{queryForm.salesOutboundId})
@@ -228,7 +242,6 @@
             <if test="queryForm.salesBoundDateEnd != null ">
                 AND DATE_FORMAT(vso.sales_bound_date, '%Y-%m-%d') &lt;= #{queryForm.salesBoundDateEnd}
             </if>
-            and vc.first_order_date is not null
         </where>
         order by vso.sales_bound_date DESC
     </select>

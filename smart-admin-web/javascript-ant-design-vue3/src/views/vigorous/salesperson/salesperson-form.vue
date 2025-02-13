@@ -25,10 +25,11 @@
           <SalespersonLevelSelect width="100%" v-model:value="form.salespersonLevelId" enumName="" placeholder="选择业务员级别"/>
         </a-form-item>
         <a-form-item label="部门"  name="departmentId">
-          <a-input-number style="width: 100%" v-model:value="form.departmentId" placeholder="部门编码" />
+          <DepartmentTreeSelect ref="departmentTreeSelect" width="100%" :init="false" v-model:value="form.departmentId" />
+<!--          <a-input-number style="width: 100%" v-model:value="form.departmentId" placeholder="部门编码" />-->
         </a-form-item>
         <a-form-item label="上级id"  name="parentId">
-          <a-input-number style="width: 100%" v-model:value="form.parentId" placeholder="上级id" />
+          <SalespersonSelect width="100%" v-model:value="form.parentId" placeholder=""/>
         </a-form-item>
     </a-form>
 
@@ -48,6 +49,9 @@
   import { salespersonApi } from '/@/api/vigorous/salesperson/salesperson-api';
   import { smartSentry } from '/@/lib/smart-sentry';
   import SalespersonLevelSelect from "/@/components/vigorous/salesperson-level-select/index.vue";
+  import DepartmentTree from "/@/views/system/employee/components/department-tree/index.vue";
+  import DepartmentTreeSelect from "/@/components/system/department-tree-select/index.vue";
+  import SalespersonSelect from "/@/components/vigorous/salesperson-select/index.vue";
 
   // ------------------------ 事件 ------------------------
 

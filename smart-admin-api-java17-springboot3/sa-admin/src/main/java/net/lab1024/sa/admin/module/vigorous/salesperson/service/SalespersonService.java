@@ -1,10 +1,12 @@
 package net.lab1024.sa.admin.module.vigorous.salesperson.service;
 
 import com.alibaba.excel.EasyExcel;
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
 import net.lab1024.sa.admin.module.system.department.service.DepartmentService;
 import net.lab1024.sa.admin.module.vigorous.salesperson.dao.SalespersonDao;
+import net.lab1024.sa.admin.module.vigorous.salesperson.domain.dto.SalespersonDto;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.entity.SalespersonEntity;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.form.SalespersonAddForm;
 import net.lab1024.sa.admin.module.vigorous.salesperson.domain.form.SalespersonImportForm;
@@ -22,12 +24,15 @@ import net.lab1024.sa.base.common.util.SmartPageUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.executor.BatchResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static cn.dev33.satoken.SaManager.log;
@@ -49,6 +54,11 @@ public class SalespersonService {
     private DepartmentService departmentService;
     @Autowired
     private SalespersonLevelRecordService salespersonLevelRecordService;
+
+    private static final String REDIS_KEY = "salesperson_list";
+    @Qualifier("redisTemplate")
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     /**
      * 分页查询
@@ -194,8 +204,9 @@ public class SalespersonService {
     /**
      * 导出
      */
-    public List<SalespersonExcelVO> getAllSalesperson() {
+    public List<SalespersonExcelVO> exportSalespersons() {
         List<SalespersonEntity> goodsEntityList = salespersonDao.selectList(null);
+        List<SalespersonDto> allSalesperson = getAllSalesperson();
         return goodsEntityList.stream()
                 .map(e ->
                         SalespersonExcelVO.builder()
@@ -258,5 +269,38 @@ public class SalespersonService {
         salespersonDao.updateLevel(form);
         salespersonLevelRecordService.add(form);
         return ResponseDTO.ok();
+    }
+
+    // 获取所有业务员列表
+    public List<SalespersonDto> getAllSalesperson() {
+        List<SalespersonDto> salespersonList = getSalespersonFromRedis();
+
+        if (!CollectionUtils.isEmpty(salespersonList)) {
+            // 如果redis有数据，直接返回
+            return salespersonList;
+        }
+
+        salespersonList = salespersonDao.getAllSalesperson();
+
+        if (!CollectionUtils.isEmpty(salespersonList)) {
+            saveToRedis(salespersonList);
+        }
+        return salespersonList;
+    }
+
+    // 将数据存入 Redis 中，并设置过期时间（例如 1 天）
+    private void saveToRedis(List<SalespersonDto> salespersonList) {
+        String cacheKey = REDIS_KEY;
+        String redisData = JSON.toJSONString(salespersonList);  // 使用 JSON 序列化
+        redisTemplate.opsForValue().set(cacheKey, redisData, 7, TimeUnit.DAYS);  // 设置缓存过期时间
+    }
+
+    private List<SalespersonDto> getSalespersonFromRedis() {
+        String cacheKey = REDIS_KEY;
+        String redisData = (String) redisTemplate.opsForValue().get(cacheKey);
+        if (redisData != null){
+            return JSON.parseArray(redisData, SalespersonDto.class);
+        }
+        return null;
     }
 }

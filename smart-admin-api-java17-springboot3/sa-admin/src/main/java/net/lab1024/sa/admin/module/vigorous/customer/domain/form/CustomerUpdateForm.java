@@ -1,9 +1,11 @@
 package net.lab1024.sa.admin.module.vigorous.customer.domain.form;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import lombok.Data;
+import java.time.LocalDate;
 
 /**
  * 顾客 更新表单
@@ -35,6 +37,9 @@ public class CustomerUpdateForm {
 
     @Schema(description = "客户类别")
     private String customerCategory;
+
+    @Schema(description = "首单日期")
+    private LocalDate firstOrderDate;
 
     @Schema(description = "业务员编码", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "业务员编码 不能为空")

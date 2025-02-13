@@ -26,7 +26,6 @@ import net.lab1024.sa.base.common.domain.ResponseDTO;
 import net.lab1024.sa.base.common.exception.BusinessException;
 import net.lab1024.sa.base.common.util.SmartBeanUtil;
 import net.lab1024.sa.base.common.util.SmartPageUtil;
-import net.lab1024.sa.base.common.util.SmartRequestUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.executor.BatchResult;
 import org.jetbrains.annotations.NotNull;
@@ -35,10 +34,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -276,40 +272,11 @@ public class SalesOutboundService {
                         .salesBoundDate(e.getSalesBoundDate())
                         .amount(e.getAmount())
                         .customerName(e.getCustomerName())
+                        .firstOrderDate(e.getFirstOrderDate())
                         .build()
                 ).collect(Collectors.toList());
     }
 
-
-    /**
-     * 保存失败的数据到 Excel 文件
-     */
-    private File saveFailedDataToExcel(List<SalesOutboundImportForm> failedDataList) {
-        Long userId = SmartRequestUtil.getRequestUserId();
-        // 构建文件保存路径
-        String userFolder = "D:\\Vigorous\\"+userId+"\\";  // 假设文件夹名称是“用户编码”，可以根据需要动态生成
-        File directory = new File(userFolder);
-
-
-        // 如果文件夹不存在，创建文件夹
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
-
-        // 构建文件路径
-        File file = new File(userFolder + "outbound_failed_import_data.xlsx");
-
-        // 使用 EasyExcel 保存失败的数据到 Excel 文件
-        try (OutputStream os = new FileOutputStream(file)) {
-            EasyExcel.write(os, SalesOutboundImportForm.class)
-                    .sheet("失败记录")
-                    .doWrite(failedDataList);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return file;
-    }
 
     /**
      * 生成业绩提成
@@ -320,6 +287,7 @@ public class SalesOutboundService {
         // 需要生成业绩提成 的列表
         List<SalesCommissionDto> list = salesOutboundDao.queryPageWithReceivables(null, queryForm);
         List<CommissionRecordVO> commissionRecordVOList = new ArrayList<>();
+        List<CommissionRecordVO> noFirstOrderDateList = new ArrayList<>();
 
         // 缓存常用的计算值，避免在每次遍历时重复计算
         BigDecimal hundred = BigDecimal.valueOf(100);
@@ -343,7 +311,11 @@ public class SalesOutboundService {
             }else {
             }
             CommissionRecordVO recordVO = initCommissionRecordVO(salesCommission, business, management, hundred);
-            commissionRecordVOList.add(recordVO);
+            if (recordVO.getFirstOrderDate() == null){
+                noFirstOrderDateList.add(recordVO);
+            }else {
+                commissionRecordVOList.add(recordVO);
+            }
         }
         commissionRecordService.batchInsertCommissionRecord(commissionRecordVOList);
         return ResponseDTO.okMsg("s");
@@ -355,17 +327,6 @@ public class SalesOutboundService {
                                                                BigDecimal hundred) {
         CommissionRecordVO recordVO = new CommissionRecordVO();
 
-        // 计算百分比时使用 hundred 的倒数
-        BigDecimal hundredInverse = BigDecimal.ONE.divide(hundred, 4, RoundingMode.HALF_UP);
-
-        //
-        BigDecimal amount = Optional.ofNullable(salesOutbound.getSalesAmount()).orElse(BigDecimal.ZERO);
-        BigDecimal levelRate = Optional.ofNullable(salesOutbound.getLevelRate()).orElse(BigDecimal.ZERO);
-        BigDecimal pLevelRate = Optional.ofNullable(salesOutbound.getPLevelRate()).orElse(BigDecimal.ZERO);
-
-        Integer customerYear = calculateCooperationYears(salesOutbound.getFirstOrderDate(), LocalDate.now());
-        BigDecimal customerYearRate = calcCustomerYearRate(customerYear); // 客户年份系数
-
         // 设置基本信息
         recordVO.setSalesOutboundId(salesOutbound.getSalesOutboundId());   // 销售出库id
         recordVO.setSalesBillNo(salesOutbound.getSalesBillNo());   // 销售出库id
@@ -374,6 +335,32 @@ public class SalesOutboundService {
         recordVO.setSalesAmount(salesOutbound.getSalesAmount()); // 销售金额
         recordVO.setOrderDate(salesOutbound.getSalesBoundDate()); // 销售出库日期 / 业务日期
         recordVO.setSalesBillNo(salesOutbound.getSalesBillNo()); // 销售-单据编号
+
+        // 客户年份
+        Integer customerYear = null;
+
+        // 没有首单日期
+        if (salesOutbound.getFirstOrderDate() == null) {
+            return recordVO;  // 如果 FirstOrderDate 为 null，直接返回 recordVO
+        }
+
+        LocalDate firstOrderDate = salesOutbound.getAdjustedFirstOrderDate() != null
+                ? salesOutbound.getAdjustedFirstOrderDate()
+                : salesOutbound.getFirstOrderDate();
+
+        customerYear = calculateCooperationYears(firstOrderDate, LocalDate.now());
+
+
+        // 计算百分比时使用 hundred 的倒数
+        BigDecimal hundredInverse = BigDecimal.ONE.divide(hundred, 4, RoundingMode.HALF_UP);
+
+        //
+        BigDecimal amount = Optional.ofNullable(salesOutbound.getSalesAmount()).orElse(BigDecimal.ZERO);
+        BigDecimal levelRate = Optional.ofNullable(salesOutbound.getLevelRate()).orElse(BigDecimal.ZERO);
+        BigDecimal pLevelRate = Optional.ofNullable(salesOutbound.getPLevelRate()).orElse(BigDecimal.ZERO);
+
+        // 设置提成相关数据
+        BigDecimal customerYearRate = calcCustomerYearRate(customerYear); // 客户年份系数
         recordVO.setCustomerYear(customerYear); // 客户合作年数
         recordVO.setCustomerYearRate(customerYearRate);
 

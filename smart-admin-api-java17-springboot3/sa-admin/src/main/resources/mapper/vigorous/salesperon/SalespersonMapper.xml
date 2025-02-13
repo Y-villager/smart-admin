@@ -23,15 +23,17 @@
         <result property="departmentName" column="departmentName"/>
         <result property="path" column="path"/>
         <result property="parentId" column="parent_id"/>
+        <result property="parentName" column="parent_name"/>
     </resultMap>
 
     <!-- 分页查询 -->
     <select id="queryPage" resultMap="SalespersonVOMap">
         SELECT
-        <include refid="base_columns"/>, d.name as departmentName, vsl.salesperson_level_name
+        <include refid="base_columns"/>, d.name as departmentName, vsl.salesperson_level_name, pvs.salesperson_name as parent_name
         FROM v_salesperson
             left join t_department d on v_salesperson.department_id = d.department_id
             left join v_salesperson_level vsl on v_salesperson.salesperson_level_id = vsl.salesperson_level_id
+            left join v_salesperson pvs on v_salesperson.parent_id = pvs.id
         <where>
             <!--业务员编码-->
             <if test="queryForm.salespersonCode != null and queryForm.salespersonCode != ''">
@@ -110,6 +112,19 @@
         select salesperson_level_id
         from v_salesperson
         where id = #{id}
+    </select>
+
+    <select id="getAllSalesperson"
+            resultType="net.lab1024.sa.admin.module.vigorous.salesperson.domain.dto.SalespersonDto">
+        SELECT
+            vs.id,
+            vs.salesperson_name AS name,
+            d.name AS department,
+            vsl.salesperson_level_name AS level
+        FROM
+            v_salesperson vs
+                LEFT JOIN v_salesperson_level vsl ON vs.salesperson_level_id = vsl.salesperson_level_id
+                LEFT JOIN t_department d ON vs.department_id = d.department_id
     </select>
 
 </mapper>

@@ -61,6 +61,8 @@ public class CustomerEntity {
      */
     private LocalDate firstOrderDate;
 
+    private LocalDate adjustedFirstOrderDate;
+
     /**
      * 是否转交
      */

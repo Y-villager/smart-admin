@@ -35,6 +35,9 @@ public class SalesOutboundQueryForm extends PageParam {
     @Schema(description = "销售出库id")
     private Long salesOutboundId;
 
+    @Schema(description = "部门名称")
+    private String departmentName;
+
     @Schema(description = "出库日期开始")
     private LocalDate salesBoundDateBegin;
 
