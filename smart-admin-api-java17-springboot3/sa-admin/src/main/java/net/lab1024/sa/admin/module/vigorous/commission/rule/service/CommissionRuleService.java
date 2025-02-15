@@ -272,7 +272,6 @@ public class CommissionRuleService {
         if (customerGroup==null){
             return null;
         }
-
         // 查询 Redis 中的提成规则
         return commissionRuleCacheService.getCommissionRuleFromCache(transferStatus, customerGroup, commissionTypeEnum.getValue());
     }

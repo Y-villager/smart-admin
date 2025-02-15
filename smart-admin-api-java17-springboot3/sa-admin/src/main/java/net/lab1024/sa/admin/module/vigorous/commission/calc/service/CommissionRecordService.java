@@ -11,6 +11,7 @@ import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form.Commissi
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form.CommissionRecordUpdateForm;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.vo.CommissionRecordExcelVO;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.vo.CommissionRecordVO;
+import net.lab1024.sa.admin.module.vigorous.sales.outbound.dao.SalesOutboundDao;
 import net.lab1024.sa.admin.util.ExcelUtils;
 import net.lab1024.sa.admin.util.SplitListUtils;
 import net.lab1024.sa.base.common.code.SystemErrorCode;
@@ -21,18 +22,20 @@ import net.lab1024.sa.base.common.util.SmartBeanUtil;
 import net.lab1024.sa.base.common.util.SmartPageUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.executor.BatchResult;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static cn.dev33.satoken.SaManager.log;
@@ -50,6 +53,13 @@ public class CommissionRecordService {
 
     @Resource
     private CommissionRecordDao commissionRecordDao;
+    @Qualifier("salesOutboundDao")
+    @Autowired
+    private SalesOutboundDao salesOutboundDao;
+
+    // 使用事务模板简化事务的管理
+    @Autowired
+    private TransactionTemplate transactionTemplate;
 
     /**
      * 分页查询
@@ -267,36 +277,65 @@ public class CommissionRecordService {
 
     /**
      * 批量插入
-     * @param commissionRecordVOList
      */
-    public void batchInsertCommissionRecord(List<CommissionRecordVO> commissionRecordVOList) {
+    @Transactional
+    public int batchInsertCommissionRecordAndUpdate(List<CommissionRecordVO> commissionRecordVOList) {
         if (commissionRecordVOList == null || commissionRecordVOList.isEmpty()) {
-            return;
-        }else {
-            List<CommissionRecordEntity> list = new ArrayList<>();
-            for (CommissionRecordVO recordVO : commissionRecordVOList) {
-                CommissionRecordEntity entity = new CommissionRecordEntity();
-                entity.setSalesOutboundId(recordVO.getSalesOutboundId());   // 出库id
-                entity.setSalespersonId(recordVO.getSalespersonId());   // 业务员 id
-                entity.setSalesBillNo(recordVO.getSalesBillNo());   // 单据编号
-                entity.setCustomerId(recordVO.getCustomerId());   // 客户id
-                entity.setSalesBillNo(recordVO.getSalesBillNo());   // 销售-单据编号
-                entity.setOrderDate(recordVO.getOrderDate());   // 业务日期、出库日期
-                entity.setSalesAmount(recordVO.getSalesAmount());   // 销售金额
-                entity.setCustomerYear(recordVO.getCustomerYear()); // 客户年数
-                entity.setCustomerYearRate(recordVO.getCustomerYearRate()); // 客户年数
-                // 业务提成
-                entity.setBusinessCommissionAmount(recordVO.getBusinessCommissionAmount());
-                entity.setBusinessCommissionRate(recordVO.getBusinessCommissionRate());
-                // 管理提成
-                entity.setManagementCommissionAmount(recordVO.getManagementCommissionAmount());
-                entity.setManagementCommissionRate(recordVO.getManagementCommissionRate());
-
-                list.add(entity);
-            }
-            List<BatchResult> insert = commissionRecordDao.insert(list);
+            return 0;
         }
 
+        int batchSize = 1000;
+        // 将数据分成多个批次
+        List<List<CommissionRecordVO>> batches = createBatches(commissionRecordVOList, batchSize);
+
+        // 初始化自定义线程池
+        ThreadPoolExecutor threadPool = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), 50,
+                4, TimeUnit.SECONDS, new ArrayBlockingQueue<>(10),
+                new ThreadPoolExecutor.CallerRunsPolicy());
+
+        List<Future<Integer>> futures = new ArrayList<>();
+
+        // 并行处理每个批次的插入操作
+        AtomicInteger count = new AtomicInteger();
+        for (List<CommissionRecordVO> batch : batches) {
+            futures.add(threadPool.submit(() -> {
+                return transactionTemplate.execute(status -> {
+                    int insert = commissionRecordDao.batchInsertOrUpdate(batch);
+                    count.incrementAndGet();
+                    List<Long> salesOutboundIds = batch.stream().map(CommissionRecordVO::getSalesOutboundId)
+                            .toList();
+                    int update = salesOutboundDao.batchUpdateCommissionFlag(salesOutboundIds, 1);
+                    if (update != insert ){
+                        throw new RuntimeException("插入和更新不一致");
+                    }
+                    return insert;
+                });
+            }));
+        }
+
+        // 等待所有线程完成
+        for (Future<Integer> future : futures) {
+            try {
+                future.get();  // 阻塞等待线程完成
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // 关闭线程池
+        threadPool.shutdown();
+        return count.get();
+    }
+
+    // 将列表分割成多个批次
+    private List<List<CommissionRecordVO>> createBatches(List<CommissionRecordVO> list, int batchSize) {
+        List<List<CommissionRecordVO>> batches = new ArrayList<>();
+        int totalSize = list.size();
+        for (int i = 0; i < totalSize; i += batchSize) {
+            int end = Math.min(i + batchSize, totalSize);
+            batches.add(list.subList(i, end));
+        }
+        return batches;
     }
 
 }

@@ -24,8 +24,8 @@
       <a-form-item label="出库日期" class="smart-query-form-item">
         <a-range-picker v-model:value="queryForm.salesBoundDate" :presets="defaultTimeRanges" style="width: 220px" @change="onChangeSalesBoundDate" />
       </a-form-item>
-      <a-form-item label="单据状态" class="smart-query-form-item">
-        <DictSelect keyCode="BILL_STATUS" placeholder="单据状态" v-model:value="queryForm.billStatus" width="200px" />
+      <a-form-item label="是否存在首单" class="smart-query-form-item">
+        <SmartEnumSelect enum-name="SYSTEM_YES_NO" placeholder="是否存在首单" v-model:value="queryForm.hasFirstOrder" width="160px" />
       </a-form-item>
       <a-form-item class="smart-query-form-item">
         <a-button type="primary" @click="onSearch">
@@ -190,6 +190,7 @@
       import {defaultTimeRanges} from "/@/lib/default-time-ranges.js";
       import {TABLE_ID_CONST} from "/@/constants/support/table-id-const.js";
       import DictSelect from "/@/components/support/dict-select/index.vue";
+      import SmartEnumSelect from "/@/components/framework/smart-enum-select/index.vue";
       //import FilePreview from '/@/components/support/file-preview/index.vue'; // 图片预览组件
 
       // ---------------------------- 表格列 ----------------------------
@@ -251,8 +252,10 @@
           salespersonName: undefined, //业务员
           salesBoundDateBegin: undefined, //出库日期 开始
           salesBoundDateEnd: undefined, //出库日期 结束
+          salesBoundDate: undefined,
           billStatus: undefined,
           departmentName: "外贸部", // 部门名称
+          hasFirstOrder: undefined, // 是否存在首单日期
           pageNum: 1,
           pageSize: 10,
       };

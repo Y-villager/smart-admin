@@ -45,5 +45,7 @@ public class SalesCommissionDto {
     private Integer pSalespersonLevelId;
     private BigDecimal pLevelRate;
 
+    private Integer commissionFlag;
+
 
 }

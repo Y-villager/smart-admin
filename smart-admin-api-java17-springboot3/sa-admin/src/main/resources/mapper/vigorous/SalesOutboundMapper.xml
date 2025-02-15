@@ -10,6 +10,7 @@
         v_sales_outbound.customer_id,
         v_sales_outbound.salesperson_id,
         v_sales_outbound.amount,
+        v_sales_outbound.commission_flag,
         v_sales_outbound.create_time,
         v_sales_outbound.update_time
     </sql>
@@ -22,6 +23,15 @@
         v_sales_outbound.salesperson_id,
         v_sales_outbound.amount
     </sql>
+
+    <update id="batchUpdateCommissionFlag" parameterType="java.util.List">
+        UPDATE v_sales_outbound
+        SET commission_flag = #{flag}
+        WHERE sales_bound_id IN
+        <foreach collection="list" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
 
     <resultMap id="salesOutboundVO2Map" type="net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO2">
         <id property="salesBoundId" column="sales_bound_id"/>
@@ -77,9 +87,9 @@
         vs.id,
         vs.salesperson_name
         FROM   v_sales_outbound
-        left join v_customer vc on vc.customer_id= v_sales_outbound.customer_id
-        left join v_salesperson vs on vs.id = v_sales_outbound.salesperson_id
-            left join t_department d on vs.department_id = d.department_id
+            left join v_customer vc on vc.customer_id= v_sales_outbound.customer_id
+            left join v_salesperson vs on vs.id = v_sales_outbound.salesperson_id
+            inner join t_department d on vs.department_id = d.department_id
         <where>
             <!--客户编码-->
             <if test="queryForm.customerName != null and queryForm.customerName != ''">
@@ -103,6 +113,14 @@
             <if test="queryForm.salesBoundDateEnd != null ">
                 AND DATE_FORMAT(v_sales_outbound.sales_bound_date, '%Y-%m-%d') &lt;= #{queryForm.salesBoundDateEnd}
             </if>
+            <choose>
+                <when test="queryForm.hasFirstOrder == 1">
+                    AND vc.first_order_date IS NOT NULL
+                </when>
+                <when test="queryForm.hasFirstOrder == 0">
+                    AND vc.first_order_date IS NULL
+                </when>
+            </choose>
         </where>
         order by v_sales_outbound.sales_bound_date desc
     </select>
@@ -195,6 +213,7 @@
             vso.bill_no AS sales_bill_no,
             vso.sales_bound_date,
             vso.amount AS sales_amount,
+            vso.commission_flag,
             vc.adjusted_first_order_date,
             vc.customer_id,
             vc.customer_group,
@@ -210,15 +229,14 @@
             vr.rate
         FROM
             v_sales_outbound vso
-            LEFT JOIN v_receivables vr ON vso.bill_no = vr.origin_bill_no
-            LEFT JOIN v_customer vc ON vc.customer_id = vso.customer_id
-            LEFT JOIN v_salesperson vs ON vs.id = vso.salesperson_id
-            LEFT JOIN v_salesperson_level vsl ON vs.salesperson_level_id = vsl.salesperson_level_id
-            LEFT JOIN v_salesperson pvs ON vs.parent_id = pvs.id
-            LEFT JOIN v_salesperson_level pvsl ON pvs.salesperson_level_id = pvsl.salesperson_level_id
+            left JOIN v_receivables vr ON vso.bill_no = vr.origin_bill_no
+            inner JOIN v_customer vc ON vc.customer_id = vso.customer_id
+            left JOIN v_salesperson vs ON vs.id = vso.salesperson_id
+            left JOIN v_salesperson_level vsl ON vs.salesperson_level_id = vsl.salesperson_level_id
+            left JOIN v_salesperson pvs ON vs.parent_id = pvs.id
+            left JOIN v_salesperson_level pvsl ON pvs.salesperson_level_id = pvsl.salesperson_level_id
             <if test="queryForm.departmentName != null and queryForm.departmentName != '' ">
-                LEFT JOIN t_department d ON d.department_id = vs.department_id
-                AND INSTR(d.name, #{queryForm.departmentName})
+                inner JOIN t_department d ON d.department_id = vs.department_id
             </if>
         <where>
             <if test="queryForm.salesOutboundId != null">
@@ -235,6 +253,9 @@
             <if test="queryForm.billNo != null and queryForm.billNo != '' ">
                 AND INSTR(vso.bill_no,#{queryForm.billNo})
             </if>
+            <if test="queryForm.departmentName != null and queryForm.departmentName != '' ">
+                AND INSTR(d.name, #{queryForm.departmentName})
+            </if>
             <!--出库日期-->
             <if test="queryForm.salesBoundDateBegin != null ">
                 AND DATE_FORMAT(vso.sales_bound_date, '%Y-%m-%d') &gt;= #{queryForm.salesBoundDateBegin}
@@ -242,6 +263,14 @@
             <if test="queryForm.salesBoundDateEnd != null ">
                 AND DATE_FORMAT(vso.sales_bound_date, '%Y-%m-%d') &lt;= #{queryForm.salesBoundDateEnd}
             </if>
+            <choose>
+                <when test="queryForm.hasFirstOrder == 1">
+                    AND vc.first_order_date IS NOT NULL
+                </when>
+                <when test="queryForm.hasFirstOrder == 0">
+                    AND vc.first_order_date IS NULL
+                </when>
+            </choose>
         </where>
         order by vso.sales_bound_date DESC
     </select>

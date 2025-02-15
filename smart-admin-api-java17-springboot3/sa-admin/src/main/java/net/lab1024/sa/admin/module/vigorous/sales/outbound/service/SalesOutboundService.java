@@ -19,7 +19,6 @@ import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutb
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundExcelVO;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO;
 import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
-import net.lab1024.sa.admin.module.vigorous.salespersonlevel.service.SalespersonLevelService;
 import net.lab1024.sa.admin.util.ExcelUtils;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
@@ -30,7 +29,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.executor.BatchResult;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -41,6 +39,8 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static cn.dev33.satoken.SaManager.log;
@@ -63,16 +63,13 @@ public class SalesOutboundService {
     @Autowired
     private CustomerService customerService;
 
-    @Value("${file.excel.failed-import.failed-data-name}")
-    private String failedDataName;
-    @Value("${file.excel.failed-import.upload-path}")
-    private String uploadPath;
     @Autowired
     private CommissionRuleService commissionRuleService;
     @Autowired
     private CommissionRecordService commissionRecordService;
-    @Autowired
-    private SalespersonLevelService salespersonLevelService;
+
+
+
 
 
     /**
@@ -195,7 +192,7 @@ public class SalesOutboundService {
 
         if (!failedDataList.isEmpty()) {
             // 创建并保存失败的数据文件
-            String file1 = ExcelUtils.saveFailedDataToExcel(failedDataList, SalesOutboundImportForm.class, uploadPath, failedDataName);
+            String file1 = ExcelUtils.saveFailedDataToExcel(failedDataList, SalesOutboundImportForm.class);
         }
 
         if (insert.isEmpty()){
@@ -284,41 +281,87 @@ public class SalesOutboundService {
      * @return
      */
     public ResponseDTO<String> createCommission(SalesOutboundQueryForm queryForm) {
+
         // 需要生成业绩提成 的列表
         List<SalesCommissionDto> list = salesOutboundDao.queryPageWithReceivables(null, queryForm);
-        List<CommissionRecordVO> commissionRecordVOList = new ArrayList<>();
-        List<CommissionRecordVO> noFirstOrderDateList = new ArrayList<>();
 
         // 缓存常用的计算值，避免在每次遍历时重复计算
         BigDecimal hundred = BigDecimal.valueOf(100);
 
         // 提前缓存业务和管理规则
-        CommissionRuleVO business = null;
-        CommissionRuleVO management = null;
+        final int CORE_POOL_SIZE = Runtime.getRuntime().availableProcessors();  // CPU 核心数
+        final int MAX_POOL_SIZE = 2 * CORE_POOL_SIZE;  // 最大线程数
+        final long KEEP_ALIVE_TIME = 60L;  // 线程空闲超时时间（秒）
+        // 创建自定义线程池
+        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+                CORE_POOL_SIZE, MAX_POOL_SIZE, KEEP_ALIVE_TIME, TimeUnit.SECONDS,
+                new LinkedBlockingQueue<>(100),  // 阻塞队列，最大排队任务数
+                new ThreadPoolExecutor.CallerRunsPolicy()  // 当线程池饱和时，直接在主线程中执行任务
+        );
 
+        ConcurrentLinkedQueue<CommissionRecordVO> commissionRecordVOList = new ConcurrentLinkedQueue<>();
+
+        // 使用 CountDownLatch 来同步线程
+        CountDownLatch latch = new CountDownLatch(list.size());
+
+        AtomicInteger noFirstCount = new AtomicInteger();
+        AtomicInteger isGenerated = new AtomicInteger();
+        // 提交任务到线程池
         for (SalesCommissionDto salesCommission : list) {
+            threadPoolExecutor.submit(() -> {
+                try {
+                    // 查询缓存
+                    CommissionRuleVO business = commissionRuleService.queryCommissionRuleFromCache(salesCommission, CommissionTypeEnum.BUSINESS);
+                    CommissionRuleVO management = commissionRuleService.queryCommissionRuleFromCache(salesCommission, CommissionTypeEnum.MANAGEMENT);
 
-            // 从缓存查询条件
-            business = commissionRuleService.queryCommissionRuleFromCache(salesCommission, CommissionTypeEnum.BUSINESS);
-            management = commissionRuleService.queryCommissionRuleFromCache(salesCommission, CommissionTypeEnum.MANAGEMENT);
+                    // 初始化 CommissionRecordVO
+                    CommissionRecordVO recordVO = initCommissionRecordVO(salesCommission, business, management, hundred);
 
-            if (business == null){
-                queryForm.setErrorMsg("缺少业务规则");
-            }else {
-            }
-            if (management == null){
-                queryForm.setErrorMsg("缺少管理提成规则");
-            }else {
-            }
-            CommissionRecordVO recordVO = initCommissionRecordVO(salesCommission, business, management, hundred);
-            if (recordVO.getFirstOrderDate() == null){
-                noFirstOrderDateList.add(recordVO);
-            }else {
-                commissionRecordVOList.add(recordVO);
-            }
+                    // 分类存储
+                    if (recordVO.getFirstOrderDate() == null) {
+                        noFirstCount.getAndIncrement();
+                    } else if (recordVO.getCommissionFlag() == 1) {
+                        isGenerated.getAndIncrement();
+                    } else {
+                        commissionRecordVOList.add(recordVO); // 记录需要处理的列表
+                    }
+                } finally {
+                    latch.countDown();  // 完成一个任务后，CountDownLatch 的计数减一
+                }
+            });
         }
-        commissionRecordService.batchInsertCommissionRecord(commissionRecordVOList);
-        return ResponseDTO.okMsg("s");
+
+        // 等待所有线程完成
+        try {
+            latch.await();  // 等待所有线程完成
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // 关闭线程池
+        threadPoolExecutor.shutdown();
+
+        // 转换为不可变列表
+        List<CommissionRecordVO> finalCommissionList = List.copyOf(commissionRecordVOList);
+
+        int insert = commissionRecordService.batchInsertCommissionRecordAndUpdate(finalCommissionList);
+        StringBuilder res = new StringBuilder();
+        if (insert > 0) {
+            // 生成提成记录的成功信息
+            res.append("成功生成: ").append(insert).append("条提成记录。");
+        }
+
+        // 判断并追加没有首单日期的记录信息
+        if (noFirstCount.get() > 0) {
+            res.append("生成失败：").append(noFirstCount.get()).append("条没有首单日期。");
+        }
+
+        // 判断并追加已创建记录的数量
+        if (isGenerated.get() > 0) {
+            res.append("生成失败：").append(isGenerated.get()).append("条记录已创建。");
+        }
+
+        return ResponseDTO.okMsg(res.toString());
     }
 
     private @NotNull CommissionRecordVO initCommissionRecordVO(SalesCommissionDto salesOutbound,
@@ -335,12 +378,15 @@ public class SalesOutboundService {
         recordVO.setSalesAmount(salesOutbound.getSalesAmount()); // 销售金额
         recordVO.setOrderDate(salesOutbound.getSalesBoundDate()); // 销售出库日期 / 业务日期
         recordVO.setSalesBillNo(salesOutbound.getSalesBillNo()); // 销售-单据编号
+        recordVO.setFirstOrderDate(salesOutbound.getFirstOrderDate()); // 首单日期
+        recordVO.setAdjustedFirstOrderDate(salesOutbound.getAdjustedFirstOrderDate()); // 调整后-首单日期
+        recordVO.setCommissionFlag(salesOutbound.getCommissionFlag()); // 销售-提成标识
 
         // 客户年份
         Integer customerYear = null;
 
         // 没有首单日期
-        if (salesOutbound.getFirstOrderDate() == null) {
+        if (salesOutbound.getFirstOrderDate() == null || salesOutbound.getCommissionFlag() == 1) {
             return recordVO;  // 如果 FirstOrderDate 为 null，直接返回 recordVO
         }
 

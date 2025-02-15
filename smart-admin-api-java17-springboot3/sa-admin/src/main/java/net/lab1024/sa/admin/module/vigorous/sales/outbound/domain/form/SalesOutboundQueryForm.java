@@ -44,6 +44,12 @@ public class SalesOutboundQueryForm extends PageParam {
     @Schema(description = "出库日期结束")
     private LocalDate salesBoundDateEnd;
 
+    @Schema(description = "是否存在首单时间")
+    private Boolean hasFirstOrder;
+
+    @Schema(description = "提成标识")
+    private Integer commissionFlag;
+
     private String errorMsg;
 
 }

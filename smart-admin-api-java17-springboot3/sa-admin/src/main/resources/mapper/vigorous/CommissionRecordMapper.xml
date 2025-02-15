@@ -22,6 +22,63 @@
         v_commission_record.update_time
     </sql>
 
+    <sql id="insert_columns">
+        v_commission_record.sales_bill_no,
+        v_commission_record.sales_outbound_id,
+        v_commission_record.salesperson_id,
+        v_commission_record.customer_id,
+        v_commission_record.sales_amount,
+        v_commission_record.order_date,
+        v_commission_record.customer_year,
+        v_commission_record.customer_year_rate,
+        v_commission_record.business_commission_rate,
+        v_commission_record.business_commission_amount,
+        v_commission_record.management_commission_rate,
+        v_commission_record.management_commission_amount
+    </sql>
+    <sql id="insert_item">
+        #{item.salesBillNo},
+        #{item.salesOutboundId},
+        #{item.salespersonId},
+        #{item.customerId},
+        #{item.salesAmount},
+        #{item.orderDate},
+        #{item.customerYear},
+        #{item.customerYearRate},
+        #{item.businessCommissionRate},
+        #{item.businessCommissionAmount},
+        #{item.managementCommissionRate},
+        #{item.managementCommissionAmount}
+    </sql>
+
+    <insert id="batchInsert" parameterType="list">
+        INSERT INTO v_commission_record(<include refid="insert_columns"/>)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (<include refid="insert_item"/>)
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+            sales_outbound_id = VALUES(sales_outbound_id),
+            salesperson_id = VALUES(salesperson_id),
+            customer_id = VALUES(customer_id),
+            sales_amount = VALUES(sales_amount),
+            order_date = VALUES(order_date),
+            customer_year = VALUES(customer_year),
+            customer_year_rate = VALUES(customer_year_rate),
+            business_commission_rate = VALUES(business_commission_rate),
+            business_commission_amount = VALUES(business_commission_amount),
+            management_commission_rate = VALUES(management_commission_rate),
+            management_commission_amount = VALUES(management_commission_amount)
+    </insert>
+
+    <insert id="batchInsertOrUpdate">
+        INSERT INTO v_commission_record(<include refid="insert_columns"/>)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (<include refid="insert_item"/>)
+        </foreach>
+    </insert>
+
 
     <!-- 分页查询 -->
     <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.commission.calc.domain.vo.CommissionRecordVO">

@@ -51,6 +51,12 @@ public class SalesOutboundEntity {
      */
     private BigDecimal amount;
 
+
+    /**
+     * 提成标识
+     */
+    private Integer is_commission_generated;
+
     /**
      * 创建时间
      */

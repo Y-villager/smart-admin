@@ -58,4 +58,12 @@ public interface SalesOutboundDao extends BaseMapper<SalesOutboundEntity> {
      * @return
      */
     List<SalesCommissionDto> queryPageWithReceivables(Page<?> page, SalesOutboundQueryForm queryForm);
+
+    /**
+     * 修改提成标识
+     * @param salesOutboundIds
+     * @param i
+     * @return
+     */
+    int batchUpdateCommissionFlag(@Param("list") List<Long> salesOutboundIds,@Param("flag") int i);
 }

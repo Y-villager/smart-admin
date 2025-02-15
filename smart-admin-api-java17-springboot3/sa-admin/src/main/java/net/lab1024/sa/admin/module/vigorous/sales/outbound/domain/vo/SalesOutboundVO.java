@@ -68,6 +68,9 @@ public class SalesOutboundVO {
     @Schema(description = "币别")
     private String currencyType;
 
+    @Schema(description = "提成标识")
+    private Integer commissionFlag;
+
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
 

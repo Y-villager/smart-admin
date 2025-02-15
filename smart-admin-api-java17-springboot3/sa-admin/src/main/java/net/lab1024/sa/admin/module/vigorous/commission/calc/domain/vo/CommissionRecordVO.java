@@ -59,6 +59,8 @@ public class CommissionRecordVO {
 
     private Integer isTransfer;
 
+    private Integer commissionFlag;
+
     @Schema(description = "客户合作年数")
     private Integer customerYear;
 
