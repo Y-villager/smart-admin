@@ -86,7 +86,7 @@
                 导入
               </a-button>
 
-              <a-button @click="onExport${name.upperCamel}" type="primary" v-privilege="'${name.lowerCamel}:export${name.upperCamel}'" :disabled="exportDisabled">
+              <a-button @click="onExport${name.upperCamel}" type="primary" v-privilege="'${name.lowerCamel}:export${name.upperCamel}'" :loading="exportLoading">
                 <template #icon>
                   <ExportOutlined />
                 </template>
@@ -408,11 +408,11 @@ function hideImportModal() {
 }
 
 // 导出excel文件
-const exportDisabled = ref(false);
+const exportLoading = ref(false);
 async function onExport${name.upperCamel}() {
-  exportDisabled.value = true
+  exportLoading.value = true
   await ${name.lowerCamel}Api.export${name.upperCamel}(queryForm);
-  exportDisabled.value = false
+  exportLoading.value = false
 }
 
 function handleRemove(file) {

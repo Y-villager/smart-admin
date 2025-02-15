@@ -170,18 +170,22 @@ export const postEncryptRequest = (url, data) => {
 // ================================= 下载 =================================
 
 export const postDownload = function (url, data) {
-  request({
-    method: 'post',
-    url,
-    data,
-    responseType: 'blob',
-  })
-    .then((data) => {
-      handleDownloadData(data);
+  return new Promise((resolve, reject) => {
+    request({
+      method: 'post',
+      url,
+      data,
+      responseType: 'blob',
     })
-    .catch((error) => {
-      handleDownloadError(error);
-    });
+        .then((data) => {
+          handleDownloadData(data); // 下载完成后处理数据
+          resolve(data); // 成功时解析 Promise
+        })
+        .catch((error) => {
+          handleDownloadError(error); // 错误处理
+          reject(error); // 错误时拒绝 Promise
+        });
+  });
 };
 
 /**

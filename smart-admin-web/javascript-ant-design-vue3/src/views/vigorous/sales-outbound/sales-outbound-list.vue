@@ -43,6 +43,7 @@
       </a-form-item>
     </a-row>
   </a-form>
+
   <!---------- 查询表单form end ----------->
 
   <a-card size="small" :bordered="false" :hoverable="true">
@@ -55,7 +56,13 @@
           </template>
           新建
         </a-button>
-        <a-button @click="confirmBatchDelete" type="primary" danger :disabled="selectedRowKeyList.length == 0">
+        <a-button @click="onExportCommission" danger v-privilege="'salesOutbound:export'" :loading="initDisabled">
+          <template #icon>
+            <ExportOutlined />
+          </template>
+          生成业绩提成
+        </a-button>
+        <a-button @click="confirmBatchDelete" type="primary" danger :disabled="selectedRowKeyList.length === 0">
           <template #icon>
             <DeleteOutlined />
           </template>
@@ -68,17 +75,11 @@
           导入
         </a-button>
 
-        <a-button @click="onExportSalesOutbound" type="primary" v-privilege="'salesOutbound:export'" :disabled="exportDisabled">
+        <a-button @click="onExportSalesOutbound" type="primary" v-privilege="'salesOutbound:export'" :loading="exportDisabled">
           <template #icon>
             <ExportOutlined />
           </template>
           导出
-        </a-button>
-        <a-button @click="onExportCommission" danger v-privilege="'salesOutbound:export'" :disabled="initDisabled">
-          <template #icon>
-            <ExportOutlined />
-          </template>
-          生成业绩提成
         </a-button>
       </div>
       <div class="smart-table-setting-block">
@@ -414,17 +415,31 @@
 
   // 导出excel文件
   async function onExportSalesOutbound() {
-    exportDisabled.value = true
-    await salesOutboundApi.exportSalesOutbound(queryForm);
+    exportDisabled.value = true;  // 禁用导出按钮
 
-    exportDisabled.value = false
+    try {
+      // 等待导出 API 请求完成
+      await salesOutboundApi.exportSalesOutbound(queryForm)
+
+      // 导出完成后恢复按钮可用状态
+      exportDisabled.value = false;
+    } catch (error) {
+      // 错误处理，确保在失败时也恢复按钮状态
+      console.error("导出失败:", error);
+      exportDisabled.value = false;  // 即使请求失败，也要恢复按钮状态
+    }
   }
 
   const initDisabled = ref(false)
   async function onExportCommission(){
     initDisabled.value = true
-    await salesOutboundApi.createCommission(queryForm);
-    initDisabled.value = false
+    try {
+      await salesOutboundApi.createCommission(queryForm);
+      initDisabled.value = false
+    }catch (error){
+      console.log("错误:", error)
+      initDisabled.value = false
+    }
   }
 
   function handleRemove(file) {
