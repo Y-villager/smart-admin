@@ -271,6 +271,12 @@
                     AND vc.first_order_date IS NULL
                 </when>
             </choose>
+            <if test="excludeForm.customerName != null and excludeForm.customerName != ''">
+                And vc.customer_name != #{excludeForm.customerName}
+            </if>
+            <if test="excludeForm.commissionFlag != null">
+                And vso.commission_flag != #{excludeForm.commissionFlag}
+            </if>
         </where>
         order by vso.sales_bound_date DESC
     </select>

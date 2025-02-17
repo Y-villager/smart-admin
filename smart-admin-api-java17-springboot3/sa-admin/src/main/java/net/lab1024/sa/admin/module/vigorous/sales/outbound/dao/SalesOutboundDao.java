@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.dto.SalesCommissionDto;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.entity.SalesOutboundEntity;
+import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutboundExcludeForm;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutboundQueryForm;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO2;
@@ -57,10 +58,10 @@ public interface SalesOutboundDao extends BaseMapper<SalesOutboundEntity> {
      * @param queryForm
      * @return
      */
-    List<SalesCommissionDto> queryPageWithReceivables(Page<?> page, SalesOutboundQueryForm queryForm);
+    List<SalesCommissionDto> queryPageWithReceivables(Page<?> page, SalesOutboundQueryForm queryForm, SalesOutboundExcludeForm excludeForm);
 
     /**
-     * 修改提成标识
+     * 批量修改提成标识
      * @param salesOutboundIds
      * @param i
      * @return

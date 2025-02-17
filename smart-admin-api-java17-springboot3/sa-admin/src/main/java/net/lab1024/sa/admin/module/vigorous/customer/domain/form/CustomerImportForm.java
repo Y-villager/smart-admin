@@ -1,7 +1,6 @@
 package net.lab1024.sa.admin.module.vigorous.customer.domain.form;
 
 import com.alibaba.excel.annotation.ExcelProperty;
-import com.alibaba.excel.annotation.format.DateTimeFormat;
 import lombok.Data;
 import net.lab1024.sa.admin.convert.CustomerGroupEnumConverter;
 import net.lab1024.sa.admin.convert.TransferStatusEnumConverter;
@@ -36,7 +35,6 @@ public class CustomerImportForm {
     private Integer customerGroup;
 
     @ExcelProperty(value = "首单日期")
-    @DateTimeFormat("yyyy-MM-dd")
     private String orderDate;
 
     @ExcelProperty(value = "转交状态", converter = TransferStatusEnumConverter.class)

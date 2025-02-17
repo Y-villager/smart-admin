@@ -12,16 +12,14 @@ import net.lab1024.sa.admin.module.vigorous.customer.service.CustomerService;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.dao.SalesOutboundDao;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.dto.SalesCommissionDto;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.entity.SalesOutboundEntity;
-import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutboundAddForm;
-import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutboundImportForm;
-import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutboundQueryForm;
-import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutboundUpdateForm;
+import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.*;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundExcelVO;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO;
 import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
 import net.lab1024.sa.admin.util.ExcelUtils;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
+import net.lab1024.sa.base.common.domain.ValidateList;
 import net.lab1024.sa.base.common.exception.BusinessException;
 import net.lab1024.sa.base.common.util.SmartBeanUtil;
 import net.lab1024.sa.base.common.util.SmartPageUtil;
@@ -252,7 +250,6 @@ public class SalesOutboundService {
     }
 
 
-
     /**
      * 导出
      */
@@ -281,9 +278,13 @@ public class SalesOutboundService {
      * @return
      */
     public ResponseDTO<String> createCommission(SalesOutboundQueryForm queryForm) {
+        SalesOutboundExcludeForm excludeForm = new SalesOutboundExcludeForm("个人", 2);
 
         // 需要生成业绩提成 的列表
-        List<SalesCommissionDto> list = salesOutboundDao.queryPageWithReceivables(null, queryForm);
+        List<SalesCommissionDto> list = salesOutboundDao.queryPageWithReceivables(null, queryForm, excludeForm);
+        if (list.isEmpty()){
+            return ResponseDTO.okMsg("没有需要生成的提成。");
+        }
 
         // 缓存常用的计算值，避免在每次遍历时重复计算
         BigDecimal hundred = BigDecimal.valueOf(100);
@@ -349,6 +350,8 @@ public class SalesOutboundService {
         if (insert > 0) {
             // 生成提成记录的成功信息
             res.append("成功生成: ").append(insert).append("条提成记录。");
+        }else {
+            return ResponseDTO.okMsg("未有提成记录生成。");
         }
 
         // 判断并追加没有首单日期的记录信息
@@ -480,5 +483,13 @@ public class SalesOutboundService {
         } else {
             return 0; // 不满1年的合作
         }
+    }
+
+    public ResponseDTO<String> batchUpdateCommissionFlag(ValidateList<Long> idList) {
+        if (CollectionUtils.isEmpty(idList)){
+            return ResponseDTO.ok();
+        }
+        salesOutboundDao.batchUpdateCommissionFlag(idList, 2);
+        return ResponseDTO.ok();
     }
 }

@@ -40,6 +40,17 @@
           </template>
           重置
         </a-button>
+
+      </a-form-item>
+
+      <a-form-item class="smart-query-form-item">
+        <a-button @click="onExportCommission" danger v-privilege="'salesOutbound:export'"
+                  :loading="initDisabled">
+          <template #icon>
+            <ExportOutlined />
+          </template>
+          生成业绩提成
+        </a-button>
       </a-form-item>
     </a-row>
   </a-form>
@@ -56,18 +67,26 @@
           </template>
           新建
         </a-button>
-        <a-button @click="onExportCommission" danger v-privilege="'salesOutbound:export'" :loading="initDisabled">
-          <template #icon>
-            <ExportOutlined />
-          </template>
-          生成业绩提成
-        </a-button>
+
         <a-button @click="confirmBatchDelete" type="primary" danger :disabled="selectedRowKeyList.length === 0">
           <template #icon>
             <DeleteOutlined />
           </template>
           批量删除
         </a-button>
+        <a-button @click="confirmBatchUpdate"
+                  type="primary"
+                  :class="{
+                    'custom-btn': selectedRowKeyList.length > 0,
+                    'custom-btn-disabled': selectedRowKeyList.length === 0
+                  }"
+                  :disabled="selectedRowKeyList.length === 0">
+          <template #icon>
+            <CheckOutlined />
+          </template>
+          调整提成标识-可覆盖
+        </a-button>
+
         <a-button @click="showImportModal" type="primary" v-privilege="'salesOutbound:import'">
           <template #icon>
             <ImportOutlined />
@@ -227,6 +246,11 @@
           ellipsis: true,
         },
         {
+          title: '首单日期-调整后',
+          dataIndex: 'adjustedFirstOrderDate',
+          ellipsis: true,
+        },
+        {
           title: '创建时间',
           dataIndex: 'createTime',
           ellipsis: true,
@@ -365,6 +389,21 @@
           });
       }
 
+      // 批量更新 提成标识
+      function confirmBatchUpdate(){
+        Modal.confirm({
+          title: '提示',
+          content: '确定要调整这些数据吗?',
+          okText: '确定',
+          okType: 'danger',
+          onOk() {
+            requestBatchUpdate();
+          },
+          cancelText: '取消',
+          onCancel() {},
+        });
+      }
+
       //请求批量删除
       async function requestBatchDelete() {
           try {
@@ -377,6 +416,20 @@
           } finally {
               SmartLoading.hide();
           }
+      }
+
+      //请求批量更新
+      async function requestBatchUpdate() {
+        try {
+          SmartLoading.show();
+          await salesOutboundApi.batchUpdate(selectedRowKeyList.value);
+          message.success('调整提成标识成功');
+          await queryData();
+        } catch (e) {
+          smartSentry.captureError(e);
+        } finally {
+          SmartLoading.hide();
+        }
       }
 
   // ------------------------------- 导出和导入 ---------------------------------
@@ -405,7 +458,7 @@
     SmartLoading.show();
     try {
       let res = await salesOutboundApi.importSalesOutbound(formData);
-      mesage.success(res.msg);
+      message.success(res.msg)
     } catch (e) {
       smartSentry.captureError(e);
     } finally {
@@ -434,7 +487,9 @@
   async function onExportCommission(){
     initDisabled.value = true
     try {
-      await salesOutboundApi.createCommission(queryForm);
+      const res = await salesOutboundApi.createCommission(queryForm);
+      console.log(res)
+      message.success(res.msg)
       initDisabled.value = false
     }catch (error){
       console.log("错误:", error)
@@ -463,3 +518,25 @@
         queryForm.salesBoundDateEnd = dateStrings[1]
       }
 </script>
+
+<style>
+/* 自定义正常状态下的背景色 */
+.custom-btn {
+  background-color: #2ad208;
+  border-color: #2ad208;
+}
+/* 鼠标悬停时的样式 */
+.custom-btn:hover {
+  background-color: #229a04!important; /* 修改为稍深的绿色 */
+  border-color: #229a04!important;
+}
+
+/* 自定义禁用状态下的背景色 */
+.custom-btn-disabled {
+  background-color: #cccccc;
+  border-color: #cccccc;
+  color: #666666;
+}
+
+
+</style>

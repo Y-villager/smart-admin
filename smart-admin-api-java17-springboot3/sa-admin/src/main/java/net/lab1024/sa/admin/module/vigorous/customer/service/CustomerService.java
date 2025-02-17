@@ -37,6 +37,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
@@ -271,9 +272,27 @@ public class CustomerService {
             form.setErrorMsg("没有该业务员");
             return null;
         }
-        if (form.getOrderDate()!=null){
-            entity.setFirstOrderDate( LocalDate.parse(form.getOrderDate()));// 首单日期
+
+        // 选择适当的日期格式
+        String orderDate = form.getOrderDate();
+        DateTimeFormatter fmt = null;
+        if (orderDate!=null){
+            if (orderDate.contains("-")) {
+                fmt = DateTimeFormatter.ofPattern("yyyy-M-d");
+            } else if (orderDate.contains("/")) {
+                fmt = DateTimeFormatter.ofPattern("yyyy/M/d");
+            }
+
+            // 如果找到了格式，进行解析
+            if (fmt != null) {
+                LocalDate date = LocalDate.parse(orderDate, fmt);
+                entity.setFirstOrderDate(date);
+            } else {
+                // 处理没有匹配到格式的情况，可以抛出异常或进行默认处理
+                throw new IllegalArgumentException("Invalid order date format: " + orderDate);
+            }
         }
+
         entity.setCustomerName(form.getCustomerName()); // 客户名
         entity.setShortName(form.getShortName());   // 客户简称
         entity.setCountry(form.getCountry());   // 国家

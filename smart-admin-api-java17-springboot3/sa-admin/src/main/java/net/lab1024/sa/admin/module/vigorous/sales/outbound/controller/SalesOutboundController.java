@@ -94,4 +94,10 @@ class SalesOutboundController {
         return salesOutboundService.createCommission(queryForm);
     }
 
+    @Operation(summary = "调整生成标识-可覆盖")
+    @PostMapping("/salesOutbound/batchUpdateCommissionFlag")
+    public ResponseDTO<String>  batchUpdateCommissionFlag(@RequestBody ValidateList<Long> idList) throws IOException {
+        return salesOutboundService.batchUpdateCommissionFlag(idList);
+    }
+
 }

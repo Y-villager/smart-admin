@@ -57,7 +57,10 @@ export const salesOutboundApi = {
 
     // 生成业绩提成
     createCommission : (param) =>{
-        return postDownload('/salesOutbound/createCommission', param);
-    }
+        return postRequest('/salesOutbound/createCommission', param);
+    },
 
+    batchUpdate(idList) {
+        return postRequest('/salesOutbound/batchUpdateCommissionFlag', idList)
+    }
 };
