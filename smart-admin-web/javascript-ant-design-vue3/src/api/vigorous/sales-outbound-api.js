@@ -56,8 +56,13 @@ export const salesOutboundApi = {
     },
 
     // 生成业绩提成
-    createCommission : (param) =>{
-        return postRequest('/salesOutbound/createCommission', param);
+    createAllCommission : (param) =>{
+        return postRequest('/salesOutbound/createAllCommission', param);
+    },
+
+    // 生成选中的业绩提成
+    createSelectedCommission : (idList) =>{
+        return postRequest('/salesOutbound/createSelectedCommission', idList);
     },
 
     batchUpdate(idList) {

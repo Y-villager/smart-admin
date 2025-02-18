@@ -40,17 +40,40 @@
           </template>
           重置
         </a-button>
+        <a-button class="smart-margin-left20" @click="moreCreateCondition = !moreCreateCondition">
+          <template #icon>
+            <MoreOutlined />
+          </template>
+          {{ moreCreateCondition ? '收起' : '展开' }}
+        </a-button>
       </a-form-item>
 
-      <a-form-item class="smart-query-form-item">
-        <a-button @click="onExportCommission" danger v-privilege="'salesOutbound:export'" :loading="initDisabled">
+    </a-row>
+    <!--  多次生成情况   -->
+    <a-row class="smart-query-form-row" v-show="moreCreateCondition">
+      <a-form-item label="生成提成" class="smart-query-form-item">
+        <a-button  @click="onExportSelectedCommission"
+                   type="primary"
+                   :disabled="selectedRowKeyList.length === 0"
+                   v-privilege="'salesOutbound:export'"
+                   :loading="initDisabled">
           <template #icon>
             <ExportOutlined />
           </template>
-          生成业绩提成
+          生成选中部分
+        </a-button>
+        <a-button class="smart-margin-left20" @click="onExportAllCommission" danger v-privilege="'salesOutbound:export'" :loading="initDisabled">
+          <template #icon>
+            <ExportOutlined />
+          </template>
+          生成全部
+        </a-button>
+        <a-button  @click="downloadFailedCommission" type="link" v-show="failedCommissionPath===null">
+          下载生成失败数据
         </a-button>
       </a-form-item>
     </a-row>
+
   </a-form>
 
   <!---------- 查询表单form end ----------->
@@ -84,7 +107,7 @@
           <template #icon>
             <CheckOutlined />
           </template>
-          调整提成标识-可覆盖
+          设置提成可覆盖
         </a-button>
 
         <a-button @click="showImportModal" type="primary" v-privilege="'salesOutbound:import'">
@@ -100,6 +123,7 @@
           </template>
           导出
         </a-button>
+
       </div>
       <div class="smart-table-setting-block">
         <TableOperator v-model="columns" :tableId="TABLE_ID_CONST.VIGOROUS.SALES_OUTBOUND" :refresh="queryData" />
@@ -478,9 +502,7 @@
     SmartLoading.show();
     try {
       let res = await salesOutboundApi.importSalesOutbound(formData);
-      failed_import_data.value = res.data;
-      console.log(res)
-      message.success(res.msg);
+      failedImportData.value = res.data;
     } catch (e) {
       smartSentry.captureError(e);
     } finally {
@@ -507,12 +529,22 @@
 
   const initDisabled = ref(false);
 
-  async function onExportCommission() {
+  // 生成选中部分的提成
+  async function onExportSelectedCommission(){
+    try{
+      let res = await salesOutboundApi.createSelectedCommission(selectedRowKeyList.value);
+      message.success(res.data)
+    }catch (error){
+      console.log("错误：", error)
+    }
+  }
+
+  // 生成所有提成
+  async function onExportAllCommission() {
     initDisabled.value = true;
     try {
-      const res = await salesOutboundApi.createCommission(queryForm);
-      console.log(res);
-      message.success(res.msg);
+      let res = await salesOutboundApi.createAllCommission(queryForm);
+      failedCommissionPath.value = res.data
       initDisabled.value = false;
       await queryData();
     } catch (error) {
@@ -543,10 +575,10 @@
   }
 
   // 下载导入失败数据
-  const failed_import_data = ref();
+  const failedImportData = ref();
 
   function downloadFailedData() {
-    if (failed_import_data.value != null) {
+    if (failedImportData.value != null) {
       try {
         excelApi.downloadFailedImportData();
       } catch (e) {
@@ -556,6 +588,15 @@
       message.error('当前没有导入失败数据');
     }
   }
+
+  // 生成提成情况
+  const moreCreateCondition = ref(true);
+  // 生成提成失败路径
+  const failedCommissionPath = ref();
+  function downloadFailedCommission(){
+
+  }
+
 </script>
 
 <style>

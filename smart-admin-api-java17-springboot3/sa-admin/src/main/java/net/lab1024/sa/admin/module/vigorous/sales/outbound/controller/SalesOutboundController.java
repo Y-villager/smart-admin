@@ -88,10 +88,16 @@ class SalesOutboundController {
         SmartExcelUtil.exportExcel(response,"销售出库.xlsx","销售出库",SalesOutboundExcelVO.class, list);
     }
 
-    @Operation(summary = "生成业绩提成")
-    @PostMapping("/salesOutbound/createCommission")
-    public ResponseDTO<String>  exportCommission(HttpServletResponse response, @RequestBody @Valid SalesOutboundQueryForm queryForm) throws IOException {
+    @Operation(summary = "生成所有业绩提成")
+    @PostMapping("/salesOutbound/createALlCommission")
+    public ResponseDTO<String>  exportAllCommission(HttpServletResponse response, @RequestBody @Valid SalesOutboundQueryForm queryForm) throws IOException {
         return salesOutboundService.createCommission(queryForm);
+    }
+
+    @Operation(summary = "生成选中业绩提成")
+    @PostMapping("/salesOutbound/createSelectedCommission")
+    public ResponseDTO<String>  exportSelectedCommission(@RequestBody ValidateList<Long> idList) throws IOException {
+        return salesOutboundService.createSelectedCommission(idList);
     }
 
     @Operation(summary = "调整生成标识-可覆盖")

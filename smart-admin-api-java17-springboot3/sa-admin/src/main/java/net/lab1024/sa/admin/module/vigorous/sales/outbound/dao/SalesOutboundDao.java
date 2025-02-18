@@ -8,6 +8,7 @@ import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutb
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutboundQueryForm;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO2;
+import net.lab1024.sa.base.common.domain.ValidateList;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Component;
@@ -70,4 +71,6 @@ public interface SalesOutboundDao extends BaseMapper<SalesOutboundEntity> {
 
 
     int batchUpdate(@Param("list") List<?> entityList);
+
+    List<SalesCommissionDto> queryByIdList(@Param("idList") ValidateList<Long> idList);
 }

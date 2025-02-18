@@ -321,5 +321,42 @@
         order by v_sales_outbound.sales_bound_date desc
     </select>
 
+    <select id="queryByIdList"
+            resultType="net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.dto.SalesCommissionDto">
+        SELECT
+        vso.sales_bound_id as sales_outbound_id,
+        vso.bill_no AS sales_bill_no,
+        vso.sales_bound_date,
+        vso.amount AS sales_amount,
+        vso.commission_flag,
+        vc.adjusted_first_order_date,
+        vc.customer_id,
+        vc.customer_group,
+        vc.transfer_status,
+        vc.first_order_date,
+        vs.id AS salesperson_id,
+        vs.salesperson_level_id,
+        vsl.commission_rate as level_rate,
+        pvs.id AS p_salesperson_id,
+        pvs.salesperson_level_id AS p_salesperson_level_id,
+        pvsl.commission_rate AS p_level_rate,
+        vr.bill_no as receive_bill_no,
+        vr.rate
+        FROM
+        v_sales_outbound vso
+        left JOIN v_receivables vr ON vso.bill_no = vr.origin_bill_no
+        inner JOIN v_customer vc ON vc.customer_id = vso.customer_id
+        left JOIN v_salesperson vs ON vs.id = vso.salesperson_id
+        left JOIN v_salesperson_level vsl ON vs.salesperson_level_id = vsl.salesperson_level_id
+        left JOIN v_salesperson pvs ON vs.parent_id = pvs.id
+        left JOIN v_salesperson_level pvsl ON pvs.salesperson_level_id = pvsl.salesperson_level_id
+        <where>
+            vso.sales_bound_id in
+            <foreach item="id" index="index" collection="idList" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </where>
+    </select>
+
 
 </mapper>
