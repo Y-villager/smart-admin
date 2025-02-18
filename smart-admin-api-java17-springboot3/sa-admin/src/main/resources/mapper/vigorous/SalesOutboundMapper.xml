@@ -33,6 +33,34 @@
         </foreach>
     </update>
 
+    <update id="batchUpdate">
+        <foreach collection="list" item="item" separator=";">
+            UPDATE v_sales_outbound
+            SET
+            <trim prefix="" suffix="" suffixOverrides=",">
+                <if test="item.billNo != null">
+                    bill_no = #{item.billNo},
+                </if>
+                <if test="item.salesBoundDate != null">
+                    sales_bound_date = #{item.salesBoundDate},
+                </if>
+                <if test="item.customerId != null">
+                    customer_id = #{item.customerId},
+                </if>
+                <if test="item.salespersonId != null">
+                    salesperson_id = #{item.salespersonId},
+                </if>
+                <if test="item.amount != null">
+                    amount = #{item.amount},
+                </if>
+                <if test="item.commissionFlag != null">
+                    commission_flag = #{item.commissionFlag},
+                </if>
+            </trim>
+            WHERE bill_no = #{item.billNo}
+        </foreach>
+    </update>
+
     <resultMap id="salesOutboundVO2Map" type="net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO2">
         <id property="salesBoundId" column="sales_bound_id"/>
         <result property="billNo" column="bill_no"/>
@@ -124,32 +152,6 @@
         </where>
         order by v_sales_outbound.sales_bound_date desc
     </select>
-<!--    <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO">-->
-<!--        SELECT-->
-<!--        <include refid="base_columns"/>-->
-<!--        FROM v_sales_outbound-->
-<!--        <where>-->
-<!--            &lt;!&ndash;客户编码&ndash;&gt;-->
-<!--            <if test="queryForm.customerId != null">-->
-<!--                        AND INSTR(v_sales_outbound.customer_id,#{queryForm.customerId})-->
-<!--            </if>-->
-<!--            &lt;!&ndash;业务员&ndash;&gt;-->
-<!--            <if test="queryForm.salespersonId != null">-->
-<!--                        AND INSTR(v_sales_outbound.salesperson_id,#{queryForm.salespersonId})-->
-<!--            </if>-->
-<!--            <if test="queryForm.billNo != null and queryForm.billNo != '' ">-->
-<!--                AND INSTR(v_sales_outbound.bill_no,#{queryForm.billNo})-->
-<!--            </if>-->
-<!--            &lt;!&ndash;出库日期&ndash;&gt;-->
-<!--            <if test="queryForm.salesBoundDateBegin != null ">-->
-<!--                AND DATE_FORMAT(v_sales_outbound.sales_bound_date, '%Y-%m-%d') &gt;= #{queryForm.salesBoundDateBegin}-->
-<!--            </if>-->
-<!--            <if test="queryForm.salesBoundDateEnd != null ">-->
-<!--                AND DATE_FORMAT(v_sales_outbound.sales_bound_date, '%Y-%m-%d') &lt;= #{queryForm.salesBoundDateEnd}-->
-<!--            </if>-->
-<!--        </where>-->
-<!--        order by v_sales_outbound.sales_bound_date desc-->
-<!--    </select>-->
 
     <select id="queryByBillNo"
             resultType="net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.entity.SalesOutboundEntity">
@@ -225,7 +227,7 @@
             pvs.id AS p_salesperson_id,
             pvs.salesperson_level_id AS p_salesperson_level_id,
             pvsl.commission_rate AS p_level_rate,
-            vr.bill_no,
+            vr.bill_no as receive_bill_no,
             vr.rate
         FROM
             v_sales_outbound vso

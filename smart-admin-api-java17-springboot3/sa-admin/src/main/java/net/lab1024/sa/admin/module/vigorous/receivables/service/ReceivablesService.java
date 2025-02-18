@@ -13,6 +13,7 @@ import net.lab1024.sa.admin.module.vigorous.receivables.domain.form.ReceivablesQ
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.form.ReceivablesUpdateForm;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.vo.ReceivablesVO;
 import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
+import net.lab1024.sa.admin.util.BatchUtils;
 import net.lab1024.sa.admin.util.ExcelUtils;
 import net.lab1024.sa.admin.util.SplitListUtils;
 import net.lab1024.sa.base.common.code.SystemErrorCode;
@@ -29,7 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -163,6 +163,10 @@ public class ReceivablesService {
 
         List<ReceivablesEntity> entityList = createImportList(dataList, failedDataList, mode);
 
+        if (entityList == null || entityList.isEmpty()) {
+            return ResponseDTO.ok("缺少源单编号");
+        }
+
         // true 为追加模式，false为按单据编号覆盖
         int successTotal = 0;
         try {
@@ -174,7 +178,7 @@ public class ReceivablesService {
                 }
             } else {  // 覆盖
                 // 执行批量更新操作
-                successTotal = doThreadUpdate(entityList);
+                successTotal = BatchUtils.doThreadUpdate(entityList, receivablesDao);
             }
         }
         catch (DataAccessException e) {
@@ -210,7 +214,6 @@ public class ReceivablesService {
             threadPool.execute(new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    System.out.println("当前线程："+ Thread.currentThread().getName());
                     receivablesDao.updateReceivablesByBillNo(subList);
                     countDownLatch.countDown();
                 }
@@ -225,38 +228,31 @@ public class ReceivablesService {
         return 0;
     }
 
-    @Transactional
-    protected int batchUpdate(List<ReceivablesEntity> entityList) {
-        int total = 0;
-        List<ReceivablesEntity> batchList = new ArrayList<>();  // 用于存储当前批次的记录
-
-        for (int i = 0; i < entityList.size(); i++) {
-            batchList.add(entityList.get(i));  // 将当前记录添加到批次列表中
-
-            // 当批次列表达到批量大小或者最后一条记录时，执行批量更新
-            if (batchList.size() == BATCH_SIZE || i == entityList.size() - 1) {
-                int updateCount = receivablesDao.updateReceivablesByBillNo(batchList);  // 批量更新
-                total += updateCount;  // 累计成功更新的记录数
-
-                batchList.clear();  // 清空当前批次列表，准备下一个批次
-            }
-        }
-        return total;
-    }
-
     // 生成导入列表
     private List<ReceivablesEntity> createImportList(List<ReceivablesImportForm> dataList,
                                                      List<ReceivablesImportForm> failedDataList,
                                                      boolean mode) {
+        List<ReceivablesEntity> entityList = new ArrayList<>();
         Set<String> billNos = new HashSet<>();
         Set<String> salespersonNames = new HashSet<>();
         Set<String> customerNames = new HashSet<>();
 
         for (ReceivablesImportForm form : dataList) {
+            if (form.getOriginBillNo() == null){
+                form.setOriginBillNo("缺少源单编号");
+                failedDataList.add(form);
+                continue;
+            }
             billNos.add(form.getBillNo());
             salespersonNames.add(form.getSalespersonName());
             customerNames.add(form.getCustomerName());
         }
+
+        // 全部缺少源单编号
+        if (failedDataList.size() == dataList.size()) {
+            return null;
+        }
+
         // 单据编号 map
         List<ReceivablesVO> receivablesVOList = receivablesDao.queryByBillNos(billNos);
         Map<String, Integer> receivablesMap = receivablesVOList
@@ -270,11 +266,13 @@ public class ReceivablesService {
         // 币别映射
         Map<String, String> currencyMap = dictService.keyQuery("CURRENCY_TYPE");
 
-        return dataList.parallelStream()
-                .map(form -> convertToEntity(form, receivablesMap, salespersonMap, customerMap, currencyMap, failedDataList, mode))
-                .filter(Objects::nonNull)
-                .toList();
-
+        for (ReceivablesImportForm receivablesImportForm : dataList) {
+            ReceivablesEntity entity = convertToEntity(receivablesImportForm, receivablesMap, salespersonMap, customerMap, currencyMap, failedDataList, mode);
+            if (entity != null){
+                entityList.add(entity);
+            }
+        }
+        return entityList;
     }
 
     /**
@@ -296,6 +294,12 @@ public class ReceivablesService {
                                           List<ReceivablesImportForm> failedDataList,
                                               boolean mode) {
         ReceivablesEntity entity = new ReceivablesEntity();
+
+        if (form.getOriginBillNo() == null){
+            form.setErrorMsg("缺少源单编号");
+            failedDataList.add(form);
+            return null;
+        }
 
         // 根据 mode 的值简化条件判断，true为追加
         if (mode){
@@ -336,6 +340,7 @@ public class ReceivablesService {
             return null;
         }
 
+        // 设置应收日期
         if (form.getReceivablesDate().contains("-")){
             LocalDate date = LocalDate.parse(form.getReceivablesDate());
             entity.setReceivablesDate(date);
@@ -345,19 +350,16 @@ public class ReceivablesService {
             entity.setReceivablesDate(date);
         }
 
-        entity.setBillNo(form.getBillNo());
-        entity.setOriginBillNo(form.getOriginBillNo());
-        entity.setCustomerId( customerMap.get(form.getCustomerName()));
-        entity.setSalespersonId(salespersonMap.get(form.getSalespersonName()));
-        entity.setCurrencyType(currencyType);
-        entity.setAmount(form.getAmount());
-        entity.setRate(form.getRate());
+        entity.setBillNo(form.getBillNo()); // 单据编号
+        entity.setOriginBillNo(form.getOriginBillNo()); // 源单编号
+        entity.setCustomerId( customerMap.get(form.getCustomerName())); // 客户编号
+        entity.setSalespersonId(salespersonMap.get(form.getSalespersonName())); // 业务员编号
+        entity.setCurrencyType(currencyType); // 币别
+        entity.setAmount(form.getAmount()); // 金额
+        entity.setRate(form.getRate()); // 应收比例
 
         return entity;
     }
-
-    // 将 ReceivablesAddForm 转换为 ReceivablesEntity
-
 
     /**
      * 导出

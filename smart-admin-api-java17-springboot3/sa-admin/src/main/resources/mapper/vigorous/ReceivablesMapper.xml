@@ -53,7 +53,38 @@
                     rate = #{item.rate},
                 </if>
                 <if test="item.currencyType != null">
-                    currency_type = #{item.currencyType},
+                    currency_type = #{item.currencyType}
+                </if>
+            </trim>
+            WHERE bill_no = #{item.billNo}
+        </foreach>
+    </update>
+
+    <update id="updateBatch">
+        <foreach collection="list" item="item" separator=";">
+            UPDATE v_receivables
+            SET
+            <trim prefix="" suffix="" suffixOverrides=",">
+                <if test="item.receivablesDate != null">
+                    receivables_date = #{item.receivablesDate},
+                </if>
+                <if test="item.salespersonId != null">
+                    salesperson_id = #{item.salespersonId},
+                </if>
+                <if test="item.customerId != null">
+                    customer_id = #{item.customerId},
+                </if>
+                <if test="item.originBillNo != null">
+                    origin_bill_no = #{item.originBillNo},
+                </if>
+                <if test="item.amount != null">
+                    amount = #{item.amount},
+                </if>
+                <if test="item.rate != null">
+                    rate = #{item.rate},
+                </if>
+                <if test="item.currencyType != null">
+                    currency_type = #{item.currencyType}
                 </if>
             </trim>
             WHERE bill_no = #{item.billNo}
@@ -67,13 +98,17 @@
         <include refid="base_columns"/>
         FROM v_receivables
         <where>
+            <!--单据编号-->
+            <if test="queryForm.billNo != null and queryForm.billNo != '' ">
+                AND INSTR(v_receivables.bill_no, #{queryForm.billNo})
+            </if>
             <!--客户名称-->
             <if test="queryForm.customerName != null and queryForm.customerName != ''">
                         AND INSTR(v_receivables.customer_id,#{queryForm.customerName})
             </if>
             <!--销售员名称-->
             <if test="queryForm.salespersonName != null and queryForm.salespersonName != ''">
-                        AND INSTR(v_receivables.salesperson_id,#{queryForm.salespersonName})
+                AND INSTR(v_receivables.salesperson_id,#{queryForm.salespersonName})
             </if>
             <!--币种-->
             <if test="queryForm.currencyType != null">
@@ -87,6 +122,7 @@
                 AND v_receivables.receivables_date &lt;= #{queryForm.receivablesDateEnd}
             </if>
         </where>
+        order by v_receivables.receivables_date desc
     </select>
 
     <select id="queryByBillNos"

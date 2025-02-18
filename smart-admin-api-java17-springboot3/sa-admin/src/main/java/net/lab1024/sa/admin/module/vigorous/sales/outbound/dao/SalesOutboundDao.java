@@ -67,4 +67,7 @@ public interface SalesOutboundDao extends BaseMapper<SalesOutboundEntity> {
      * @return
      */
     int batchUpdateCommissionFlag(@Param("list") List<Long> salesOutboundIds,@Param("flag") int i);
+
+
+    int batchUpdate(@Param("list") List<?> entityList);
 }
