@@ -75,7 +75,7 @@ public class ReceivablesController {
     @Operation(summary = "导入")
     @PostMapping("/receivables/import")
     @SaCheckPermission("receivables:import")
-    public ResponseDTO<String> importReceivables(@RequestPart("file") MultipartFile file, @RequestParam("mode") Boolean mode ) {
+    public ResponseDTO<String> importReceivables(@RequestParam("file") MultipartFile file, @RequestParam("mode") Boolean mode ) {
         return receivablesService.importReceivables(file, mode);
     }
 

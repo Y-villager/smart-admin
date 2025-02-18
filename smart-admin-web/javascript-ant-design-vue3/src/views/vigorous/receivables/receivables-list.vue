@@ -9,6 +9,9 @@
   <!---------- 查询表单form begin ----------->
   <a-form class="smart-query-form">
     <a-row class="smart-query-form-row">
+      <a-form-item label="单据编号" class="smart-query-form-item">
+        <a-input style="width: 200px" v-model:value="queryForm.billNo" placeholder="单据编号" />
+      </a-form-item>
       <a-form-item label="客户名称" class="smart-query-form-item">
         <a-input style="width: 200px" v-model:value="queryForm.customerName" placeholder="客户名称" />
       </a-form-item>
@@ -244,6 +247,7 @@ const columns = ref([
 // ---------------------------- 查询数据表单和方法 ----------------------------
 
 const queryFormState = {
+  billNo: undefined, // 单据编号
   customerName: undefined, //客户名称
   salespersonName: undefined, //销售员名称
   currencyType: undefined, //币别
@@ -408,6 +412,7 @@ async function onImportReceivables() {
     let res = await receivablesApi.importReceivables(formData);
     console.log(res)
     failed_import_data.value = res.data;
+    console.log(failed_import_data.value)
     message.success(res.msg);
   } catch (e) {
     smartSentry.captureError(e);

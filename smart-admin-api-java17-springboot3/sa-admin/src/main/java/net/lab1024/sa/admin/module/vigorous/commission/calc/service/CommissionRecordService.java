@@ -3,6 +3,7 @@ package net.lab1024.sa.admin.module.vigorous.commission.calc.service;
 import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
+import net.lab1024.sa.admin.enumeration.CommissionFlagEnum;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.dao.CommissionRecordDao;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.entity.CommissionRecordEntity;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form.CommissionRecordAddForm;
@@ -169,14 +170,13 @@ public class CommissionRecordService {
             return ResponseDTO.error(SystemErrorCode.SYSTEM_ERROR, "发生未知错误："+e.getMessage());
         }
 
-        String failed_data_path=null;
         if (!failedDataList.isEmpty()) {
             // 创建并保存失败的数据文件
-            failed_data_path = ExcelUtils.saveFailedDataToExcel(failedDataList, CommissionRecordImportForm.class);
+            ExcelUtils.saveFailedDataToExcel(failedDataList, CommissionRecordImportForm.class);
         }
 
         // 如果有失败的数据，导出失败记录到 Excel
-        return ResponseDTO.okMsg("总共"+dataList.size()+"条数据，成功导入" + successTotal + "条，导入失败记录有："+failedDataList.size()+"条", failed_data_path );
+        return ResponseDTO.okMsg("总共"+dataList.size()+"条数据，成功导入" + successTotal + "条，导入失败记录有："+failedDataList.size()+"条" );
 
     }
 
@@ -234,10 +234,10 @@ public class CommissionRecordService {
                                 .firstOrderDate(e.getFirstOrderDate())
                                 .customerYear(e.getCustomerYear())
                                 .businessCommissionRate(e.getBusinessCommissionRate())
-                                .businessCommissionAmount(e.getManagementCommissionAmount())
-                                .managementCommissionAmount(e.getBusinessCommissionAmount())
+                                .businessCommissionAmount(e.getBusinessCommissionAmount())
                                 .managementCommissionRate(e.getManagementCommissionRate())
-                                .isTransfer(e.getIsTransfer())
+                                .managementCommissionAmount(e.getManagementCommissionAmount())
+                                .transferStatus(e.getTransferStatus())
                                 .orderDate(e.getOrderDate())
                                 .build()
                 )
@@ -304,11 +304,11 @@ public class CommissionRecordService {
                     count.incrementAndGet();
                     List<Long> salesOutboundIds = batch.stream().map(CommissionRecordVO::getSalesOutboundId)
                             .toList();
-                    int update = salesOutboundDao.batchUpdateCommissionFlag(salesOutboundIds, 1);
+                    int update = salesOutboundDao.batchUpdateCommissionFlag(salesOutboundIds, CommissionFlagEnum.CREATED.getValue());
                     if (update != insert ){
                         throw new RuntimeException("插入和更新不一致");
                     }
-                    return insert;
+                    return insert * batch.size();
                 });
             }));
         }

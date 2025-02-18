@@ -40,12 +40,10 @@
           </template>
           重置
         </a-button>
-
       </a-form-item>
 
       <a-form-item class="smart-query-form-item">
-        <a-button @click="onExportCommission" danger v-privilege="'salesOutbound:export'"
-                  :loading="initDisabled">
+        <a-button @click="onExportCommission" danger v-privilege="'salesOutbound:export'" :loading="initDisabled">
           <template #icon>
             <ExportOutlined />
           </template>
@@ -74,13 +72,15 @@
           </template>
           批量删除
         </a-button>
-        <a-button @click="confirmBatchUpdate"
-                  type="primary"
-                  :class="{
-                    'custom-btn': selectedRowKeyList.length > 0,
-                    'custom-btn-disabled': selectedRowKeyList.length === 0
-                  }"
-                  :disabled="selectedRowKeyList.length === 0">
+        <a-button
+          @click="confirmBatchUpdate"
+          type="primary"
+          :class="{
+            'custom-btn': selectedRowKeyList.length > 0,
+            'custom-btn-disabled': selectedRowKeyList.length === 0,
+          }"
+          :disabled="selectedRowKeyList.length === 0"
+        >
           <template #icon>
             <CheckOutlined />
           </template>
@@ -165,14 +165,22 @@
     </div>
 
     <SalesOutboundForm ref="formRef" @reloadList="queryData" />
-
     <a-modal v-model:open="importModalShowFlag" title="导入" @onCancel="hideImportModal" @ok="hideImportModal">
       <div style="text-align: center; width: 400px; margin: 0 auto">
+
+        <div id="app">
+          <span>导入模式：</span>
+
+          <!-- 绑定 radio 按钮 -->
+          <label> <input type="radio" v-model="importMode" value="1" /> 追加 </label>
+          <label> <input type="radio" v-model="importMode" value="0" /> 覆盖 </label>
+        </div>
+        <br/>
         <a-button @click="downloadExcel">
           <download-outlined />
-          第一步：下载模板
+          下载模板
         </a-button>
-        <br />
+        <br/>
         <br />
         <a-upload
           v-model:fileList="fileList"
@@ -185,252 +193,260 @@
         >
           <a-button>
             <upload-outlined />
-            第二步：选择文件
+            选择文件
           </a-button>
         </a-upload>
 
         <br />
         <a-button @click="onImportSalesOutbound">
           <ImportOutlined />
-          第三步：开始导入
+          开始导入
         </a-button>
+        <br />
+        <br/>
+
+        <a-button type="text" @click="downloadFailedData">下载失败数据</a-button>
       </div>
     </a-modal>
   </a-card>
 </template>
 <script setup>
-      import { reactive, ref, onMounted } from 'vue';
-      import { message, Modal } from 'ant-design-vue';
-      import { SmartLoading } from '/@/components/framework/smart-loading';
-      import { salesOutboundApi } from '/@/api/vigorous/sales-outbound-api';
-      import { PAGE_SIZE_OPTIONS } from '/@/constants/common-const';
-      import { smartSentry } from '/@/lib/smart-sentry';
-      import TableOperator from '/@/components/support/table-operator/index.vue';
-      import SalesOutboundForm from './sales-outbound-form.vue';
-      import {defaultTimeRanges} from "/@/lib/default-time-ranges.js";
-      import {TABLE_ID_CONST} from "/@/constants/support/table-id-const.js";
-      import DictSelect from "/@/components/support/dict-select/index.vue";
-      import SmartEnumSelect from "/@/components/framework/smart-enum-select/index.vue";
-      //import FilePreview from '/@/components/support/file-preview/index.vue'; // 图片预览组件
+  import { reactive, ref, onMounted } from 'vue';
+  import { message, Modal } from 'ant-design-vue';
+  import { SmartLoading } from '/@/components/framework/smart-loading';
+  import { salesOutboundApi } from '/@/api/vigorous/sales-outbound-api';
+  import { PAGE_SIZE_OPTIONS } from '/@/constants/common-const';
+  import { smartSentry } from '/@/lib/smart-sentry';
+  import TableOperator from '/@/components/support/table-operator/index.vue';
+  import SalesOutboundForm from './sales-outbound-form.vue';
+  import { defaultTimeRanges } from '/@/lib/default-time-ranges.js';
+  import { TABLE_ID_CONST } from '/@/constants/support/table-id-const.js';
+  import SmartEnumSelect from '/@/components/framework/smart-enum-select/index.vue';
+  import {excelApi} from "/@/api/vigorous/excel-api.js";
 
-      // ---------------------------- 表格列 ----------------------------
+  // ---------------------------- 表格列 ----------------------------
 
-      const columns = ref([
-          {
-              title: '单据编号',
-              dataIndex: 'billNo',
-          },
-          {
-              title: '出库日期',
-              dataIndex: 'salesBoundDate',
-          },
-          {
-              title: '客户名称',
-              dataIndex: 'customerName',
-              width: '200px',
-              ellipsis: true,
-          },
-          {
-              title: '销售员',
-              dataIndex: 'salespersonName',
-              ellipsis: true,
-          },
-          {
-              title: '金额',
-              dataIndex: 'amount',
-              ellipsis: true,
-          },
-        {
-          title: '首单日期',
-          dataIndex: 'firstOrderDate',
-          ellipsis: true,
-        },
-        {
-          title: '首单日期-调整后',
-          dataIndex: 'adjustedFirstOrderDate',
-          ellipsis: true,
-        },
-        {
-          title: '创建时间',
-          dataIndex: 'createTime',
-          ellipsis: true,
-        },
+  const columns = ref([
+    {
+      title: '单据编号',
+      dataIndex: 'billNo',
+    },
+    {
+      title: '出库日期',
+      dataIndex: 'salesBoundDate',
+    },
+    {
+      title: '客户名称',
+      dataIndex: 'customerName',
+      width: '200px',
+      ellipsis: true,
+    },
+    {
+      title: '销售员',
+      dataIndex: 'salespersonName',
+      ellipsis: true,
+    },
+    {
+      title: '金额',
+      dataIndex: 'amount',
+      ellipsis: true,
+    },
+    {
+      title: '首单日期',
+      dataIndex: 'firstOrderDate',
+      ellipsis: true,
+    },
+    {
+      title: '首单日期-调整后',
+      dataIndex: 'adjustedFirstOrderDate',
+      ellipsis: true,
+    },
+    {
+      title: '是否生成提成',
+      dataIndex: 'commissionFlag',
+      ellipsis: true,
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'createTime',
+      ellipsis: true,
+    },
 
-        {
-          title: '更新时间',
-          dataIndex: 'updateTime',
-          ellipsis: true,
-        },
-          {
-              title: '操作',
-              dataIndex: 'action',
-              fixed: 'right',
-              width: 90,
-          },
-      ]);
+    {
+      title: '更新时间',
+      dataIndex: 'updateTime',
+      ellipsis: true,
+    },
+    {
+      title: '操作',
+      dataIndex: 'action',
+      fixed: 'right',
+      width: 90,
+    },
+  ]);
 
-      // ---------------------------- 查询数据表单和方法 ----------------------------
+  // ---------------------------- 查询数据表单和方法 ----------------------------
 
-      const queryFormState = {
-          billNo: undefined, //单据编号
-          customerName: undefined, //客户编码
-          salespersonName: undefined, //业务员
-          salesBoundDateBegin: undefined, //出库日期 开始
-          salesBoundDateEnd: undefined, //出库日期 结束
-          salesBoundDate: undefined,
-          billStatus: undefined,
-          departmentName: "外贸部", // 部门名称
-          hasFirstOrder: undefined, // 是否存在首单日期
-          pageNum: 1,
-          pageSize: 10,
+  const queryFormState = {
+    billNo: undefined, //单据编号
+    customerName: undefined, //客户编码
+    salespersonName: undefined, //业务员
+    salesBoundDateBegin: undefined, //出库日期 开始
+    salesBoundDateEnd: undefined, //出库日期 结束
+    salesBoundDate: undefined,
+    billStatus: undefined,
+    departmentName: '外贸部', // 部门名称
+    hasFirstOrder: undefined, // 是否存在首单日期
+    pageNum: 1,
+    pageSize: 10,
+  };
+  // 查询表单form
+  const queryForm = reactive({ ...queryFormState });
+  // 表格加载loading
+  const tableLoading = ref(false);
+  // 表格数据
+  const tableData = ref([]);
+  // 总数
+  const total = ref(0);
+  //
+  const exportDisabled = ref(false);
+
+  // 重置查询条件
+  function resetQuery() {
+    let pageSize = queryForm.pageSize;
+    Object.assign(queryForm, queryFormState);
+    queryForm.pageSize = pageSize;
+    queryData();
+  }
+
+  // 搜索
+  function onSearch() {
+    queryForm.pageNum = 1;
+    queryData();
+  }
+
+  // 查询数据
+  async function queryData() {
+    tableLoading.value = true;
+    try {
+      let queryResult = await salesOutboundApi.queryPage(queryForm);
+      tableData.value = queryResult.data.list;
+      total.value = queryResult.data.total;
+    } catch (e) {
+      smartSentry.captureError(e);
+    } finally {
+      tableLoading.value = false;
+    }
+  }
+
+  onMounted(queryData);
+
+  // ---------------------------- 添加/修改 ----------------------------
+  const formRef = ref();
+
+  function showForm(data) {
+    formRef.value.show(data);
+  }
+
+  // ---------------------------- 单个删除 ----------------------------
+  //确认删除
+  function onDelete(data) {
+    Modal.confirm({
+      title: '提示',
+      content: '确定要删除选吗?',
+      okText: '删除',
+      okType: 'danger',
+      onOk() {
+        requestDelete(data);
+      },
+      cancelText: '取消',
+      onCancel() {},
+    });
+  }
+
+  //请求删除
+  async function requestDelete(data) {
+    SmartLoading.show();
+    try {
+      let deleteForm = {
+        goodsIdList: selectedRowKeyList.value,
       };
-      // 查询表单form
-      const queryForm = reactive({ ...queryFormState });
-      // 表格加载loading
-      const tableLoading = ref(false);
-      // 表格数据
-      const tableData = ref([]);
-      // 总数
-      const total = ref(0);
-      //
-      const exportDisabled = ref(false);
+      await salesOutboundApi.delete(data.salesBoundId);
+      message.success('删除成功');
+      queryData();
+    } catch (e) {
+      smartSentry.captureError(e);
+    } finally {
+      SmartLoading.hide();
+    }
+  }
 
-      // 重置查询条件
-      function resetQuery() {
-          let pageSize = queryForm.pageSize;
-          Object.assign(queryForm, queryFormState);
-          queryForm.pageSize = pageSize;
-          queryData();
-      }
+  // ---------------------------- 批量删除 ----------------------------
 
-      // 搜索
-      function onSearch(){
-        queryForm.pageNum = 1;
-        queryData();
-      }
+  // 选择表格行
+  const selectedRowKeyList = ref([]);
 
-      // 查询数据
-      async function queryData() {
-          tableLoading.value = true;
-          try {
-              let queryResult = await salesOutboundApi.queryPage(queryForm);
-              tableData.value = queryResult.data.list;
-              total.value = queryResult.data.total;
-          } catch (e) {
-              smartSentry.captureError(e);
-          } finally {
-              tableLoading.value = false;
-          }
-      }
+  function onSelectChange(selectedRowKeys) {
+    selectedRowKeyList.value = selectedRowKeys;
+  }
 
-      onMounted(queryData);
+  // 批量删除
+  function confirmBatchDelete() {
+    Modal.confirm({
+      title: '提示',
+      content: '确定要批量删除这些数据吗?',
+      okText: '删除',
+      okType: 'danger',
+      onOk() {
+        requestBatchDelete();
+      },
+      cancelText: '取消',
+      onCancel() {},
+    });
+  }
 
-      // ---------------------------- 添加/修改 ----------------------------
-      const formRef = ref();
+  // 批量更新 提成标识
+  function confirmBatchUpdate() {
+    Modal.confirm({
+      title: '提示',
+      content: '确定要调整这些数据吗?',
+      okText: '确定',
+      okType: 'danger',
+      onOk() {
+        requestBatchUpdate();
+      },
+      cancelText: '取消',
+      onCancel() {},
+    });
+  }
 
-      function showForm(data) {
-          formRef.value.show(data);
-      }
+  //请求批量删除
+  async function requestBatchDelete() {
+    try {
+      SmartLoading.show();
+      await salesOutboundApi.batchDelete(selectedRowKeyList.value);
+      message.success('删除成功');
+      queryData();
+    } catch (e) {
+      smartSentry.captureError(e);
+    } finally {
+      SmartLoading.hide();
+    }
+  }
 
-      // ---------------------------- 单个删除 ----------------------------
-      //确认删除
-      function onDelete(data){
-          Modal.confirm({
-              title: '提示',
-              content: '确定要删除选吗?',
-              okText: '删除',
-              okType: 'danger',
-              onOk() {
-                  requestDelete(data);
-              },
-              cancelText: '取消',
-              onCancel() {},
-          });
-      }
-
-      //请求删除
-      async function requestDelete(data){
-          SmartLoading.show();
-          try {
-              let deleteForm = {
-                  goodsIdList: selectedRowKeyList.value,
-              };
-              await salesOutboundApi.delete(data.salesBoundId);
-              message.success('删除成功');
-              queryData();
-          } catch (e) {
-              smartSentry.captureError(e);
-          } finally {
-              SmartLoading.hide();
-          }
-      }
-
-      // ---------------------------- 批量删除 ----------------------------
-
-      // 选择表格行
-      const selectedRowKeyList = ref([]);
-
-      function onSelectChange(selectedRowKeys) {
-          selectedRowKeyList.value = selectedRowKeys;
-      }
-
-      // 批量删除
-      function confirmBatchDelete() {
-          Modal.confirm({
-              title: '提示',
-              content: '确定要批量删除这些数据吗?',
-              okText: '删除',
-              okType: 'danger',
-              onOk() {
-                  requestBatchDelete();
-              },
-              cancelText: '取消',
-              onCancel() {},
-          });
-      }
-
-      // 批量更新 提成标识
-      function confirmBatchUpdate(){
-        Modal.confirm({
-          title: '提示',
-          content: '确定要调整这些数据吗?',
-          okText: '确定',
-          okType: 'danger',
-          onOk() {
-            requestBatchUpdate();
-          },
-          cancelText: '取消',
-          onCancel() {},
-        });
-      }
-
-      //请求批量删除
-      async function requestBatchDelete() {
-          try {
-              SmartLoading.show();
-              await salesOutboundApi.batchDelete(selectedRowKeyList.value);
-              message.success('删除成功');
-              queryData();
-          } catch (e) {
-              smartSentry.captureError(e);
-          } finally {
-              SmartLoading.hide();
-          }
-      }
-
-      //请求批量更新
-      async function requestBatchUpdate() {
-        try {
-          SmartLoading.show();
-          await salesOutboundApi.batchUpdate(selectedRowKeyList.value);
-          message.success('调整提成标识成功');
-          await queryData();
-        } catch (e) {
-          smartSentry.captureError(e);
-        } finally {
-          SmartLoading.hide();
-        }
-      }
+  //请求批量更新
+  async function requestBatchUpdate() {
+    try {
+      SmartLoading.show();
+      await salesOutboundApi.batchUpdate(selectedRowKeyList.value);
+      message.success('调整提成标识成功');
+      await queryData();
+    } catch (e) {
+      smartSentry.captureError(e);
+    } finally {
+      SmartLoading.hide();
+    }
+  }
 
   // ------------------------------- 导出和导入 ---------------------------------
   // 导入弹窗
@@ -448,17 +464,23 @@
   function hideImportModal() {
     importModalShowFlag.value = false;
   }
+
+  const importMode = ref(1);
+
   // 导入文件
   async function onImportSalesOutbound() {
     const formData = new FormData();
     fileList.value.forEach((file) => {
       formData.append('file', file.originFileObj);
+      formData.append('mode', importMode.value);
     });
 
     SmartLoading.show();
     try {
       let res = await salesOutboundApi.importSalesOutbound(formData);
-      message.success(res.msg)
+      failed_import_data.value = res.data;
+      console.log(res)
+      message.success(res.msg);
     } catch (e) {
       smartSentry.captureError(e);
     } finally {
@@ -468,32 +490,34 @@
 
   // 导出excel文件
   async function onExportSalesOutbound() {
-    exportDisabled.value = true;  // 禁用导出按钮
+    exportDisabled.value = true; // 禁用导出按钮
 
     try {
       // 等待导出 API 请求完成
-      await salesOutboundApi.exportSalesOutbound(queryForm)
+      await salesOutboundApi.exportSalesOutbound(queryForm);
 
       // 导出完成后恢复按钮可用状态
       exportDisabled.value = false;
     } catch (error) {
       // 错误处理，确保在失败时也恢复按钮状态
-      console.error("导出失败:", error);
-      exportDisabled.value = false;  // 即使请求失败，也要恢复按钮状态
+      console.error('导出失败:', error);
+      exportDisabled.value = false; // 即使请求失败，也要恢复按钮状态
     }
   }
 
-  const initDisabled = ref(false)
-  async function onExportCommission(){
-    initDisabled.value = true
+  const initDisabled = ref(false);
+
+  async function onExportCommission() {
+    initDisabled.value = true;
     try {
       const res = await salesOutboundApi.createCommission(queryForm);
-      console.log(res)
-      message.success(res.msg)
-      initDisabled.value = false
-    }catch (error){
-      console.log("错误:", error)
-      initDisabled.value = false
+      console.log(res);
+      message.success(res.msg);
+      initDisabled.value = false;
+      await queryData();
+    } catch (error) {
+      console.log('错误:', error);
+      initDisabled.value = false;
     }
   }
 
@@ -508,35 +532,49 @@
     fileList.value = [...(fileList.value || []), file];
     return false;
   }
+
   // 下载模板
-  function downloadExcel() {
+  function downloadExcel() {}
+
+  // ---------------------出库日期选择 事件--------------------------
+  function onChangeSalesBoundDate(dates, dateStrings) {
+    queryForm.salesBoundDateBegin = dateStrings[0];
+    queryForm.salesBoundDateEnd = dateStrings[1];
   }
 
-    // ---------------------出库日期选择 事件--------------------------
-      function onChangeSalesBoundDate(dates, dateStrings){
-        queryForm.salesBoundDateBegin = dateStrings[0]
-        queryForm.salesBoundDateEnd = dateStrings[1]
+  // 下载导入失败数据
+  const failed_import_data = ref();
+
+  function downloadFailedData() {
+    if (failed_import_data.value != null) {
+      try {
+        excelApi.downloadFailedImportData();
+      } catch (e) {
+        smartSentry.captureError(e);
       }
+    } else {
+      message.error('当前没有导入失败数据');
+    }
+  }
 </script>
 
 <style>
-/* 自定义正常状态下的背景色 */
-.custom-btn {
-  background-color: #2ad208;
-  border-color: #2ad208;
-}
-/* 鼠标悬停时的样式 */
-.custom-btn:hover {
-  background-color: #229a04!important; /* 修改为稍深的绿色 */
-  border-color: #229a04!important;
-}
+  /* 自定义正常状态下的背景色 */
+  .custom-btn {
+    background-color: #2ad208;
+    border-color: #2ad208;
+  }
 
-/* 自定义禁用状态下的背景色 */
-.custom-btn-disabled {
-  background-color: #cccccc;
-  border-color: #cccccc;
-  color: #666666;
-}
+  /* 鼠标悬停时的样式 */
+  .custom-btn:hover {
+    background-color: #229a04 !important; /* 修改为稍深的绿色 */
+    border-color: #229a04 !important;
+  }
 
-
+  /* 自定义禁用状态下的背景色 */
+  .custom-btn-disabled {
+    background-color: #cccccc;
+    border-color: #cccccc;
+    color: #666666;
+  }
 </style>

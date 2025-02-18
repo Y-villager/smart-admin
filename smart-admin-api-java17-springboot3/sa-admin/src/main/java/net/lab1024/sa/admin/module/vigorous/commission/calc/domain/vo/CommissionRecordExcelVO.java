@@ -28,7 +28,7 @@ public class CommissionRecordExcelVO {
     @ExcelProperty("业务金额")
     private BigDecimal salesAmount;
 
-    @ExcelProperty("币别")
+    @ExcelProperty("应收-币别")
     private String currencyType;
 
     @ExcelProperty("销售员")
@@ -56,7 +56,7 @@ public class CommissionRecordExcelVO {
     private BigDecimal managementCommissionAmount;
 
     @ExcelProperty("是否为转交客户")
-    private Integer isTransfer;
+    private Integer transferStatus;
 
     @ExcelProperty("业务日期")
     private LocalDate orderDate;

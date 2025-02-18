@@ -47,4 +47,11 @@ public interface ReceivablesDao extends BaseMapper<ReceivablesEntity> {
      * @return
      */
     int updateReceivablesByBillNo(@Param("list") List<ReceivablesEntity> entityList);
+
+    /**
+     * 批量更新
+     * @param entityList
+     * @return
+     */
+    int updateBatch(@Param("list") List<?> entityList);
 }

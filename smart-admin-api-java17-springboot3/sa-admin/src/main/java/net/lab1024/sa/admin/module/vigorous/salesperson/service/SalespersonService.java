@@ -192,8 +192,6 @@ public class SalespersonService {
         Long departmentId = departmentService.getDepartmentIdByName(form.getDepartmentName());
         if (departmentId == null) {
             log.warn("找不到部门: {}", form.getDepartmentName());
-//            form.setErrorMessage("找不到部门");
-//            failedDataList.add(form);
             return null;
         }
         entity.setDepartmentId(departmentId);

@@ -18,6 +18,8 @@ import java.time.LocalDate;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class ReceivablesQueryForm extends PageParam {
+    @Schema(description = "单据编号")
+    private String billNo;
 
     @Schema(description = "客户名称")
     private String customerName;

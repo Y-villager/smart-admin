@@ -46,8 +46,8 @@ export const salesOutboundApi = {
   },
 
     // 导入
-    importSalesOutbound : (file) =>{
-        return postRequest('/salesOutbound/import',file);
+    importSalesOutbound : (form) =>{
+        return postRequest('/salesOutbound/import', form);
     },
 
     // 导出

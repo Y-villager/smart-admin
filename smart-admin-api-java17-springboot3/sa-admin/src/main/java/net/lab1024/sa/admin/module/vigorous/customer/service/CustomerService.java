@@ -24,7 +24,6 @@ import net.lab1024.sa.base.common.exception.BusinessException;
 import net.lab1024.sa.base.common.util.SmartBeanUtil;
 import net.lab1024.sa.base.common.util.SmartEnumUtil;
 import net.lab1024.sa.base.common.util.SmartPageUtil;
-import net.lab1024.sa.base.common.util.SmartRequestUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.executor.BatchResult;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,10 +31,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -334,36 +330,6 @@ public class CustomerService {
                                 .build()
                 )
                 .collect(Collectors.toList());
-
-    }
-
-    /**
-     * 保存失败的数据到 Excel 文件
-     */
-    private File saveFailedDataToExcel(List<CustomerImportForm> failedDataList) {
-        Long userId = SmartRequestUtil.getRequestUserId();
-        // 构建文件保存路径
-        String userFolder = "D:\\Vigorous\\"+userId+"\\";  // 假设文件夹名称是“用户编码”，可以根据需要动态生成
-        File directory = new File(userFolder);
-
-        // 如果文件夹不存在，创建文件夹
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
-
-        // 构建文件路径
-        File file = new File(userFolder + "failed_import_data.xlsx");
-
-        // 使用 EasyExcel 保存失败的数据到 Excel 文件
-        try (OutputStream os = new FileOutputStream(file)) {
-            EasyExcel.write(os, CustomerImportForm.class)
-                    .sheet("失败记录")
-                    .doWrite(failedDataList);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return file;
     }
 
     /*

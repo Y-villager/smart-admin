@@ -25,6 +25,9 @@ public class CommissionRecordQueryForm extends PageParam {
     @Schema(description = "客户名称")
     private String customerName;
 
+    @Schema(description = "销售出库-单据编号")
+    private String salesBillNo;
+
     @Schema(description = "销售出库日期")
     private LocalDate orderDateBegin;
 

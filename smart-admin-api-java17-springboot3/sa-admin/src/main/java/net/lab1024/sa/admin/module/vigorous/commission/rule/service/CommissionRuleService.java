@@ -245,8 +245,7 @@ public class CommissionRuleService {
             threadPool.execute(new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    System.out.println("当前线程："+ Thread.currentThread().getName());
-                    //commissionRuleDao.updateCommissionRuleByBillNo(subList);
+//                    commissionRuleDao.updateCommissionRuleByBillNo(subList);
                     countDownLatch.countDown();
                 }
             }));

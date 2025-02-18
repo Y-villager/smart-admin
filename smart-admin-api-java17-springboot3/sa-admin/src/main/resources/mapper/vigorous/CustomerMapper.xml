@@ -46,7 +46,7 @@
                 <if test="item.salespersonId != null">
                     salesperson_id = #{item.salespersonId},
                 </if>
-                <if test="item.firstOrderDate != null">
+                <if test="item.firstOrderDate != '' ">
                     first_order_date = #{item.firstOrderDate},
                 </if>
                 <if test="item.transferStatus != null">

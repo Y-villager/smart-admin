@@ -31,6 +31,7 @@ public class SalesOutboundImportForm {
     @ExcelProperty("金额")
     private BigDecimal amount;
 
+    @ExcelProperty("报错信息")
     private String errorMsg;
 
 }

@@ -3,6 +3,7 @@ package net.lab1024.sa.admin.module.vigorous.sales.outbound.service;
 import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
+import net.lab1024.sa.admin.enumeration.CommissionFlagEnum;
 import net.lab1024.sa.admin.enumeration.CommissionTypeEnum;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.vo.CommissionRecordVO;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.service.CommissionRecordService;
@@ -17,6 +18,7 @@ import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutbou
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO;
 import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
 import net.lab1024.sa.admin.util.ExcelUtils;
+import net.lab1024.sa.admin.util.BatchUtils;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
 import net.lab1024.sa.base.common.domain.ValidateList;
@@ -65,10 +67,6 @@ public class SalesOutboundService {
     private CommissionRuleService commissionRuleService;
     @Autowired
     private CommissionRecordService commissionRecordService;
-
-
-
-
 
     /**
      * 分页查询
@@ -139,7 +137,7 @@ public class SalesOutboundService {
      * @param file 上传文件
      * @return 结果
      */
-    public ResponseDTO<String> importSalesOutbound(MultipartFile file) {
+    public ResponseDTO<String> importSalesOutbound(MultipartFile file, Boolean mode) {
         List<SalesOutboundImportForm> dataList;
         List<SalesOutboundImportForm> failedDataList = new ArrayList<>();
 
@@ -180,37 +178,62 @@ public class SalesOutboundService {
         // 批量查询客户
         Map<String, Long> customerMap = customerService.queryByCustomerNames(customerNames);
 
-        List<SalesOutboundEntity> entityList = dataList.parallelStream()
-                .map(form -> convertToEntity(form, salesOutboundMap, salespersonMap, customerMap, failedDataList))
-                .filter(Objects::nonNull)
-                .toList();
+        List<SalesOutboundEntity> entityList = new ArrayList<>();
+        for (SalesOutboundImportForm form : dataList) {
+            SalesOutboundEntity salesOutboundEntity = convertToEntity(form, salesOutboundMap, salespersonMap, customerMap, failedDataList, mode);
+            if (salesOutboundEntity != null) {
+                entityList.add(salesOutboundEntity);
+            }
+        }
+
 
         // 批量插入有效数据
-        List<BatchResult> insert = salesOutboundDao.insert(entityList);
+        int successTotal = 0;
+        if (mode) {  // 追加
+            // 批量插入操作
+            List<BatchResult> insert = salesOutboundDao.insert(entityList);
+            for (BatchResult batchResult : insert) {
+                successTotal += batchResult.getParameterObjects().size();
+            }
+        } else {  // 覆盖
+            // 执行批量更新操作
+            successTotal = BatchUtils.doThreadUpdate(entityList, salesOutboundDao);
+        }
 
+        String failedDataPath = null;
         if (!failedDataList.isEmpty()) {
             // 创建并保存失败的数据文件
-            String file1 = ExcelUtils.saveFailedDataToExcel(failedDataList, SalesOutboundImportForm.class);
+            failedDataPath = ExcelUtils.saveFailedDataToExcel(failedDataList, SalesOutboundImportForm.class);
         }
 
-        if (insert.isEmpty()){
-            return ResponseDTO.okMsg("全部导入失败");
+        if (successTotal==0){
+            return ResponseDTO.okMsg("全部导入失败", failedDataPath);
         }
-        return ResponseDTO.okMsg("总共"+dataList.size()+"条数据，成功导入" + insert.get(0).getParameterObjects().size() + "条，导入失败记录有："+failedDataList.size()+"条" );
+        return ResponseDTO.okMsg("总共"+dataList.size()+"条数据，成功导入" + successTotal + "条，导入失败记录有："+failedDataList.size()+"条", failedDataPath );
 
     }
     private SalesOutboundEntity convertToEntity(SalesOutboundImportForm form,
                                                 Map<String, Long> salesOutboundMap,
                                                 Map<String, Long> salespersonMap,
                                                 Map<String, Long> customerMap,
-                                                List<SalesOutboundImportForm> failedDataList) {
+                                                List<SalesOutboundImportForm> failedDataList,
+                                                Boolean mode) {
         SalesOutboundEntity entity = new SalesOutboundEntity();
 
+        // 根据 mode 的值简化条件判断，true为追加
         // 检查销售出库单据编号是否重复（批量查询，减少数据库查询次数）
-        if (salesOutboundMap.containsKey(form.getBillNo())) {
-            form.setErrorMsg("单据编号重复，不允许导入");
-            failedDataList.add(form);  // 保存失败的数据
-            return null;  // 只返回空的实体，标记失败
+        if (mode){
+            if (salesOutboundMap.containsKey(form.getBillNo())){
+                form.setErrorMsg("追加模式: 系统已存在该单据编号的记录");
+                failedDataList.add(form);
+                return null;
+            }
+        }else {
+            if (!salesOutboundMap.containsKey(form.getBillNo())){
+                form.setErrorMsg("覆盖模式：系统中不存在该单据编号的记录");
+                failedDataList.add(form);
+                return null;
+            }
         }
 
         // 根据名称获取业务员id（从缓存中查询）
@@ -244,6 +267,7 @@ public class SalesOutboundService {
         entity.setSalespersonId(salespersonId);
         entity.setAmount(form.getAmount());
         entity.setBillNo(form.getBillNo());
+        entity.setAmount(form.getAmount());
 
         // 如果所有字段都已正确设置，则返回转换后的实体
         return entity;
@@ -278,7 +302,7 @@ public class SalesOutboundService {
      * @return
      */
     public ResponseDTO<String> createCommission(SalesOutboundQueryForm queryForm) {
-        SalesOutboundExcludeForm excludeForm = new SalesOutboundExcludeForm("个人", 2);
+        SalesOutboundExcludeForm excludeForm = new SalesOutboundExcludeForm("个人", CommissionFlagEnum.CREATED.getValue());
 
         // 需要生成业绩提成 的列表
         List<SalesCommissionDto> list = salesOutboundDao.queryPageWithReceivables(null, queryForm, excludeForm);
@@ -307,6 +331,8 @@ public class SalesOutboundService {
 
         AtomicInteger noFirstCount = new AtomicInteger();
         AtomicInteger isGenerated = new AtomicInteger();
+        ConcurrentLinkedQueue<CommissionRecordVO> noReceivableList = new ConcurrentLinkedQueue<>();
+
         // 提交任务到线程池
         for (SalesCommissionDto salesCommission : list) {
             threadPoolExecutor.submit(() -> {
@@ -319,11 +345,13 @@ public class SalesOutboundService {
                     CommissionRecordVO recordVO = initCommissionRecordVO(salesCommission, business, management, hundred);
 
                     // 分类存储
-                    if (recordVO.getFirstOrderDate() == null) {
+                    if (recordVO.getFirstOrderDate() == null) { // 没有首单日期
                         noFirstCount.getAndIncrement();
-                    } else if (recordVO.getCommissionFlag() == 1) {
+                    } else if (recordVO.getCommissionFlag() == 1) {  // 已生成提成
                         isGenerated.getAndIncrement();
-                    } else {
+                    } else if (recordVO.getReceivableBillNo() == null){   // 缺少应收表数据
+                        noReceivableList.add(recordVO);
+                    }else {
                         commissionRecordVOList.add(recordVO); // 记录需要处理的列表
                     }
                 } finally {
@@ -351,7 +379,7 @@ public class SalesOutboundService {
             // 生成提成记录的成功信息
             res.append("成功生成: ").append(insert).append("条提成记录。");
         }else {
-            return ResponseDTO.okMsg("未有提成记录生成。");
+            return ResponseDTO.okMsg("创建或更新失败。");
         }
 
         // 判断并追加没有首单日期的记录信息
@@ -362,6 +390,9 @@ public class SalesOutboundService {
         // 判断并追加已创建记录的数量
         if (isGenerated.get() > 0) {
             res.append("生成失败：").append(isGenerated.get()).append("条记录已创建。");
+        }
+        if (!noReceivableList.isEmpty()) {
+            res.append("生成失败：").append(noReceivableList.size()).append("缺少应收表数据");
         }
 
         return ResponseDTO.okMsg(res.toString());
@@ -380,7 +411,8 @@ public class SalesOutboundService {
         recordVO.setCustomerId(salesOutbound.getCustomerId());  // 客户id
         recordVO.setSalesAmount(salesOutbound.getSalesAmount()); // 销售金额
         recordVO.setOrderDate(salesOutbound.getSalesBoundDate()); // 销售出库日期 / 业务日期
-        recordVO.setSalesBillNo(salesOutbound.getSalesBillNo()); // 销售-单据编号
+        recordVO.setSalesBillNo(salesOutbound.getSalesBillNo()); // 销售出库-单据编号
+        recordVO.setReceivableBillNo(salesOutbound.getReceiveBillNo()); // 应收售-提成标识
         recordVO.setFirstOrderDate(salesOutbound.getFirstOrderDate()); // 首单日期
         recordVO.setAdjustedFirstOrderDate(salesOutbound.getAdjustedFirstOrderDate()); // 调整后-首单日期
         recordVO.setCommissionFlag(salesOutbound.getCommissionFlag()); // 销售-提成标识
@@ -389,7 +421,7 @@ public class SalesOutboundService {
         Integer customerYear = null;
 
         // 没有首单日期
-        if (salesOutbound.getFirstOrderDate() == null || salesOutbound.getCommissionFlag() == 1) {
+        if (recordVO.getFirstOrderDate() == null || recordVO.getCommissionFlag() == 1 || recordVO.getReceivableBillNo()==null) {
             return recordVO;  // 如果 FirstOrderDate 为 null，直接返回 recordVO
         }
 

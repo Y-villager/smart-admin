@@ -37,7 +37,7 @@
           <a-input style="width: 100%" v-model:value="form.customerCategory" placeholder="客户类别" />
         </a-form-item>
         <a-form-item label="业务员"  name="salespersonName">
-          <a-input style="width: 100%" v-model:value="form.salespersonName" placeholder="业务员" />
+          <SalespersonSelect width="100%" v-model:value="form.salespersonId" placeholder=""/>
         </a-form-item>
 
     </a-form>
@@ -58,6 +58,7 @@
   import { customerApi } from '/@/api/vigorous/customer-api';
   import { smartSentry } from '/@/lib/smart-sentry';
   import SmartEnumSelect from '/@/components/framework/smart-enum-select/index.vue';
+  import SalespersonSelect from "/@/components/vigorous/salesperson-select/index.vue";
 
   // ------------------------ 数据 ------------------------
   const salespersons = []
@@ -97,12 +98,13 @@
   const formRef = ref();
 
   const formDefault = {
+      customerId: undefined,
       customerName: undefined, //客户名称
       shortName: undefined, //简称
       country: undefined, //国家
       customerGroup: undefined, //客户分组
       customerCategory: undefined, //客户类别
-      salespersonName: undefined, //业务员
+      salespersonId: undefined, //业务员
       customerCode: undefined, //客户编码
       firstOrderDate: undefined
   };

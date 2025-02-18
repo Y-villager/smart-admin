@@ -55,7 +55,7 @@ public class SalesOutboundEntity {
     /**
      * 提成标识
      */
-    private Integer is_commission_generated;
+    private Integer commissionFlag;
 
     /**
      * 创建时间

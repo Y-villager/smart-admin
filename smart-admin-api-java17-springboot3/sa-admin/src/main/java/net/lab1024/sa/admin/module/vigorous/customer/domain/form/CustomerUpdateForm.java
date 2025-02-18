@@ -43,7 +43,7 @@ public class CustomerUpdateForm {
 
     @Schema(description = "业务员编码", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "业务员编码 不能为空")
-    private String salespersonId;
+    private Long salespersonId;
 
     @Schema(description = "客户编码", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "客户编码 不能为空")

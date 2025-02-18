@@ -37,8 +37,11 @@ public class CommissionRecordVO {
 
     private String salespersonName;
 
-    @Schema(description = "销售出库单据编号")
+    @Schema(description = "销售出库-单据编号")
     private String salesBillNo;
+
+    @Schema(description = "应收单-单据编号")
+    private String receivableBillNo;
 
     @Schema(description = "客户id")
     private Long customerId;
@@ -56,9 +59,10 @@ public class CommissionRecordVO {
     private LocalDate orderDate;
 
     private String currencyType;
+    // 是否为转交客户
+    private Integer transferStatus;
 
-    private Integer isTransfer;
-
+    // 提成标识（）
     private Integer commissionFlag;
 
     @Schema(description = "客户合作年数")

@@ -9,6 +9,9 @@
     <!---------- 查询表单form begin ----------->
     <a-form class="smart-query-form">
         <a-row class="smart-query-form-row">
+          <a-form-item label="单据编号" class="smart-query-form-item">
+            <a-input style="width: 200px" v-model:value="queryForm.salesBillNo" placeholder="销售出库-单据编号" />
+          </a-form-item>
             <a-form-item label="业务员" class="smart-query-form-item">
                 <a-input style="width: 200px" v-model:value="queryForm.salespersonName" placeholder="业务员" />
             </a-form-item>
@@ -59,7 +62,7 @@
 <!--                导入-->
 <!--              </a-button>-->
 
-              <a-button @click="onExportCommissionRecord" type="primary" v-privilege="'commissionRecord:exportCommissionRecord'">
+              <a-button @click="onExportCommissionRecord" :loading="exportLoading" type="primary" v-privilege="'commissionRecord:exportCommissionRecord'">
                 <template #icon>
                   <ExportOutlined />
                 </template>
@@ -205,7 +208,7 @@
           width: '100px'
         },
         {
-          title: '币别',
+          title: '应收-币别',
           dataIndex: 'currencyType',
           ellipsis: true,
           width: '80px'
@@ -276,6 +279,7 @@
     // ---------------------------- 查询数据表单和方法 ----------------------------
 
     const queryFormState = {
+      salesBillNo: undefined,
         salespersonName: undefined, //业务员
         customerName: undefined, //客户名称
         orderDate: [], //销售出库日期
@@ -425,8 +429,11 @@ function hideImportModal() {
 }
 
 // 导出excel文件
+    const exportLoading = new ref(false);
 async function onExportCommissionRecord() {
+  exportLoading.value = true
   await commissionRecordApi.exportCommissionRecord(queryForm);
+  exportLoading.value = false;
 }
 
 function handleRemove(file) {

@@ -76,8 +76,8 @@ class SalesOutboundController {
     @Operation(summary = "导入")
     @PostMapping("/salesOutbound/import")
     @SaCheckPermission("salesOutbound:import")
-    public ResponseDTO<String> importSalesOutbound(@RequestParam MultipartFile file) {
-        return salesOutboundService.importSalesOutbound(file);
+    public ResponseDTO<String> importSalesOutbound(@RequestParam("file") MultipartFile file, @RequestParam("mode") Boolean mode) throws IOException {
+        return salesOutboundService.importSalesOutbound(file, mode);
     }
 
     @Operation(summary = "导出")

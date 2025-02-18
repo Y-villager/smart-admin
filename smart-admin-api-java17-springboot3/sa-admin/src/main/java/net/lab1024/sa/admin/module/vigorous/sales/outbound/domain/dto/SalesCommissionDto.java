@@ -25,7 +25,7 @@ public class SalesCommissionDto {
     private BigDecimal salesAmount;
 
     @Schema(description = "销售出库-单据编号")
-    private String receiveBillNO;
+    private String receiveBillNo;
 
     private String receiveRate;
 
@@ -33,7 +33,7 @@ public class SalesCommissionDto {
     private Integer customerGroup;
     private Integer transferStatus;
 
-    @Schema(description = "修改-首单日期")
+    @Schema(description = "调整后-首单日期")
     private LocalDate adjustedFirstOrderDate;
     private LocalDate firstOrderDate;
 
