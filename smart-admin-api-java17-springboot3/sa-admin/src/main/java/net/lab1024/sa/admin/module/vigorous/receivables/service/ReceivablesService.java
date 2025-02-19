@@ -3,7 +3,6 @@ package net.lab1024.sa.admin.module.vigorous.receivables.service;
 import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
-import net.lab1024.sa.admin.module.business.category.service.CategoryService;
 import net.lab1024.sa.admin.module.vigorous.customer.service.CustomerService;
 import net.lab1024.sa.admin.module.vigorous.receivables.dao.ReceivablesDao;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.entity.ReceivablesEntity;
@@ -25,11 +24,9 @@ import net.lab1024.sa.base.common.util.SmartPageUtil;
 import net.lab1024.sa.base.module.support.dict.service.DictService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.executor.BatchResult;
-import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -62,18 +59,13 @@ public class ReceivablesService {
     @Autowired
     private SalespersonService salespersonService;
     @Autowired
-    private CategoryService categoryService;
-    @Autowired
     private DictService dictService;
+
     @Autowired
-    private SqlSessionFactory sqlSessionFactory;
+    private BatchUtils batchUtils;
 
-    private final int BATCH_SIZE = 1000;
 
-    @Value("${file.excel.failed-import.failed-data-name}")
-    private String failedDataName;
-    @Value("${file.excel.failed-import.upload-path}")
-    private String uploadPath;
+
 
     /**
      * 分页查询
@@ -144,6 +136,7 @@ public class ReceivablesService {
      * @param file 上传文件
      * @return 结果
      */
+    @Transactional(rollbackFor = Exception.class)
     public ResponseDTO<String> importReceivables(MultipartFile file, Boolean mode) {
         List<ReceivablesImportForm> dataList;
         List<ReceivablesImportForm> failedDataList = Collections.synchronizedList(new ArrayList<>());
@@ -169,30 +162,24 @@ public class ReceivablesService {
 
         // true 为追加模式，false为按单据编号覆盖
         int successTotal = 0;
-        try {
-            if (mode) {  // 追加
-                // 批量插入操作
-                List<BatchResult> insert = receivablesDao.insert(entityList);
-                for (BatchResult batchResult : insert) {
-                    successTotal += batchResult.getParameterObjects().size();
-                }
-            } else {  // 覆盖
-                // 执行批量更新操作
-                successTotal = BatchUtils.doThreadUpdate(entityList, receivablesDao);
+        if (mode) {  // 追加
+            // 批量插入操作
+            List<BatchResult> insert = receivablesDao.insert(entityList);
+            for (BatchResult batchResult : insert) {
+                successTotal += batchResult.getParameterObjects().size();
             }
-        }
-        catch (DataAccessException e) {
-            // 捕获数据库访问异常
-            return ResponseDTO.error(SystemErrorCode.SYSTEM_ERROR, "数据库操作失败，更新或插入过程中出现异常："+e.getMessage());
-        } catch (Exception e) {
-            // 捕获其他异常
-            return ResponseDTO.error(SystemErrorCode.SYSTEM_ERROR, "发生未知错误："+e.getMessage());
+        } else {  // 覆盖
+            // 执行批量更新操作
+            successTotal = batchUtils.doThreadUpdate(entityList, receivablesDao);
+            if (successTotal != entityList.size()) {
+                return ResponseDTO.error(SystemErrorCode.SYSTEM_ERROR, "系统出错，请联系管理员。");
+            }
         }
 
         String failed_data_path=null;
         if (!failedDataList.isEmpty()) {
             // 创建并保存失败的数据文件
-            failed_data_path = ExcelUtils.saveFailedDataToExcel(failedDataList, ReceivablesImportForm.class, uploadPath,failedDataName );
+            failed_data_path = ExcelUtils.saveFailedDataToExcel(failedDataList, ReceivablesImportForm.class );
         }
 
         // 如果有失败的数据，导出失败记录到 Excel

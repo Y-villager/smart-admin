@@ -66,6 +66,8 @@ public class SalesOutboundService {
     private CommissionRuleService commissionRuleService;
     @Autowired
     private CommissionRecordService commissionRecordService;
+    @Autowired
+    private BatchUtils batchUtils;
 
     /**
      * 分页查询
@@ -196,7 +198,7 @@ public class SalesOutboundService {
             }
         } else {  // 覆盖
             // 执行批量更新操作
-            successTotal = BatchUtils.doThreadUpdate(entityList, salesOutboundDao);
+            successTotal = batchUtils.doThreadUpdate(entityList, salesOutboundDao);
         }
 
         String failedDataPath = null;
@@ -205,9 +207,6 @@ public class SalesOutboundService {
             failedDataPath = ExcelUtils.saveFailedDataToExcel(failedDataList, SalesOutboundImportForm.class);
         }
 
-        if (successTotal == 0) {
-            return ResponseDTO.okMsg("全部导入失败", failedDataPath);
-        }
         return ResponseDTO.okMsg("总共" + dataList.size() + "条数据，成功导入" + successTotal + "条，导入失败记录有：" + failedDataList.size() + "条", failedDataPath);
 
     }

@@ -60,7 +60,7 @@
         </foreach>
     </update>
 
-    <update id="updateBatch">
+    <update id="batchUpdate">
         <foreach collection="list" item="item" separator=";">
             UPDATE v_receivables
             SET

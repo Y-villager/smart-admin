@@ -1,5 +1,12 @@
 package net.lab1024.sa.admin.util;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,11 +16,15 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@Component
 public class BatchUtils {
     private static final Integer batchSize = 1000;
 
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+
     // 将列表分割成多个批次
-    private static List<List<?>> createBatches(List<?> list) {
+    private List<List<?>> createBatches(List<?> list) {
         List<List<?>> batches = new ArrayList<>();
         int totalSize = list.size();
         for (int i = 0; i < totalSize; i += batchSize) {
@@ -23,7 +34,7 @@ public class BatchUtils {
         return batches;
     }
 
-    public static int doThreadUpdate(List<?> entityList, Object dao) {
+    public int doThreadUpdate(List<?> entityList, Object dao) {
         AtomicInteger successTotal = new AtomicInteger(0);
 
         // 初始化线程池
@@ -38,6 +49,11 @@ public class BatchUtils {
         CountDownLatch countDownLatch = new CountDownLatch(splitList.size());
         for (List<?> subList : splitList) {
             threadPool.execute(new Thread(() -> {
+                // 为每个线程创建独立的事务
+                DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+                def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+                TransactionStatus status = transactionManager.getTransaction(def);
+
                 try {
                     // 使用反射调用 batchUpdate 方法
                     Method batchUpdateMethod = dao.getClass().getMethod("batchUpdate", List.class);
@@ -45,8 +61,12 @@ public class BatchUtils {
                     if (result instanceof Integer) {
                         successTotal.addAndGet((Integer) result * subList.size()); // Add the count of successful updates to the total
                     }
+                    // 提交事务
+                    transactionManager.commit(status);
                 } catch (Exception e) {
                     e.printStackTrace();
+                    // 回滚事务
+                    transactionManager.rollback(status);
                 } finally {
                     countDownLatch.countDown();
                 }
