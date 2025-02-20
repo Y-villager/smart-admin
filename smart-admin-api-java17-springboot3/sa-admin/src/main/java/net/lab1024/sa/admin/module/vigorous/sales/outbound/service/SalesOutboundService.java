@@ -304,13 +304,18 @@ public class SalesOutboundService {
         List<SalesCommissionDto> list = salesOutboundDao.queryByIdList(idList);
         ConcurrentLinkedQueue<CommissionRecordVO> errorList = new ConcurrentLinkedQueue<>();
         ConcurrentLinkedQueue<CommissionRecordVO> commissionRecordVOList = new ConcurrentLinkedQueue<>();
+
         for (SalesCommissionDto salesCommissionDto : list) {
             classifyData(salesCommissionDto, commissionRecordVOList, errorList);
         }
         List<CommissionRecordVO> insertList = List.copyOf(commissionRecordVOList);
+        //
         int inserted = commissionRecordService.batchInsertCommissionRecordAndUpdate(insertList);
         String message = getCreatedResult(list, errorList, inserted);
-        return ResponseDTO.ok(message);
+
+        String failedPath = ExcelUtils.saveFailedDataToExcel(List.copyOf(errorList), CommissionRecordExportForm.class );
+
+        return ResponseDTO.okMsg(message, failedPath);
     }
 
     /**
@@ -339,7 +344,6 @@ public class SalesOutboundService {
                 new ThreadPoolExecutor.CallerRunsPolicy()  // 当线程池饱和时，直接在主线程中执行任务
         );
 
-
         // 使用 CountDownLatch 来同步线程
         CountDownLatch latch = new CountDownLatch(list.size());
 
@@ -367,20 +371,17 @@ public class SalesOutboundService {
         threadPoolExecutor.shutdown();
 
         // 转换为不可变列表
-        List<CommissionRecordVO> finalCommissionList = List.copyOf(commissionRecordVOList);
-
-        int inserted = commissionRecordService.batchInsertCommissionRecordAndUpdate(finalCommissionList);
+        int inserted = commissionRecordService.batchInsertCommissionRecordAndUpdate(List.copyOf(commissionRecordVOList));
         String message = getCreatedResult(list, errorList, inserted);
 
-        if (inserted <= 0) {
-            return ResponseDTO.okMsg("创建或更新失败。");
-        }
+        String failedPath = ExcelUtils.saveFailedDataToExcel(List.copyOf(errorList), CommissionRecordExportForm.class );
 
-        return ResponseDTO.okMsg(message);
+
+        return ResponseDTO.okMsg(message, failedPath);
 
     }
 
-    private static @NotNull String getCreatedResult(List<SalesCommissionDto> list, ConcurrentLinkedQueue<CommissionRecordVO> errorList, int inserted) {
+    private static @NotNull String getCreatedResult(List<?> list, ConcurrentLinkedQueue<?> errorList, int inserted) {
         int totalRecords = list.size();
         int failedRecords = errorList.size();
         return String.format("%d条出库记录。成功生成: %d条。%d条记录生成失败。", totalRecords, inserted, failedRecords);
@@ -411,17 +412,16 @@ public class SalesOutboundService {
         BigDecimal hundred = BigDecimal.valueOf(100);
 
         // 设置基本信息
-        recordVO.setSalesOutboundId(salesOutbound.getSalesOutboundId());   // 销售出库id
-        recordVO.setSalesBillNo(salesOutbound.getSalesBillNo());   // 销售出库id
-        recordVO.setSalespersonId(salesOutbound.getSalespersonId());    // 业务员id
-        recordVO.setCustomerId(salesOutbound.getCustomerId());  // 客户id
         recordVO.setSalesAmount(salesOutbound.getSalesAmount()); // 销售金额
         recordVO.setOrderDate(salesOutbound.getSalesBoundDate()); // 销售出库日期 / 业务日期
         recordVO.setSalesBillNo(salesOutbound.getSalesBillNo()); // 销售出库-单据编号
-        recordVO.setReceivableBillNo(salesOutbound.getReceiveBillNo()); // 应收售-提成标识
+        recordVO.setReceiveBillNo(salesOutbound.getReceiveBillNo()); // 应收表-单据编号
         recordVO.setFirstOrderDate(salesOutbound.getFirstOrderDate()); // 首单日期
         recordVO.setAdjustedFirstOrderDate(salesOutbound.getAdjustedFirstOrderDate()); // 调整后-首单日期
         recordVO.setCommissionFlag(salesOutbound.getCommissionFlag()); // 销售-提成标识
+
+        recordVO.setSalespersonName(salesOutbound.getSalespersonName()); // 销售员
+        recordVO.setCustomerCode(salesOutbound.getCustomerCode()); // 客户编码
 
         // 客户年份
         Integer customerYear = null;
@@ -433,7 +433,7 @@ public class SalesOutboundService {
         } else if (recordVO.getCommissionFlag() == 1) {
             recordVO.setRemark("已生成提成记录，请勿重复生成。");
             return recordVO;
-        } else if (recordVO.getReceivableBillNo() == null) {
+        } else if (recordVO.getReceiveBillNo() == null) {
             recordVO.setRemark("缺少应收单-单据编号");
             return recordVO;
         }
@@ -531,7 +531,7 @@ public class SalesOutboundService {
         }
     }
 
-    public ResponseDTO<String> batchUpdateCommissionFlag(ValidateList<Long> idList) {
+    public ResponseDTO<String> batchUpdateCommissionFlag(Set<Long> idList) {
         if (CollectionUtils.isEmpty(idList)) {
             return ResponseDTO.ok();
         }

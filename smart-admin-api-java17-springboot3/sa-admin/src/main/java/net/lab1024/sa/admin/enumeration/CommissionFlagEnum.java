@@ -12,7 +12,7 @@ public enum CommissionFlagEnum implements BaseEnum{
 
     CREATED(1, "已生成"),
 
-    OVERRIDABLE(2, "可覆盖"),
+    OVERRIDABLE(2, "修改中"),
 
     ;
 

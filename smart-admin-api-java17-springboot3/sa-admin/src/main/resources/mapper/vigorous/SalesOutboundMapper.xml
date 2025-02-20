@@ -141,6 +141,9 @@
             <if test="queryForm.salesBoundDateEnd != null ">
                 AND DATE_FORMAT(v_sales_outbound.sales_bound_date, '%Y-%m-%d') &lt;= #{queryForm.salesBoundDateEnd}
             </if>
+            <if test="queryForm.commissionFlag != null ">
+                And v_sales_outbound.commission_flag = #{queryForm.commissionFlag}
+            </if>
             <choose>
                 <when test="queryForm.hasFirstOrder == 1">
                     AND vc.first_order_date IS NOT NULL
@@ -218,10 +221,12 @@
             vso.commission_flag,
             vc.adjusted_first_order_date,
             vc.customer_id,
+            vc.customer_code,
             vc.customer_group,
             vc.transfer_status,
             vc.first_order_date,
             vs.id AS salesperson_id,
+            vs.salesperson_name,
             vs.salesperson_level_id,
             vsl.commission_rate as level_rate,
             pvs.id AS p_salesperson_id,
@@ -232,7 +237,7 @@
         FROM
             v_sales_outbound vso
             left JOIN v_receivables vr ON vso.bill_no = vr.origin_bill_no
-            inner JOIN v_customer vc ON vc.customer_id = vso.customer_id
+            left JOIN v_customer vc ON vc.customer_id = vso.customer_id
             left JOIN v_salesperson vs ON vs.id = vso.salesperson_id
             left JOIN v_salesperson_level vsl ON vs.salesperson_level_id = vsl.salesperson_level_id
             left JOIN v_salesperson pvs ON vs.parent_id = pvs.id
@@ -241,9 +246,6 @@
                 inner JOIN t_department d ON d.department_id = vs.department_id
             </if>
         <where>
-            <if test="queryForm.salesOutboundId != null">
-                AND INSTR(vc.sales_bound_id,#{queryForm.salesOutboundId})
-            </if>
             <!--客户编码-->
             <if test="queryForm.customerName != null">
                 AND INSTR(vc.customer_name,#{queryForm.customerName})

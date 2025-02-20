@@ -1,9 +1,10 @@
 package net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.math.BigDecimal;
-import javax.validation.constraints.NotNull;
 import lombok.Data;
+
+import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
 
 /**
  * 业务提成记录 新建表单
@@ -29,7 +30,7 @@ public class CommissionRecordAddForm {
     private Integer commissionType;
 
     @Schema(description = "提成金额")
-    private BigDecimal amout;
+    private BigDecimal amount;
 
     @Schema(description = "销售出库id", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "销售出库id 不能为空")

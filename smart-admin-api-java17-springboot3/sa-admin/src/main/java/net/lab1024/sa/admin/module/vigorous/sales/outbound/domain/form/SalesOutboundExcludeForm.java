@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SalesOutboundExcludeForm {
-    @Schema(description = "顾客们")
+    @Schema(description = "顾客")
     private String customerName;
 
     @Schema(description = "提成标识")

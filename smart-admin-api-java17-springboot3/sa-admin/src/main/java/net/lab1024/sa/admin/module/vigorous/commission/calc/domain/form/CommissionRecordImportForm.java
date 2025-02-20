@@ -36,7 +36,7 @@ public class CommissionRecordImportForm {
     private Integer firstOrderDate;
 
     @ExcelProperty("客户合作年份")
-    private Integer customerYear ;
+    private Integer customerYear;
 
     @ExcelProperty("业务提成系数(%)")
     private BigDecimal businessCommissionRate;

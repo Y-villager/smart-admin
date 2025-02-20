@@ -25,6 +25,7 @@ import {SALESPERSON_LEVEL_ENUM} from "/@/constants/vigorous/commission-rule-cons
 import customerConst from "/@/constants/vigorous/customer-const.js";
 import commissionConst from "/@/constants/vigorous/commission-const.js";
 import commonConst from "/@/constants/system/common-const.js";
+import salesOutboundConst from "/@/constants/vigorous/sales-outbound-const.js";
 
 export default {
   FLAG_NUMBER_ENUM,
@@ -46,5 +47,6 @@ export default {
   ...jobConst,
   ...customerConst,
   ...commissionConst,
-  ...commonConst
+  ...commonConst,
+  ...salesOutboundConst,
 };

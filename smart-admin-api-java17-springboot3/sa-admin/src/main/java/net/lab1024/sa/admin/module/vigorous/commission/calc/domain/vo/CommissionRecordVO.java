@@ -25,11 +25,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class CommissionRecordVO {
 
-
     @Schema(description = "提成id")
     private Long commissionId;
 
-    @Schema(description = "销售出库id")
     private Long salesOutboundId;
 
     @Schema(description = "业务员id")
@@ -41,10 +39,12 @@ public class CommissionRecordVO {
     private String salesBillNo;
 
     @Schema(description = "应收单-单据编号")
-    private String receivableBillNo;
+    private String receiveBillNo;
 
     @Schema(description = "客户id")
     private Long customerId;
+
+    private String customerCode;
 
     private String customerName;
 

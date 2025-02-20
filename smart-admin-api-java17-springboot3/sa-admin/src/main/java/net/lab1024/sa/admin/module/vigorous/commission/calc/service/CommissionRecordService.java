@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -204,16 +205,6 @@ public class CommissionRecordService {
                                                    boolean mode) {
         CommissionRecordEntity entity = new CommissionRecordEntity();
 
-
-  //      entity.setcommissionId(form.getcommissionId());
-  //      entity.setsalespersonId(form.getsalespersonId());
-  //      entity.setcustomerId(form.getcustomerId());
-  //      entity.setcommissionType(form.getcommissionType());
-  //      entity.setamout(form.getamout());
-  //      entity.setsalesOutboundId(form.getsalesOutboundId());
-  //      entity.setcreateTime(form.getcreateTime());
-  //      entity.setremark(form.getremark());
-
         return entity;
     }
 
@@ -221,7 +212,6 @@ public class CommissionRecordService {
      * 导出
      */
     public List<CommissionRecordExcelVO> exportCommissionRecord(CommissionRecordQueryForm queryForm) {
-        //List<CommissionRecordVO> entityList = commissionRecordDao.selectList(null);
         List<CommissionRecordVO> entityList = commissionRecordDao.queryPage(null, queryForm);
         return entityList.stream()
                 .map(e ->
@@ -242,8 +232,6 @@ public class CommissionRecordService {
                                 .build()
                 )
                 .collect(Collectors.toList());
-//        return null;
-
     }
 
     private int doThreadUpdate(List<CommissionRecordEntity> entityList) {
@@ -260,8 +248,6 @@ public class CommissionRecordService {
             threadPool.execute(new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    System.out.println("当前线程："+ Thread.currentThread().getName());
-//                    commissionRecordDao.updateCommissionRecordByBillNo(subList);
                     countDownLatch.countDown();
                 }
             }));
@@ -298,19 +284,15 @@ public class CommissionRecordService {
         // 并行处理每个批次的插入操作
         AtomicInteger count = new AtomicInteger();
         for (List<CommissionRecordVO> batch : batches) {
-            futures.add(threadPool.submit(() -> {
-                return transactionTemplate.execute(status -> {
-                    int insert = commissionRecordDao.batchInsertOrUpdate(batch);
-                    count.incrementAndGet();
-                    List<Long> salesOutboundIds = batch.stream().map(CommissionRecordVO::getSalesOutboundId)
-                            .toList();
-                    int update = salesOutboundDao.batchUpdateCommissionFlag(salesOutboundIds, CommissionFlagEnum.CREATED.getValue());
-                    if (update != insert ){
-                        throw new RuntimeException("插入和更新不一致");
-                    }
-                    return insert * batch.size();
-                });
-            }));
+            futures.add(threadPool.submit(() -> transactionTemplate.execute(status -> {
+                int insert = commissionRecordDao.batchInsertOrUpdate(batch);
+                Set<Long> salesBillIds = batch.stream().map(CommissionRecordVO::getSalesOutboundId)
+                        .collect(Collectors.toSet());
+                // 批量更新 提成标识
+                int update = salesOutboundDao.batchUpdateCommissionFlag(salesBillIds, CommissionFlagEnum.CREATED.getValue());
+                count.addAndGet(insert);
+                return insert;
+            })));
         }
 
         // 等待所有线程完成

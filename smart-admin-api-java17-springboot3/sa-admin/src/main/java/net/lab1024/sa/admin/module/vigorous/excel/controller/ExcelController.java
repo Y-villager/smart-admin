@@ -12,6 +12,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,10 +31,29 @@ public class ExcelController {
     @Value("${file.excel.failed-import.failed-data-name}")
     private String failedDataName;
 
+    private String filepath;
+
     @GetMapping("/download_failed_data")
     public void downloadFailedImport(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String filePath = uploadPath+ SmartRequestUtil.getRequestUserId() + "/" + failedDataName;
         ResponseDTO<FileDownloadVO> downloadRes = download(filePath);
+        if (downloadRes.getOk()) {
+            downloadRes.getData().getMetadata().setFileName(failedDataName);
+        }
+        if (!downloadRes.getOk()) {
+            SmartResponseUtil.write(response, downloadRes);
+        }
+        FileDownloadVO fileDownloadVO = downloadRes.getData();
+        SmartResponseUtil.setDownloadFileHeader(response, failedDataName, fileDownloadVO.getMetadata().getFileSize());
+        response.getOutputStream().write(fileDownloadVO.getData());
+    }
+
+    @GetMapping("/downloadExcel/{path}")
+    public void downloadExcel(HttpServletRequest request, HttpServletResponse response, @PathVariable("path") String filepath) throws IOException {
+        if (filepath == null || filepath.isEmpty()) {
+            return;
+        }
+        ResponseDTO<FileDownloadVO> downloadRes = download(filepath);
         if (downloadRes.getOk()) {
             downloadRes.getData().getMetadata().setFileName(failedDataName);
         }

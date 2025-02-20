@@ -6,7 +6,7 @@
     <sql id="base_columns">
         v_commission_record.commission_id,
         v_commission_record.sales_bill_no,
-        v_commission_record.sales_outbound_id,
+        v_commission_record.receive_bill_no,
         v_commission_record.salesperson_id,
         v_commission_record.customer_id,
         v_commission_record.sales_amount,
@@ -24,7 +24,7 @@
 
     <sql id="insert_columns">
         v_commission_record.sales_bill_no,
-        v_commission_record.sales_outbound_id,
+        v_commission_record.receive_bill_no,
         v_commission_record.salesperson_id,
         v_commission_record.customer_id,
         v_commission_record.sales_amount,
@@ -36,9 +36,10 @@
         v_commission_record.management_commission_rate,
         v_commission_record.management_commission_amount
     </sql>
+
     <sql id="insert_item">
         #{item.salesBillNo},
-        #{item.salesOutboundId},
+        #{item.receiveBillNo},
         #{item.salespersonId},
         #{item.customerId},
         #{item.salesAmount},
@@ -58,7 +59,8 @@
             (<include refid="insert_item"/>)
         </foreach>
         ON DUPLICATE KEY UPDATE
-            sales_outbound_id = VALUES(sales_outbound_id),
+            sales_bill_no = VALUES(sales_bill_no),
+            receive_bill_no = VALUES(receive_bill_no),
             salesperson_id = VALUES(salesperson_id),
             customer_id = VALUES(customer_id),
             sales_amount = VALUES(sales_amount),
@@ -87,7 +89,7 @@
         FROM v_commission_record
             left join v_customer vc on v_commission_record.customer_id = vc.customer_id
             left join v_salesperson vs on v_commission_record.salesperson_id = vs.id
-            left join v_sales_outbound vso on v_commission_record.sales_outbound_id = vso.sales_bound_id
+            left join v_sales_outbound vso on v_commission_record.sales_bill_no = vso.bill_no
             left join v_receivables vr on v_commission_record.sales_bill_no = vr.origin_bill_no
         <where>
             <!--业务员-->

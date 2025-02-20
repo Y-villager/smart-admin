@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class SalesCommissionDto {
 
-    private Long SalesOutboundId;
+    private Long salesOutboundId;
 
     @Schema(description = "销售出库-单据编号")
     private String salesBillNo;
@@ -29,7 +29,9 @@ public class SalesCommissionDto {
 
     private String receiveRate;
 
+    @Schema(description = "客户id")
     private Long customerId;
+    private String customerCode;
     private Integer customerGroup;
     private Integer transferStatus;
 
@@ -37,7 +39,9 @@ public class SalesCommissionDto {
     private LocalDate adjustedFirstOrderDate;
     private LocalDate firstOrderDate;
 
+    @Schema(description = "业务员id")
     private Long salespersonId;
+    private String salespersonName;
     private Integer salespersonLevelId;
     private BigDecimal levelRate;
 

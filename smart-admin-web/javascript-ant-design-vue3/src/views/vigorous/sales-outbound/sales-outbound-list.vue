@@ -27,6 +27,9 @@
       <a-form-item label="是否存在首单" class="smart-query-form-item">
         <SmartEnumSelect enum-name="SYSTEM_YES_NO" placeholder="是否存在首单" v-model:value="queryForm.hasFirstOrder" width="160px" />
       </a-form-item>
+      <a-form-item label="提成状态" class="smart-query-form-item">
+        <SmartEnumSelect enum-name="COMMISSION_FLAG_ENUM" placeholder="提成状态" v-model:value="queryForm.commissionFlag" width="160px" />
+      </a-form-item>
       <a-form-item class="smart-query-form-item">
         <a-button type="primary" @click="onSearch">
           <template #icon>
@@ -51,7 +54,7 @@
     </a-row>
     <!--  多次生成情况   -->
     <a-row class="smart-query-form-row" v-show="moreCreateCondition">
-      <a-form-item label="生成提成" class="smart-query-form-item">
+      <a-form-item label="生成提成方式" class="smart-query-form-item">
         <a-button  @click="onExportSelectedCommission"
                    type="primary"
                    :disabled="selectedRowKeyList.length === 0"
@@ -68,7 +71,7 @@
           </template>
           生成全部
         </a-button>
-        <a-button  @click="downloadFailedCommission" type="link" v-show="failedCommissionPath===null">
+        <a-button  @click="downloadFailedCommission" type="link" v-show="failedCommissionPath!==undefined && failedCommissionPath!==null">
           下载生成失败数据
         </a-button>
       </a-form-item>
@@ -321,6 +324,7 @@
     billStatus: undefined,
     departmentName: '外贸部', // 部门名称
     hasFirstOrder: undefined, // 是否存在首单日期
+    commissionFlag: undefined,
     pageNum: 1,
     pageSize: 10,
   };
@@ -334,6 +338,10 @@
   const total = ref(0);
   //
   const exportDisabled = ref(false);
+  // 生成提成情况
+  const moreCreateCondition = ref(true);
+  // 生成提成失败路径
+  const failedCommissionPath = ref();
 
   // 重置查询条件
   function resetQuery() {
@@ -532,7 +540,9 @@
   // 生成选中部分的提成
   async function onExportSelectedCommission(){
     try{
+      failedCommissionPath.value = undefined
       let res = await salesOutboundApi.createSelectedCommission(selectedRowKeyList.value);
+      failedCommissionPath.value = res.data
       message.success(res.data)
     }catch (error){
       console.log("错误：", error)
@@ -543,6 +553,7 @@
   async function onExportAllCommission() {
     initDisabled.value = true;
     try {
+      failedCommissionPath.value = undefined
       let res = await salesOutboundApi.createAllCommission(queryForm);
       failedCommissionPath.value = res.data
       initDisabled.value = false;
@@ -589,12 +600,17 @@
     }
   }
 
-  // 生成提成情况
-  const moreCreateCondition = ref(true);
-  // 生成提成失败路径
-  const failedCommissionPath = ref();
-  function downloadFailedCommission(){
 
+  function downloadFailedCommission(){
+    try {
+      const path = failedCommissionPath.value;
+      if (path !== undefined && path != null){
+        console.log(path)
+        excelApi.downloadFailedImportData(path);
+      }
+    } catch (e) {
+      smartSentry.captureError(e);
+    }
   }
 
 </script>

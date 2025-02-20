@@ -53,6 +53,9 @@ public class ExcelUtils {
     }
 
     public static String saveFailedDataToExcel(List<?> failedDataList, Class<?> tClass) {
+        if (failedDataList == null || failedDataList.isEmpty()) {
+            return null;
+        }
         Long userId = SmartRequestUtil.getRequestUserId();
         // 构建文件保存路径
         String userFolder = filePath + userId + "\\";

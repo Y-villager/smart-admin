@@ -20,7 +20,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 销售出库 Controller
@@ -85,11 +87,11 @@ class SalesOutboundController {
     @SaCheckPermission("salesOutbound:export")
     public void exportSalesOutbound(HttpServletResponse response, @RequestBody @Valid SalesOutboundQueryForm queryForm) throws IOException {
         List<SalesOutboundExcelVO> list = salesOutboundService.getExportList(queryForm);
-        SmartExcelUtil.exportExcel(response,"销售出库.xlsx","销售出库",SalesOutboundExcelVO.class, list);
+        SmartExcelUtil.exportExcel(response,"销售出库.xlsx","销售出库", SalesOutboundExcelVO.class, list);
     }
 
     @Operation(summary = "生成所有业绩提成")
-    @PostMapping("/salesOutbound/createALlCommission")
+    @PostMapping("/salesOutbound/createAllCommission")
     public ResponseDTO<String>  exportAllCommission(HttpServletResponse response, @RequestBody @Valid SalesOutboundQueryForm queryForm) throws IOException {
         return salesOutboundService.createCommission(queryForm);
     }
@@ -103,7 +105,9 @@ class SalesOutboundController {
     @Operation(summary = "调整生成标识-可覆盖")
     @PostMapping("/salesOutbound/batchUpdateCommissionFlag")
     public ResponseDTO<String>  batchUpdateCommissionFlag(@RequestBody ValidateList<Long> idList) throws IOException {
-        return salesOutboundService.batchUpdateCommissionFlag(idList);
+        // 转换为 Set<Long>
+        Set<Long> idSet = new HashSet<>(idList);
+        return salesOutboundService.batchUpdateCommissionFlag(idSet);
     }
 
 }
