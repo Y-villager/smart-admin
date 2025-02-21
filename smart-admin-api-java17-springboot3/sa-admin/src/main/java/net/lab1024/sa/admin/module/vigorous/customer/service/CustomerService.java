@@ -12,33 +12,29 @@ import net.lab1024.sa.admin.module.vigorous.customer.domain.form.CustomerAddForm
 import net.lab1024.sa.admin.module.vigorous.customer.domain.form.CustomerImportForm;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.form.CustomerQueryForm;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.form.CustomerUpdateForm;
-import net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerExcelVO;
+import net.lab1024.sa.admin.module.vigorous.customer.domain.form.CustomerExportForm;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerVO;
 import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
+import net.lab1024.sa.admin.util.BatchUtils;
 import net.lab1024.sa.admin.util.ExcelUtils;
-import net.lab1024.sa.admin.util.SplitListUtils;
-import net.lab1024.sa.base.common.code.SystemErrorCode;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
 import net.lab1024.sa.base.common.exception.BusinessException;
 import net.lab1024.sa.base.common.util.SmartBeanUtil;
 import net.lab1024.sa.base.common.util.SmartEnumUtil;
 import net.lab1024.sa.base.common.util.SmartPageUtil;
+import net.lab1024.sa.base.module.support.dict.service.DictService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.executor.BatchResult;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -56,6 +52,10 @@ public class CustomerService {
     private CustomerDao customerDao;
     @Autowired
     private SalespersonService salespersonService;
+    @Autowired
+    private BatchUtils batchUtils;
+    @Autowired
+    private DictService dictService;
 
     /**
      * 分页查询
@@ -146,30 +146,21 @@ public class CustomerService {
 
         // true 为追加模式，false为按单据编号覆盖
         int successTotal = 0;
-        try {
-            if (mode) {  // 追加
-                // 批量插入操作
-                List<BatchResult> insert = customerDao.insert(entityList);
-                for (BatchResult batchResult : insert) {
-                    successTotal += batchResult.getParameterObjects().size();
-                }
-            } else {  // 覆盖
-                // 执行批量更新操作
-                successTotal = doThreadUpdate(entityList);
+        if (mode) {  // 追加
+            // 批量插入操作
+            List<BatchResult> insert = customerDao.insert(entityList);
+            for (BatchResult batchResult : insert) {
+                successTotal += batchResult.getParameterObjects().size();
             }
-        }
-        catch (DataAccessException e) {
-            // 捕获数据库访问异常
-            return ResponseDTO.error(SystemErrorCode.SYSTEM_ERROR, "数据库操作失败，更新或插入过程中出现异常："+e.getMessage());
-        } catch (Exception e) {
-            // 捕获其他异常
-            return ResponseDTO.error(SystemErrorCode.SYSTEM_ERROR, "发生未知错误："+e.getMessage());
+        } else {  // 覆盖
+            // 执行批量更新操作
+            successTotal = batchUtils.doThreadUpdate(entityList, customerDao);
         }
 
         String failed_data_path=null;
         if (!failedDataList.isEmpty()) {
             // 创建并保存失败的数据文件
-            failed_data_path = ExcelUtils.saveFailedDataToExcel(failedDataList, CustomerImportForm.class );
+            failed_data_path = ExcelUtils.saveFailedDataToExcel(failedDataList, CustomerExportForm.class );
         }
 
         // 如果有失败的数据，导出失败记录到 Excel
@@ -178,40 +169,13 @@ public class CustomerService {
     }
 
 
-    private int doThreadUpdate(List<CustomerEntity> entityList) {
-        List<CustomerEntity> updateList = new ArrayList<>();
-        // 初始化线程池
-        ThreadPoolExecutor threadPool = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), 50,
-                4, TimeUnit.SECONDS, new ArrayBlockingQueue<>(10),
-                new ThreadPoolExecutor.CallerRunsPolicy());
-        // 将大集合拆分成N个小集合，使用多线程操作数据
-        List<List<CustomerEntity>> splitList = SplitListUtils.splitList(entityList, 1000);
-        // 记录单个任务的执行次数
-        CountDownLatch countDownLatch = new CountDownLatch(splitList.size());
-        for (List<CustomerEntity> subList : splitList) {
-            threadPool.execute(new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    customerDao.batchUpdate(subList);
-                    countDownLatch.countDown();
-                }
-            }));
-        }
-        try {
-            // 让当前线程处于阻塞状态，知道锁存器计数为零
-            countDownLatch.await();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        return 0;
-    }
-
-
-
     // 生成导入列表
     private List<CustomerEntity> createImportList(List<CustomerImportForm> dataList,
                                                      List<CustomerImportForm> failedDataList,
                                                      boolean mode) {
+        List<CustomerEntity> entityList = new ArrayList<>();
+
+
         Set<String> salespersonNames = new HashSet<>();
         Set<String> customerCodes = new HashSet<>();
 
@@ -226,21 +190,26 @@ public class CustomerService {
                 .stream().filter(Objects::nonNull)
                 .collect(Collectors.toMap(CustomerVO::getCustomerCode, CustomerVO::getCustomerId));
 
-
         // 业务员映射
         Map<String, Long> salespersonMap = salespersonService.getSalespersonsByNames(salespersonNames);
+        Map<String, String> currencyMap = dictService.keyQuery("CURRENCY_TYPE");
 
-        return dataList.parallelStream()
-                .map(form -> convertToEntity(form,keyMap, salespersonMap, failedDataList, mode))
-                .filter(Objects::nonNull)
-                .toList();
 
+        for (CustomerImportForm form : dataList) {
+            CustomerEntity customerEntity = convertToEntity(form, keyMap, salespersonMap,currencyMap, failedDataList, mode);
+            if (customerEntity != null){
+                entityList.add(customerEntity);
+            }
+
+        }
+        return entityList;
     }
 
     // 将 CustomerImportForm 转换为 CustomerEntity
     private CustomerEntity convertToEntity(CustomerImportForm form,
                                            Map<String, Long> keyMap,
                                            Map<String, Long> salespersonMap,
+                                           Map<String, String> currencyMap,
                                            List<CustomerImportForm> failedDataList,
                                            Boolean mode) {
         CustomerEntity entity = new CustomerEntity();
@@ -266,26 +235,40 @@ public class CustomerService {
 
         if (!salespersonMap.containsKey(form.getSalespersonName())){
             form.setErrorMsg("没有该业务员");
+            failedDataList.add(form);
+            return null;
+        }
+
+        // 获取编码
+        String currencyType = currencyMap.get(form.getCurrencyType());
+        if (currencyType == null){
+            form.setErrorMsg("币别系统不存在："+form.getCurrencyType());
+            failedDataList.add(form);
             return null;
         }
 
         // 选择适当的日期格式
         String orderDate = form.getOrderDate();
         DateTimeFormatter fmt = null;
-        if (orderDate!=null){
+        if (orderDate != null) {
             if (orderDate.contains("-")) {
                 fmt = DateTimeFormatter.ofPattern("yyyy-M-d");
             } else if (orderDate.contains("/")) {
                 fmt = DateTimeFormatter.ofPattern("yyyy/M/d");
             }
-
-            // 如果找到了格式，进行解析
             if (fmt != null) {
-                LocalDate date = LocalDate.parse(orderDate, fmt);
-                entity.setFirstOrderDate(date);
+                try {
+                    LocalDate date = LocalDate.parse(orderDate, fmt);
+                    entity.setFirstOrderDate(date);
+                } catch (DateTimeParseException e) {
+                    form.setErrorMsg("首单日期格式不符合");
+                    failedDataList.add(form);
+                    return null;
+                }
             } else {
-                // 处理没有匹配到格式的情况，可以抛出异常或进行默认处理
-                throw new IllegalArgumentException("Invalid order date format: " + orderDate);
+                form.setErrorMsg("首单日期格式不符合");
+                failedDataList.add(form);
+                return null;
             }
         }
 
@@ -294,6 +277,7 @@ public class CustomerService {
         entity.setCountry(form.getCountry());   // 国家
         entity.setCustomerCode(form.getCustomerCode()); // 客户编码
         entity.setCustomerGroup(form.getCustomerGroup());   // 客户分组
+        entity.setCurrencyType(currencyType); // 结算币别
         entity.setTransferStatus(form.getTransferStatus()); // 转交状态
         entity.setSalespersonId(salespersonMap.get(form.getSalespersonName())); // 业务员id
 
@@ -304,7 +288,7 @@ public class CustomerService {
      * 导出
      * 需要修改
      */
-    public List<CustomerExcelVO> exportCustomers(CustomerQueryForm queryForm) {
+    public List<CustomerExportForm> exportCustomers(CustomerQueryForm queryForm) {
 //        List<CustomerEntity> entityList = customerDao.selectList(null);
         List<CustomerVO> entityList = customerDao.queryPage(null,queryForm);
 
@@ -317,7 +301,7 @@ public class CustomerService {
 
         return entityList.stream()
                 .map(e ->
-                        CustomerExcelVO.builder()
+                        CustomerExportForm.builder()
                                 .customerCode(e.getCustomerCode())
                                 .customerName(e.getCustomerName())
                                 .shortName(e.getShortName())
@@ -325,6 +309,7 @@ public class CustomerService {
                                 .country(e.getCountry())
                                 .country(e.getCountry())
                                 .customerGroup(SmartEnumUtil.getEnumDescByValue(e.getCustomerGroup(), CustomerGroupEnum.class))
+                                .currencyType(e.getCurrencyType())
                                 .transferStatus(SmartEnumUtil.getEnumDescByValue(e.getTransferStatus(), TransferStatusEnum.class))
                                 .salespersonName(salespersonMap.get(e.getSalespersonId()))
                                 .build()

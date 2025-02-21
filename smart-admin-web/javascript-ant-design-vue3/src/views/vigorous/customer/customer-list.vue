@@ -24,6 +24,9 @@
       <a-form-item label="客户分组" class="smart-query-form-item">
         <SmartEnumSelect enum-name="CUSTOMER_GROUP_ENUM" v-model:value="queryForm.customerGroup" width="160px" />
       </a-form-item>
+      <a-form-item label="是否存在首单" class="smart-query-form-item">
+        <SmartEnumSelect enum-name="SYSTEM_YES_NO" placeholder="是否存在首单" v-model:value="queryForm.hasFirstOrder" width="160px" />
+      </a-form-item>
       <a-form-item label="国家" class="smart-query-form-item">
         <a-input style="width: 200px" v-model:value="queryForm.country" placeholder="国家" />
       </a-form-item>
@@ -91,6 +94,7 @@
       :loading="tableLoading"
       :pagination="false"
       :row-selection="{ selectedRowKeys: selectedRowKeyList, onChange: onSelectChange }"
+      :scroll="{x: 100, y: 500 }"
     >
       <template #bodyCell="{ text, record, column }">
         <template v-if="column.dataIndex === 'salesperson'">
@@ -222,11 +226,14 @@
       ellipsis: true,
     },
     {
+      title: '结算币别',
+      dataIndex: 'currencyType',
+    },
+    {
       title: '业务员',
       dataIndex: 'salespersonName',
       ellipsis: true,
     },
-
     {
       title: '首单日期',
       dataIndex: 'firstOrderDate',
@@ -246,7 +253,6 @@
       title: '操作',
       dataIndex: 'action',
       fixed: 'right',
-      width: 90,
     },
   ]);
 
@@ -258,6 +264,7 @@
     salespersonName: undefined,
     customerGroup: undefined, //客户分组
     country: undefined, //国家
+    hasFirstOrder: undefined,
     transferStatus: undefined,
     pageNum: 1,
     pageSize: 10,

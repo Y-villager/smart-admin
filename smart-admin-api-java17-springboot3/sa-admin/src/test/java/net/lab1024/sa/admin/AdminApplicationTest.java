@@ -44,42 +44,40 @@ public class AdminApplicationTest {
 
         List<CustomerEntity> adjustList = new ArrayList<>();
 
-        // 目标日期
-        LocalDate after2021_12_31 = LocalDate.of(2021, 12, 31);  // 2021年12月31日
-        LocalDate before2025 = LocalDate.of(2025, 1, 1);          // 2025年1月1日
-        LocalDate start2021 = LocalDate.of(2021, 1, 1);            // 2021年1月1日
-        LocalDate newDate2025 = LocalDate.of(2025, 1, 1);           // 2025年1月1日
-        LocalDate newDate2023 = LocalDate.of(2023, 1, 1);           // 2023年1月1日
-        LocalDate newDate2021 = LocalDate.of(2021, 1, 1);           // 2021年1月1日
+        LocalDate rank1ResetDate = LocalDate.of(2025, 1, 1);
+        LocalDate rank2ResetDate = LocalDate.of(2023, 1, 1);
+        LocalDate rank3ResetDate = LocalDate.of(2021, 1, 1);
 
+        // 遍历客户列表，调整首单时间
         for (CustomerEntity customer : customerList) {
-            LocalDate date = customer.getFirstOrderDate();
-            if (date == null){
-                continue;
+            LocalDate firstOrderDate = customer.getFirstOrderDate();
+            if (firstOrderDate == null) {
+                continue; // 如果没有首单日期，则跳过
             }
 
-            // 如果日期符合条件，先进行调整后加入
+            // 用于存储调整后的日期
             LocalDate adjustedDate = null;
 
-            // 对于 > 2021.12.31 且 < 2025.01.01 之间的日期
-            if (date.isBefore(before2025) && date.isAfter(after2021_12_31)) {
-                adjustedDate = newDate2025;
+            // 1. 对于 2022.1.1 ~ 2024.12.31 之间的日期
+            if (!firstOrderDate.isBefore(LocalDate.of(2022, 1, 1)) && firstOrderDate.isBefore(LocalDate.of(2025, 1, 1))) {
+                adjustedDate = rank1ResetDate;
             }
-            // 对于 2021.01.01 到 2021.12.31 之间的日期
-            else if (!date.isBefore(start2021) && date.isBefore(after2021_12_31)) {
-                adjustedDate = newDate2023;
+            // 2. 对于 2020.1.1 ~ 2021.12.31 之间的日期
+            else if (!firstOrderDate.isBefore(LocalDate.of(2020, 1, 1)) && firstOrderDate.isBefore(LocalDate.of(2022, 1, 1))) {
+                adjustedDate = rank2ResetDate;
             }
-            // 对于 2020年之前的日期
-            else if (date.isBefore(start2021)) {
-                adjustedDate = newDate2021;
+            // 3. 对于 2020年1月1日之前的日期
+            else if (firstOrderDate.isBefore(LocalDate.of(2020, 1, 1))) {
+                adjustedDate = rank3ResetDate;
             }
 
-            // 如果日期被调整了，更新对象并加入调整列表
+            // 如果日期被调整了，更新客户对象并加入调整列表
             if (adjustedDate != null) {
                 customer.setAdjustedFirstOrderDate(adjustedDate);
                 adjustList.add(customer);
             }
         }
+
         customerDao.adjustFirstOrderDate(adjustList);
         System.out.println(adjustList);
 

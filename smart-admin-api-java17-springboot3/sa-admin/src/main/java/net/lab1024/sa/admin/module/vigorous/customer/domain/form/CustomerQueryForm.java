@@ -29,6 +29,9 @@ public class CustomerQueryForm extends PageParam {
     @Schema(description = "客户分组")
     private String customerGroup;
 
+    @Schema(description = "是否存在首单")
+    private Boolean hasFirstOrder;
+
     @Schema(description = "国家")
     private String country;
 

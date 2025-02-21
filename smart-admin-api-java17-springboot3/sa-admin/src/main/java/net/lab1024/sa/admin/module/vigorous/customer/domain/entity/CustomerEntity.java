@@ -47,6 +47,11 @@ public class CustomerEntity {
     private Integer customerCategory;
 
     /**
+     * 客户类别
+     */
+    private String currencyType;
+
+    /**
      * 业务员编码
      */
     private Long salespersonId;

@@ -14,7 +14,6 @@ import net.lab1024.sa.admin.module.vigorous.receivables.domain.vo.ReceivablesVO;
 import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
 import net.lab1024.sa.admin.util.BatchUtils;
 import net.lab1024.sa.admin.util.ExcelUtils;
-import net.lab1024.sa.admin.util.SplitListUtils;
 import net.lab1024.sa.base.common.code.SystemErrorCode;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
@@ -33,10 +32,6 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static cn.dev33.satoken.SaManager.log;
@@ -156,23 +151,21 @@ public class ReceivablesService {
 
         List<ReceivablesEntity> entityList = createImportList(dataList, failedDataList, mode);
 
-        if (entityList == null || entityList.isEmpty()) {
-            return ResponseDTO.ok("缺少源单编号");
-        }
-
         // true 为追加模式，false为按单据编号覆盖
         int successTotal = 0;
-        if (mode) {  // 追加
-            // 批量插入操作
-            List<BatchResult> insert = receivablesDao.insert(entityList);
-            for (BatchResult batchResult : insert) {
-                successTotal += batchResult.getParameterObjects().size();
-            }
-        } else {  // 覆盖
-            // 执行批量更新操作
-            successTotal = batchUtils.doThreadUpdate(entityList, receivablesDao);
-            if (successTotal != entityList.size()) {
-                return ResponseDTO.error(SystemErrorCode.SYSTEM_ERROR, "系统出错，请联系管理员。");
+        if(entityList != null && !entityList.isEmpty()){
+            if (mode) {  // 追加
+                // 批量插入操作
+                List<BatchResult> insert = receivablesDao.insert(entityList);
+                for (BatchResult batchResult : insert) {
+                    successTotal += batchResult.getParameterObjects().size();
+                }
+            } else {  // 覆盖
+                // 执行批量更新操作
+                successTotal = batchUtils.doThreadUpdate(entityList, receivablesDao);
+                if (successTotal != entityList.size()) {
+                    return ResponseDTO.error(SystemErrorCode.SYSTEM_ERROR, "系统出错，请联系管理员。");
+                }
             }
         }
 
@@ -185,34 +178,6 @@ public class ReceivablesService {
         // 如果有失败的数据，导出失败记录到 Excel
         return ResponseDTO.okMsg("总共"+dataList.size()+"条数据，成功导入" + successTotal + "条，导入失败记录有："+failedDataList.size()+"条", failed_data_path );
 
-    }
-
-    private int doThreadUpdate(List<ReceivablesEntity> entityList) {
-        List<ReceivablesEntity> updateList = new ArrayList<>();
-        // 初始化线程池
-        ThreadPoolExecutor threadPool = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), 50,
-                4, TimeUnit.SECONDS, new ArrayBlockingQueue<>(10),
-                new ThreadPoolExecutor.CallerRunsPolicy());
-        // 将大集合拆分成N个小集合，使用多线程操作数据
-        List<List<ReceivablesEntity>> splitList = SplitListUtils.splitList(entityList, 1000);
-        // 记录单个任务的执行次数
-        CountDownLatch countDownLatch = new CountDownLatch(splitList.size());
-        for (List<ReceivablesEntity> subList : splitList) {
-            threadPool.execute(new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    receivablesDao.updateReceivablesByBillNo(subList);
-                    countDownLatch.countDown();
-                }
-            }));
-        }
-        try {
-            // 让当前线程处于阻塞状态，知道锁存器计数为零
-            countDownLatch.await();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        return 0;
     }
 
     // 生成导入列表

@@ -53,7 +53,7 @@ public interface CustomerDao extends BaseMapper<CustomerEntity> {
 
     List<CustomerVO> queryByCustomerCodes(@Param("customerCodes") Set<String> customerCodes);
 
-    void batchUpdate(@Param("list") List<CustomerEntity> subList);
+    int batchUpdate(@Param("list") List<?> subList);
 
-    void adjustFirstOrderDate(@Param("list") List<CustomerEntity> adjustList);
+    int adjustFirstOrderDate(@Param("list") List<CustomerEntity> adjustList);
 }

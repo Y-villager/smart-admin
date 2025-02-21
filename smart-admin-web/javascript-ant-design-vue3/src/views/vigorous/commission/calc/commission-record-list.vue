@@ -85,23 +85,9 @@
             :loading="tableLoading"
             :pagination="false"
             :row-selection="{ selectedRowKeys: selectedRowKeyList, onChange: onSelectChange }"
-            :scroll="{ x: 'max-content', y: 'auto' }"
+            :scroll="{ x: 'max-content', y: 500 }"
         >
             <template #bodyCell="{ text, record, column }">
-
-	    <!-- 有图片预览时 注释解开并把下面的'picture'修改成自己的图片字段名即可 -->
-              <!-- <template v-if="column.dataIndex === 'picture'">
-                  <FilePreview :fileList="text" type="picture" />
-                </template> -->
-
-	    <!-- 使用字典时 注释解开并把下面的'dict'修改成自己的字典字段名即可 有多个字典字段就复制多份同理修改 不然不显示字典 -->
-              <!-- 方便修改tag的颜色 orange green purple success processing error default warning -->
-              <!-- <template v-if="column.dataIndex === 'dict'">
-                <a-tag color="cyan">
-                  {{ text && text.length > 0 ? text.map((e) => e.valueName).join(',') : '暂无' }}
-                </a-tag>
-              </template> -->
-
                 <template v-if="column.dataIndex === 'action'">
                     <div class="smart-table-operate">
                         <a-button @click="showForm(record)" type="link">编辑</a-button>
@@ -193,7 +179,7 @@
             title: '销售出库-单据编号',
             dataIndex: 'salesBillNo',
             ellipsis: true,
-          width: '160px'
+            width: '160px'
         },
       {
         title: '业务日期',

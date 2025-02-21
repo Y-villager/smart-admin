@@ -10,10 +10,8 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
@@ -34,13 +32,17 @@ public class BatchUtils {
         return batches;
     }
 
+    /**
+     * 批量更新
+     * @param entityList
+     * @param dao
+     * @return
+     */
     public int doThreadUpdate(List<?> entityList, Object dao) {
         AtomicInteger successTotal = new AtomicInteger(0);
 
         // 初始化线程池
-        ThreadPoolExecutor threadPool = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), 50,
-                4, TimeUnit.SECONDS, new ArrayBlockingQueue<>(10),
-                new ThreadPoolExecutor.CallerRunsPolicy());
+        ThreadPoolExecutor threadPool = ThreadPoolUtils.createThreadPool();
 
         // 将大集合拆分成N个小集合，使用多线程操作数据
         List<List<?>> splitList = createBatches(entityList);
@@ -54,10 +56,11 @@ public class BatchUtils {
                 def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
                 TransactionStatus status = transactionManager.getTransaction(def);
 
+
                 try {
                     // 使用反射调用 batchUpdate 方法
-                    Method batchUpdateMethod = dao.getClass().getMethod("batchUpdate", List.class);
-                    Object result = batchUpdateMethod.invoke(dao, subList);
+                        Method batchUpdateMethod = dao.getClass().getMethod("batchUpdate", List.class);
+                        Object result = batchUpdateMethod.invoke(dao, subList);
                     if (result instanceof Integer) {
                         successTotal.addAndGet((Integer) result * subList.size()); // Add the count of successful updates to the total
                     }

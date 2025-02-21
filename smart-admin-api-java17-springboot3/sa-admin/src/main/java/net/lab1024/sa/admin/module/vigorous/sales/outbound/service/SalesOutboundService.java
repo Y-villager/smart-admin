@@ -438,9 +438,21 @@ public class SalesOutboundService {
             return recordVO;
         }
 
-        LocalDate firstOrderDate = salesOutbound.getAdjustedFirstOrderDate() != null
-                ? salesOutbound.getAdjustedFirstOrderDate()
-                : salesOutbound.getFirstOrderDate();
+        LocalDate firstOrderDate = null;
+        if (recordVO.getOrderDate() != null){ // 是否有业务日期
+            if (recordVO.getOrderDate().isBefore(LocalDate.of(2025, 1, 1))){
+                firstOrderDate = salesOutbound.getAdjustedFirstOrderDate();
+                if (firstOrderDate == null){
+                    recordVO.setRemark("2025前业务，但未调整业务首单日期。");
+                    return recordVO;
+                }
+            }else {
+                firstOrderDate = recordVO.getFirstOrderDate();
+            }
+        }else {
+            recordVO.setRemark("缺少销售出库-业务日期");
+            return recordVO;
+        }
 
         customerYear = calculateCooperationYears(firstOrderDate, LocalDate.now());
 

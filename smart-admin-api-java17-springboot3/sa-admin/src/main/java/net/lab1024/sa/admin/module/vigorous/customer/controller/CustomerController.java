@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.form.CustomerAddForm;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.form.CustomerQueryForm;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.form.CustomerUpdateForm;
-import net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerExcelVO;
+import net.lab1024.sa.admin.module.vigorous.customer.domain.form.CustomerExportForm;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerVO;
 import net.lab1024.sa.admin.module.vigorous.customer.service.CustomerService;
 import net.lab1024.sa.base.common.domain.PageResult;
@@ -86,8 +86,8 @@ public class CustomerController {
     @PostMapping("/customer/export")
     @SaCheckPermission("customer:export")
     public void exportCustomer(HttpServletResponse response, @RequestBody @Valid CustomerQueryForm queryForm) throws IOException {
-        List<CustomerExcelVO> goodsList = customerService.exportCustomers(queryForm);
-        SmartExcelUtil.exportExcel(response,"顾客.xlsx","顾客",CustomerExcelVO.class, goodsList);
+        List<CustomerExportForm> goodsList = customerService.exportCustomers(queryForm);
+        SmartExcelUtil.exportExcel(response,"顾客.xlsx","顾客", CustomerExportForm.class, goodsList);
     }
 
 

@@ -35,6 +35,9 @@ public class CustomerVO {
     @Schema(description = "客户类别")
     private Integer customerCategory;
 
+    @Schema(description = "结算币别")
+    private String currencyType;
+
     @Schema(description = "业务员编码")
     private Long salespersonId;
 
