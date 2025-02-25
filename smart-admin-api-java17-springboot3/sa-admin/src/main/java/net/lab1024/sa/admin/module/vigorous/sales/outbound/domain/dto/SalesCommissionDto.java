@@ -33,6 +33,8 @@ public class SalesCommissionDto {
     private Long customerId;
     private String customerCode;
     private Integer customerGroup;
+
+    @Schema(description = "客户是否转交/转交状态")
     private Integer transferStatus;
 
     @Schema(description = "调整后-首单日期")
@@ -42,14 +44,17 @@ public class SalesCommissionDto {
     @Schema(description = "业务员id")
     private Long salespersonId;
     private String salespersonName;
+
+    @Schema(description = "当时业务员级别id")
     private Integer salespersonLevelId;
     private BigDecimal levelRate;
 
+    @Schema(description = "当时上级id")
     private Long pSalespersonId;
     private Integer pSalespersonLevelId;
     private BigDecimal pLevelRate;
 
+    @Schema(description = "提成标识")
     private Integer commissionFlag;
-
 
 }

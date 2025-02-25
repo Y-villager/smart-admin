@@ -543,9 +543,11 @@
       failedCommissionPath.value = undefined
       let res = await salesOutboundApi.createSelectedCommission(selectedRowKeyList.value);
       failedCommissionPath.value = res.data
-      message.success(res.data)
+      message.success(res.msg)
     }catch (error){
       console.log("错误：", error)
+    }finally {
+      await queryData()
     }
   }
 
@@ -557,10 +559,12 @@
       let res = await salesOutboundApi.createAllCommission(queryForm);
       failedCommissionPath.value = res.data
       initDisabled.value = false;
-      await queryData();
+      message.success(res.msg)
     } catch (error) {
       console.log('错误:', error);
       initDisabled.value = false;
+    }finally {
+      await queryData()
     }
   }
 

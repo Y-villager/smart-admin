@@ -35,5 +35,6 @@ public interface CommissionRecordDao extends BaseMapper<CommissionRecordEntity> 
 
     int batchInsert(@Param("list") List<CommissionRecordVO> commissionRecordVOList);
 
-    int batchInsertOrUpdate(@Param("list") List<CommissionRecordVO> commissionRecordVOList);
+    int batchInsertOrUpdate(@Param("list") List<?> commissionRecordVOList);
+
 }

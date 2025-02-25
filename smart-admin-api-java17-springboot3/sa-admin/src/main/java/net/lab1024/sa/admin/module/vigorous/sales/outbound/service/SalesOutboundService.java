@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
 import net.lab1024.sa.admin.enumeration.CommissionFlagEnum;
 import net.lab1024.sa.admin.enumeration.CommissionTypeEnum;
+import net.lab1024.sa.admin.module.vigorous.commission.calc.dao.CommissionRecordDao;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.vo.CommissionRecordVO;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.service.CommissionRecordService;
 import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.vo.CommissionRuleVO;
@@ -19,6 +20,7 @@ import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutbou
 import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
 import net.lab1024.sa.admin.util.BatchUtils;
 import net.lab1024.sa.admin.util.ExcelUtils;
+import net.lab1024.sa.admin.util.ThreadPoolUtils;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
 import net.lab1024.sa.base.common.domain.ValidateList;
@@ -29,6 +31,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.executor.BatchResult;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -68,6 +71,9 @@ public class SalesOutboundService {
     private CommissionRecordService commissionRecordService;
     @Autowired
     private BatchUtils batchUtils;
+    @Qualifier("commissionRecordDao")
+    @Autowired
+    private CommissionRecordDao commissionRecordDao;
 
     /**
      * 分页查询
@@ -187,7 +193,6 @@ public class SalesOutboundService {
             }
         }
 
-
         // 批量插入有效数据
         int successTotal = 0;
         if (mode) {  // 追加
@@ -198,7 +203,7 @@ public class SalesOutboundService {
             }
         } else {  // 覆盖
             // 执行批量更新操作
-            successTotal = batchUtils.doThreadUpdate(entityList, salesOutboundDao);
+            successTotal = batchUtils.doThreadInsertOrUpdate(entityList, salesOutboundDao, "batchUpdate");
         }
 
         String failedDataPath = null;
@@ -306,11 +311,17 @@ public class SalesOutboundService {
         ConcurrentLinkedQueue<CommissionRecordVO> commissionRecordVOList = new ConcurrentLinkedQueue<>();
 
         for (SalesCommissionDto salesCommissionDto : list) {
-            classifyData(salesCommissionDto, commissionRecordVOList, errorList);
+            CommissionRecordVO recordVO = classifyData(salesCommissionDto);
+            if (recordVO.getRemark() != null){
+                errorList.add(recordVO);
+            }else {
+                commissionRecordVOList.add(recordVO);
+            }
         }
         List<CommissionRecordVO> insertList = List.copyOf(commissionRecordVOList);
         //
         int inserted = commissionRecordService.batchInsertCommissionRecordAndUpdate(insertList);
+
         String message = getCreatedResult(list, errorList, inserted);
 
         String failedPath = ExcelUtils.saveFailedDataToExcel(List.copyOf(errorList), CommissionRecordExportForm.class );
@@ -333,16 +344,8 @@ public class SalesOutboundService {
             return ResponseDTO.okMsg("没有需要生成的提成。");
         }
 
-        // 提前缓存业务和管理规则
-        final int CORE_POOL_SIZE = Runtime.getRuntime().availableProcessors();  // CPU 核心数
-        final int MAX_POOL_SIZE = 2 * CORE_POOL_SIZE;  // 最大线程数
-        final long KEEP_ALIVE_TIME = 60L;  // 线程空闲超时时间（秒）
         // 创建自定义线程池
-        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
-                CORE_POOL_SIZE, MAX_POOL_SIZE, KEEP_ALIVE_TIME, TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(100),  // 阻塞队列，最大排队任务数
-                new ThreadPoolExecutor.CallerRunsPolicy()  // 当线程池饱和时，直接在主线程中执行任务
-        );
+        ThreadPoolExecutor threadPoolExecutor = ThreadPoolUtils.createThreadPool();
 
         // 使用 CountDownLatch 来同步线程
         CountDownLatch latch = new CountDownLatch(list.size());
@@ -353,7 +356,13 @@ public class SalesOutboundService {
         for (SalesCommissionDto salesCommission : list) {
             threadPoolExecutor.submit(() -> {
                 try {
-                    classifyData(salesCommission, commissionRecordVOList, errorList);
+                    CommissionRecordVO recordVO = classifyData(salesCommission);
+                    // 分类存储
+                    if (recordVO.getRemark() != null) {
+                        errorList.add(recordVO);
+                    } else {
+                        commissionRecordVOList.add(recordVO); // 记录需要处理的列表
+                    }
                 } finally {
                     latch.countDown();  // 完成一个任务后，CountDownLatch 的计数减一
                 }
@@ -372,13 +381,12 @@ public class SalesOutboundService {
 
         // 转换为不可变列表
         int inserted = commissionRecordService.batchInsertCommissionRecordAndUpdate(List.copyOf(commissionRecordVOList));
+
         String message = getCreatedResult(list, errorList, inserted);
 
         String failedPath = ExcelUtils.saveFailedDataToExcel(List.copyOf(errorList), CommissionRecordExportForm.class );
 
-
         return ResponseDTO.okMsg(message, failedPath);
-
     }
 
     private static @NotNull String getCreatedResult(List<?> list, ConcurrentLinkedQueue<?> errorList, int inserted) {
@@ -387,50 +395,43 @@ public class SalesOutboundService {
         return String.format("%d条出库记录。成功生成: %d条。%d条记录生成失败。", totalRecords, inserted, failedRecords);
     }
 
-    private void classifyData(SalesCommissionDto salesCommission,
-                              ConcurrentLinkedQueue<CommissionRecordVO> commissionRecordVOList,
-                              ConcurrentLinkedQueue<CommissionRecordVO> errorList) {
+    private CommissionRecordVO classifyData(SalesCommissionDto salesCommission) {
         // 查询缓存
         CommissionRuleVO business = commissionRuleService.queryCommissionRuleFromCache(salesCommission, CommissionTypeEnum.BUSINESS);
         CommissionRuleVO management = commissionRuleService.queryCommissionRuleFromCache(salesCommission, CommissionTypeEnum.MANAGEMENT);
 
-        // 初始化 CommissionRecordVO
-        CommissionRecordVO recordVO = initCommissionRecordVO(salesCommission, business, management);
-
-        // 分类存储
-        if (recordVO.getRemark() != null) {
-            errorList.add(recordVO);
-        } else {
-            commissionRecordVOList.add(recordVO); // 记录需要处理的列表
-        }
-    }
-
-    private @NotNull CommissionRecordVO initCommissionRecordVO(SalesCommissionDto salesOutbound,
-                                                               CommissionRuleVO business,
-                                                               CommissionRuleVO management) {
         CommissionRecordVO recordVO = new CommissionRecordVO();
         BigDecimal hundred = BigDecimal.valueOf(100);
 
         // 设置基本信息
-        recordVO.setSalesAmount(salesOutbound.getSalesAmount()); // 销售金额
-        recordVO.setOrderDate(salesOutbound.getSalesBoundDate()); // 销售出库日期 / 业务日期
-        recordVO.setSalesBillNo(salesOutbound.getSalesBillNo()); // 销售出库-单据编号
-        recordVO.setReceiveBillNo(salesOutbound.getReceiveBillNo()); // 应收表-单据编号
-        recordVO.setFirstOrderDate(salesOutbound.getFirstOrderDate()); // 首单日期
-        recordVO.setAdjustedFirstOrderDate(salesOutbound.getAdjustedFirstOrderDate()); // 调整后-首单日期
-        recordVO.setCommissionFlag(salesOutbound.getCommissionFlag()); // 销售-提成标识
+        recordVO.setSalesOutboundId(salesCommission.getSalesOutboundId()); // 销售出库id
 
-        recordVO.setSalespersonName(salesOutbound.getSalespersonName()); // 销售员
-        recordVO.setCustomerCode(salesOutbound.getCustomerCode()); // 客户编码
+        recordVO.setOrderDate(salesCommission.getSalesBoundDate()); // 销售出库日期 / 业务日期
+        recordVO.setSalesBillNo(salesCommission.getSalesBillNo()); // 销售出库-单据编号
+        recordVO.setReceiveBillNo(salesCommission.getReceiveBillNo()); // 应收表-单据编号
+        recordVO.setCustomerId(salesCommission.getCustomerId());  // 必需：客户id
+        recordVO.setSalespersonId(salesCommission.getSalespersonId());  // 必需：业务员id
+        recordVO.setSalesAmount(salesCommission.getSalesAmount()); // 销售金额
+
+        recordVO.setCurrentSalespersonLevelId(salesCommission.getSalespersonLevelId()); // 当时业务员级别id
+        recordVO.setCurrentParentId(salesCommission.getPSalespersonId()); // 当时上级id
+        recordVO.setCurrentParentLevelId(salesCommission.getSalespersonLevelId()); // 当时上级id
+        recordVO.setTransferStatus(salesCommission.getTransferStatus()); // 转交状态
+
+        // 导出信息
+        recordVO.setCustomerCode(salesCommission.getCustomerCode());      // 客户编码
+        recordVO.setSalespersonName(salesCommission.getSalespersonName());// 业务员名称
 
         // 客户年份
         Integer customerYear = null;
 
         // 没有首单日期
-        if (recordVO.getFirstOrderDate() == null) {
-            recordVO.setRemark("缺少首单日期");
+        LocalDate firstOrderDate = salesCommission.getFirstOrderDate();
+        Integer commissionFlag = salesCommission.getCommissionFlag();
+        if (firstOrderDate == null) {
+            recordVO.setRemark("客户未设置首单日期");
             return recordVO;  // 如果 FirstOrderDate 为 null，直接返回 recordVO
-        } else if (recordVO.getCommissionFlag() == 1) {
+        } else if (commissionFlag == 1) {
             recordVO.setRemark("已生成提成记录，请勿重复生成。");
             return recordVO;
         } else if (recordVO.getReceiveBillNo() == null) {
@@ -438,36 +439,45 @@ public class SalesOutboundService {
             return recordVO;
         }
 
-        LocalDate firstOrderDate = null;
-        if (recordVO.getOrderDate() != null){ // 是否有业务日期
+        // 是否有业务日期
+        if (recordVO.getOrderDate() != null){
             if (recordVO.getOrderDate().isBefore(LocalDate.of(2025, 1, 1))){
-                firstOrderDate = salesOutbound.getAdjustedFirstOrderDate();
+                firstOrderDate = salesCommission.getAdjustedFirstOrderDate();
                 if (firstOrderDate == null){
                     recordVO.setRemark("2025前业务，但未调整业务首单日期。");
                     return recordVO;
                 }
-            }else {
-                firstOrderDate = recordVO.getFirstOrderDate();
             }
-        }else {
+        }
+        if (recordVO.getOrderDate() == null){
             recordVO.setRemark("缺少销售出库-业务日期");
             return recordVO;
         }
+        if (salesCommission.getAdjustedFirstOrderDate() != null){
+            recordVO.setFirstOrderDate(salesCommission.getAdjustedFirstOrderDate());
+        }else {
+            recordVO.setFirstOrderDate(firstOrderDate);
+        }
 
-        customerYear = calculateCooperationYears(firstOrderDate, LocalDate.now());
+        if (recordVO.getCurrentSalespersonLevelId()==null){
+            recordVO.setRemark("业务员未设置提成级别");
+            return recordVO;
+        }
 
+        // 计算客户合作年数
+        customerYear = calculateCooperationYears(recordVO.getFirstOrderDate(), LocalDate.now());
+        recordVO.setCustomerYear(customerYear); // 客户合作年数
 
         // 计算百分比时使用 hundred 的倒数
         BigDecimal hundredInverse = BigDecimal.ONE.divide(hundred, 4, RoundingMode.HALF_UP);
 
         //
-        BigDecimal amount = Optional.ofNullable(salesOutbound.getSalesAmount()).orElse(BigDecimal.ZERO);
-        BigDecimal levelRate = Optional.ofNullable(salesOutbound.getLevelRate()).orElse(BigDecimal.ZERO);
-        BigDecimal pLevelRate = Optional.ofNullable(salesOutbound.getPLevelRate()).orElse(BigDecimal.ZERO);
+        BigDecimal amount = Optional.ofNullable(salesCommission.getSalesAmount()).orElse(BigDecimal.ZERO);
+        BigDecimal levelRate = Optional.ofNullable(salesCommission.getLevelRate()).orElse(BigDecimal.ZERO);
+        BigDecimal pLevelRate = Optional.ofNullable(salesCommission.getPLevelRate()).orElse(BigDecimal.ZERO);
 
         // 设置提成相关数据
         BigDecimal customerYearRate = calcCustomerYearRate(customerYear); // 客户年份系数
-        recordVO.setCustomerYear(customerYear); // 客户合作年数
         recordVO.setCustomerYearRate(customerYearRate);
 
         BigDecimal businessCommissionRate = BigDecimal.ZERO;
@@ -493,7 +503,7 @@ public class SalesOutboundService {
         if (management != null) {
             if (management.getUseDynamicFormula() != null) { // 动态计算：（上级系数-自身系数）* 客户年份系数
                 // 如果存在上级id，计算 管理提成
-                if (salesOutbound.getPLevelRate() != null) {
+                if (salesCommission.getPLevelRate() != null) {
                     if (pLevelRate.compareTo(levelRate) > 0) { // 上级系数不能比自身小
                         // 管理提成比例：客户年份系数 * （上级 - 自身系数）
                         BigDecimal rate = customerYearRate.multiply(pLevelRate.subtract(levelRate));

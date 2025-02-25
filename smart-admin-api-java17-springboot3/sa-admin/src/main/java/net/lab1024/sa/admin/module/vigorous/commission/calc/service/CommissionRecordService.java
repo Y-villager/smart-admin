@@ -15,6 +15,7 @@ import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.vo.Commission
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.dao.SalesOutboundDao;
 import net.lab1024.sa.admin.util.ExcelUtils;
 import net.lab1024.sa.admin.util.SplitListUtils;
+import net.lab1024.sa.admin.util.ThreadPoolUtils;
 import net.lab1024.sa.base.common.code.SystemErrorCode;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
@@ -221,7 +222,8 @@ public class CommissionRecordService {
                                 .currencyType(e.getCurrencyType())
                                 .salespersonName(e.getSalespersonName())
                                 .customerName(e.getCustomerName())
-                                .firstOrderDate(e.getFirstOrderDate())
+                                // 判断 adjustedFirstOrderDate 是否为 null，设置对应的值
+                                .firstOrderDate(e.getAdjustedFirstOrderDate() != null ? e.getAdjustedFirstOrderDate() : e.getFirstOrderDate())
                                 .customerYear(e.getCustomerYear())
                                 .businessCommissionRate(e.getBusinessCommissionRate())
                                 .businessCommissionAmount(e.getBusinessCommissionAmount())
@@ -275,9 +277,7 @@ public class CommissionRecordService {
         List<List<CommissionRecordVO>> batches = createBatches(commissionRecordVOList, batchSize);
 
         // 初始化自定义线程池
-        ThreadPoolExecutor threadPool = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), 50,
-                4, TimeUnit.SECONDS, new ArrayBlockingQueue<>(10),
-                new ThreadPoolExecutor.CallerRunsPolicy());
+        ThreadPoolExecutor threadPool = ThreadPoolUtils.createThreadPool();
 
         List<Future<Integer>> futures = new ArrayList<>();
 

@@ -196,11 +196,6 @@ const columns = ref([
     ellipsis: true,
   },
   {
-    title: '单据状态',
-    dataIndex: 'billStatus',
-    ellipsis: true,
-  },
-  {
     title: '应收日期',
     dataIndex: 'receivablesDate',
     ellipsis: true,

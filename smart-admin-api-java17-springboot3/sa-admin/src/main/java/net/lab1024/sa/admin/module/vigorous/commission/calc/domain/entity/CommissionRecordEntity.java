@@ -38,6 +38,16 @@ public class CommissionRecordEntity {
     private Long salespersonId;
 
     /**
+     * 当时业务员级别id
+     */
+    private Integer currentSalespersonLevelId;
+
+    /**
+     * 当时上级id
+     */
+    private Long currentParentId;
+
+    /**
      * 客户id
      */
     private Long customerId;

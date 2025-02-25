@@ -47,10 +47,10 @@ public class CommissionRecordImportForm {
     @ExcelProperty("管理提成系数(%)")
     private BigDecimal managementCommissionRate;
 
-    @ExcelProperty("业务提成金额")
+    @ExcelProperty("上级管理提成金额")
     private BigDecimal managementCommissionAmount;
 
-    @ExcelProperty("是否为转交客户")
+    @ExcelProperty("转交状态")
     private Integer isTransfer;
 
     @ExcelProperty("业务日期")

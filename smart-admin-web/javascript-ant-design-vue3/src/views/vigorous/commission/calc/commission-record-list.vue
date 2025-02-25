@@ -90,7 +90,6 @@
             <template #bodyCell="{ text, record, column }">
                 <template v-if="column.dataIndex === 'action'">
                     <div class="smart-table-operate">
-                        <a-button @click="showForm(record)" type="link">编辑</a-button>
                         <a-button @click="onDelete(record)" danger type="link">删除</a-button>
                     </div>
                 </template>
@@ -187,12 +186,7 @@
         ellipsis: true,
         width: '100px'
       },
-        {
-          title: '业务金额',
-          dataIndex: 'salesAmount',
-          ellipsis: true,
-          width: '100px'
-        },
+
         {
           title: '应收-币别',
           dataIndex: 'currencyType',
@@ -214,6 +208,12 @@
       {
         title: '首单日期',
         dataIndex: 'adjustedFirstOrderDate',
+        ellipsis: true,
+        width: '100px'
+      },
+      {
+        title: '业务金额',
+        dataIndex: 'salesAmount',
         ellipsis: true,
         width: '100px'
       },
@@ -243,13 +243,19 @@
             width: '110px'
         },
       {
-        title: '管理提成比例(%)',
+        title: '上级',
+        dataIndex: 'currentParentId',
+        ellipsis: true,
+        width: '110px'
+      },
+      {
+        title: '上级管理提成比例(%)',
         dataIndex: 'managementCommissionRate',
         ellipsis: true,
         width: '130px'
       },
       {
-        title: '管理提成金额',
+        title: '上级管理提成金额',
         dataIndex: 'managementCommissionAmount',
         ellipsis: true,
         width: '110px'

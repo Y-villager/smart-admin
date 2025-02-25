@@ -162,7 +162,7 @@ public class ReceivablesService {
                 }
             } else {  // 覆盖
                 // 执行批量更新操作
-                successTotal = batchUtils.doThreadUpdate(entityList, receivablesDao);
+                successTotal = batchUtils.doThreadInsertOrUpdate(entityList, receivablesDao, "batchUpdate");
                 if (successTotal != entityList.size()) {
                     return ResponseDTO.error(SystemErrorCode.SYSTEM_ERROR, "系统出错，请联系管理员。");
                 }

@@ -34,11 +34,11 @@ public class BatchUtils {
 
     /**
      * 批量更新
-     * @param entityList
-     * @param dao
-     * @return
+     * @param entityList 数据
+     * @param dao   dao层 Class类
+     * @param methodName  方法名
      */
-    public int doThreadUpdate(List<?> entityList, Object dao) {
+    public int doThreadInsertOrUpdate(List<?> entityList, Object dao, String methodName) {
         AtomicInteger successTotal = new AtomicInteger(0);
 
         // 初始化线程池
@@ -56,10 +56,9 @@ public class BatchUtils {
                 def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
                 TransactionStatus status = transactionManager.getTransaction(def);
 
-
                 try {
-                    // 使用反射调用 batchUpdate 方法
-                        Method batchUpdateMethod = dao.getClass().getMethod("batchUpdate", List.class);
+                        // 使用反射调用 batchUpdate 方法
+                        Method batchUpdateMethod = dao.getClass().getMethod(methodName, List.class);
                         Object result = batchUpdateMethod.invoke(dao, subList);
                     if (result instanceof Integer) {
                         successTotal.addAndGet((Integer) result * subList.size()); // Add the count of successful updates to the total

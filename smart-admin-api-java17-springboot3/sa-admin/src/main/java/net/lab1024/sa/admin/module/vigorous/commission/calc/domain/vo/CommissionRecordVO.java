@@ -33,6 +33,15 @@ public class CommissionRecordVO {
     @Schema(description = "业务员id")
     private Long salespersonId;
 
+    @Schema(description = "当时业务员级别id")
+    private Integer currentSalespersonLevelId;
+
+    @Schema(description = "当时上级id")
+    private Long currentParentId;
+
+    @Schema(description = "当时上级级别id")
+    private Integer currentParentLevelId;
+
     private String salespersonName;
 
     @Schema(description = "销售出库-单据编号")
@@ -59,6 +68,7 @@ public class CommissionRecordVO {
     private LocalDate orderDate;
 
     private String currencyType;
+
     // 是否为转交客户
     private Integer transferStatus;
 

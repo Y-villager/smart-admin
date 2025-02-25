@@ -154,7 +154,7 @@ public class CustomerService {
             }
         } else {  // 覆盖
             // 执行批量更新操作
-            successTotal = batchUtils.doThreadUpdate(entityList, customerDao);
+            successTotal = batchUtils.doThreadInsertOrUpdate(entityList, customerDao, "batchUpdate");
         }
 
         String failed_data_path=null;

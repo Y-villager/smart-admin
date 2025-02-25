@@ -8,6 +8,7 @@
         v_commission_record.sales_bill_no,
         v_commission_record.receive_bill_no,
         v_commission_record.salesperson_id,
+        v_commission_record.current_parent_id,
         v_commission_record.customer_id,
         v_commission_record.sales_amount,
         v_commission_record.order_date,
@@ -17,6 +18,7 @@
         v_commission_record.business_commission_amount,
         v_commission_record.management_commission_rate,
         v_commission_record.management_commission_amount,
+        v_commission_record.transfer_status,
         v_commission_record.remark,
         v_commission_record.create_time,
         v_commission_record.update_time
@@ -26,6 +28,9 @@
         v_commission_record.sales_bill_no,
         v_commission_record.receive_bill_no,
         v_commission_record.salesperson_id,
+        v_commission_record.current_salesperson_level_id,
+        v_commission_record.current_parent_id,
+        v_commission_record.current_parent_level_id,
         v_commission_record.customer_id,
         v_commission_record.sales_amount,
         v_commission_record.order_date,
@@ -34,13 +39,17 @@
         v_commission_record.business_commission_rate,
         v_commission_record.business_commission_amount,
         v_commission_record.management_commission_rate,
-        v_commission_record.management_commission_amount
+        v_commission_record.management_commission_amount,
+        v_commission_record.transfer_status
     </sql>
 
     <sql id="insert_item">
         #{item.salesBillNo},
         #{item.receiveBillNo},
         #{item.salespersonId},
+        #{item.currentSalespersonLevelId},
+        #{item.currentParentId},
+        #{item.currentParentLevelId},
         #{item.customerId},
         #{item.salesAmount},
         #{item.orderDate},
@@ -49,7 +58,8 @@
         #{item.businessCommissionRate},
         #{item.businessCommissionAmount},
         #{item.managementCommissionRate},
-        #{item.managementCommissionAmount}
+        #{item.managementCommissionAmount},
+        #{item.transferStatus}
     </sql>
 
     <insert id="batchInsertOrUpdate" parameterType="list">
@@ -62,6 +72,9 @@
             sales_bill_no = VALUES(sales_bill_no),
             receive_bill_no = VALUES(receive_bill_no),
             salesperson_id = VALUES(salesperson_id),
+            current_salesperson_level_id = VALUES(current_salesperson_level_id),
+            current_parent_id = VALUES(current_parent_id),
+            current_parent_level_id = VALUES(current_parent_level_id),
             customer_id = VALUES(customer_id),
             sales_amount = VALUES(sales_amount),
             order_date = VALUES(order_date),
@@ -70,7 +83,8 @@
             business_commission_rate = VALUES(business_commission_rate),
             business_commission_amount = VALUES(business_commission_amount),
             management_commission_rate = VALUES(management_commission_rate),
-            management_commission_amount = VALUES(management_commission_amount)
+            management_commission_amount = VALUES(management_commission_amount),
+            transfer_status = VALUES(transfer_status)
     </insert>
 
     <insert id="batchInsert">
@@ -85,7 +99,14 @@
     <!-- 分页查询 -->
     <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.commission.calc.domain.vo.CommissionRecordVO">
         SELECT
-        <include refid="base_columns"/>, vc.customer_name, vc.adjusted_first_order_date, vc.first_order_date, vc.transfer_status, vs.salesperson_name, vso.amount, vr.currency_type
+        <include refid="base_columns"/>,
+            vc.customer_name,
+            vc.adjusted_first_order_date,
+            vc.first_order_date,
+            vc.transfer_status,
+            vs.salesperson_name,
+            vso.amount,
+            vr.currency_type
         FROM v_commission_record
             left join v_customer vc on v_commission_record.customer_id = vc.customer_id
             left join v_salesperson vs on v_commission_record.salesperson_id = vs.id
