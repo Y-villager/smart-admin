@@ -5,14 +5,17 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
 import net.lab1024.sa.admin.enumeration.CommissionFlagEnum;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.dao.CommissionRecordDao;
+import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.dto.BusinessCommissionExcel;
+import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.dto.CommissionExcel;
+import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.dto.ManagementCommissionExcel;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.entity.CommissionRecordEntity;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form.CommissionRecordAddForm;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form.CommissionRecordImportForm;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form.CommissionRecordQueryForm;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form.CommissionRecordUpdateForm;
-import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.vo.CommissionRecordExcelVO;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.vo.CommissionRecordVO;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.dao.SalesOutboundDao;
+import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
 import net.lab1024.sa.admin.util.ExcelUtils;
 import net.lab1024.sa.admin.util.SplitListUtils;
 import net.lab1024.sa.admin.util.ThreadPoolUtils;
@@ -33,10 +36,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.math.BigDecimal;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -63,6 +64,8 @@ public class CommissionRecordService {
     // 使用事务模板简化事务的管理
     @Autowired
     private TransactionTemplate transactionTemplate;
+    @Autowired
+    private SalespersonService salespersonService;
 
     /**
      * 分页查询
@@ -212,29 +215,82 @@ public class CommissionRecordService {
     /**
      * 导出
      */
-    public List<CommissionRecordExcelVO> exportCommissionRecord(CommissionRecordQueryForm queryForm) {
+    public Map<String, Collection<?>> exportCommissionRecord(CommissionRecordQueryForm queryForm) {
+        Map<String, Collection<?>> resList = new HashMap<>();
         List<CommissionRecordVO> entityList = commissionRecordDao.queryPage(null, queryForm);
-        return entityList.stream()
-                .map(e ->
-                        CommissionRecordExcelVO.builder()
-                                .salesBillNo(e.getSalesBillNo())
-                                .salesAmount(e.getSalesAmount())
-                                .currencyType(e.getCurrencyType())
-                                .salespersonName(e.getSalespersonName())
-                                .customerName(e.getCustomerName())
-                                // 判断 adjustedFirstOrderDate 是否为 null，设置对应的值
-                                .firstOrderDate(e.getAdjustedFirstOrderDate() != null ? e.getAdjustedFirstOrderDate() : e.getFirstOrderDate())
-                                .customerYear(e.getCustomerYear())
-                                .businessCommissionRate(e.getBusinessCommissionRate())
-                                .businessCommissionAmount(e.getBusinessCommissionAmount())
-                                .managementCommissionRate(e.getManagementCommissionRate())
-                                .managementCommissionAmount(e.getManagementCommissionAmount())
-                                .transferStatus(e.getTransferStatus())
-                                .orderDate(e.getOrderDate())
-                                .build()
-                )
-                .collect(Collectors.toList());
+
+        Map<Long, String> salespersonIdNameMap = salespersonService.getSalespersonIdNameMap();
+
+        // 划分成两个列表：一个是业务列表，另一个是管理列表
+        List<BusinessCommissionExcel> businessList = new ArrayList<>();
+        List<ManagementCommissionExcel> managementList = new ArrayList<>();
+
+        // 遍历提成记录，并将数据提取到相应对象
+        for (CommissionRecordVO e : entityList) {
+            // 提取基础信息，避免重复设置
+            CommissionExcel baseInfo = new CommissionExcel();
+            baseInfo.setSalesBillNo(e.getSalesBillNo());
+            baseInfo.setSalesAmount(e.getSalesAmount());
+            baseInfo.setCurrencyType(e.getCurrencyType());
+            baseInfo.setCustomerName(e.getCustomerName());
+            baseInfo.setCustomerCode(e.getCustomerCode());
+            baseInfo.setFirstOrderDate(e.getAdjustedFirstOrderDate() != null ? e.getAdjustedFirstOrderDate() : e.getFirstOrderDate());
+            baseInfo.setCustomerYear(e.getCustomerYear());
+            baseInfo.setIsTransfer(e.getTransferStatus() == 0);
+            baseInfo.setOrderDate(e.getOrderDate());
+
+            // 创建业务提成对象并填充数据
+            BusinessCommissionExcel business = new BusinessCommissionExcel();
+            copyBaseInfoToBusinessCommission(business, baseInfo, e, salespersonIdNameMap);
+            businessList.add(business);
+
+            // 如果有管理提成数据，将其添加到管理提成列表
+            if (e.getBusinessCommissionAmount().compareTo(BigDecimal.ZERO) != 0) {
+                ManagementCommissionExcel management = new ManagementCommissionExcel();
+                copyBaseInfoToManagementCommission(management, baseInfo, e, salespersonIdNameMap);
+                managementList.add(management);
+            }
+        }
+
+        resList.put("业务提成", businessList);
+        resList.put("管理提成", managementList);
+
+        return resList;
     }
+
+    // 提取到独立的方法中，用于减少重复代码
+    private void copyBaseInfoToBusinessCommission(BusinessCommissionExcel business, CommissionExcel baseInfo, CommissionRecordVO e, Map<Long, String> salespersonIdNameMap) {
+        business.setSalesBillNo(baseInfo.getSalesBillNo());
+        business.setSalesAmount(baseInfo.getSalesAmount());
+        business.setCurrencyType(baseInfo.getCurrencyType());
+        business.setCustomerName(baseInfo.getCustomerName());
+        business.setCustomerCode(baseInfo.getCustomerCode());
+        business.setFirstOrderDate(baseInfo.getFirstOrderDate());
+        business.setCustomerYear(baseInfo.getCustomerYear());
+        business.setIsTransfer(baseInfo.getIsTransfer());
+        business.setOrderDate(baseInfo.getOrderDate());
+        business.setSalespersonId(e.getSalespersonId());
+        business.setSalespersonName(salespersonIdNameMap.get(e.getSalespersonId()));
+        business.setBusinessCommissionRate(e.getBusinessCommissionRate());
+        business.setBusinessCommissionAmount(e.getBusinessCommissionAmount());
+    }
+
+    private void copyBaseInfoToManagementCommission(ManagementCommissionExcel management, CommissionExcel baseInfo, CommissionRecordVO e, Map<Long, String> salespersonIdNameMap) {
+        management.setSalesBillNo(baseInfo.getSalesBillNo());
+        management.setSalesAmount(baseInfo.getSalesAmount());
+        management.setCurrencyType(baseInfo.getCurrencyType());
+        management.setCustomerName(baseInfo.getCustomerName());
+        management.setCustomerCode(baseInfo.getCustomerCode());
+        management.setFirstOrderDate(baseInfo.getFirstOrderDate());
+        management.setCustomerYear(baseInfo.getCustomerYear());
+        management.setIsTransfer(baseInfo.getIsTransfer());
+        management.setOrderDate(baseInfo.getOrderDate());
+        management.setCurrentParentId(e.getCurrentParentId());
+        management.setCurrentParentName(salespersonIdNameMap.get(e.getCurrentParentId()));
+        management.setManagementCommissionRate(e.getManagementCommissionRate());
+        management.setManagementCommissionAmount(e.getManagementCommissionAmount());
+    }
+
 
     private int doThreadUpdate(List<CommissionRecordEntity> entityList) {
         List<CommissionRecordEntity> updateList = new ArrayList<>();
