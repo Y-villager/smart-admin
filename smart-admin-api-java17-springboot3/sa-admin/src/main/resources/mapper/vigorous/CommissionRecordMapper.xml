@@ -101,15 +101,14 @@
         SELECT
         <include refid="base_columns"/>,
             vc.customer_name,
+            vc.customer_code,
             vc.adjusted_first_order_date,
             vc.first_order_date,
             vc.transfer_status,
-            vs.salesperson_name,
             vso.amount,
             vr.currency_type
         FROM v_commission_record
             left join v_customer vc on v_commission_record.customer_id = vc.customer_id
-            left join v_salesperson vs on v_commission_record.salesperson_id = vs.id
             left join v_sales_outbound vso on v_commission_record.sales_bill_no = vso.bill_no
             left join v_receivables vr on v_commission_record.sales_bill_no = vr.origin_bill_no
         <where>
@@ -132,6 +131,7 @@
                 AND INSTR(v_commission_record.sales_bill_no,#{queryForm.salesBillNo})
             </if>
             <if test="queryForm.filterDateList != null and queryForm.filterDateList.size() > 0">
+                And
                 <foreach collection="queryForm.filterDateList" item="dateVO" index="index" open="(" close=")" separator="OR">
                     <if test="dateVO.startDate != null and dateVO.endDate != null">
                         order_date BETWEEN #{dateVO.startDate} AND #{dateVO.endDate}

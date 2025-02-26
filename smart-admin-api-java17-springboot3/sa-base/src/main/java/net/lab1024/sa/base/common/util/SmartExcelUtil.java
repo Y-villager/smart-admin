@@ -58,24 +58,24 @@ public final class SmartExcelUtil {
      * @param sheetDataMap 每个Sheet的数据，键是Sheet名称，值是Sheet对应的表头和数据
      * @throws IOException 异常
      */
-    public static void exportExcel(HttpServletResponse response, String fileName, Class head, Map<String,Collection<?>> sheetDataMap) throws IOException {
+    public static void exportExcel(HttpServletResponse response, String fileName, Map<String,Collection<?>> sheetDataMap) throws IOException {
         // 设置下载消息头
         SmartResponseUtil.setDownloadFileHeader(response, fileName, null);
 
-        // 使用EasyExcel写入Excel
-        EasyExcel.write(response.getOutputStream(), head)
-                .autoCloseStream(Boolean.FALSE);
-
-        // 遍历sheetDataMap，为每个Sheet写入数据
-        for (Map.Entry<String, Collection<?>> entry : sheetDataMap.entrySet()) {
-            String sheetName = entry.getKey();
-            Collection<?> data = entry.getValue();
-
-            // 为每个sheet写入数据
-            EasyExcel.write(response.getOutputStream(), head)
-                    .sheet(sheetName)       // 设置Sheet名称
-                    .head(head)             // 设置表头
-                    .doWrite(data);         // 写入数据
+        // 写入流
+        try(var excelWriter = EasyExcel.write(response.getOutputStream()).autoCloseStream(Boolean.TRUE).build()){
+            // 遍历map，写入数据
+            for (Map.Entry<String, Collection<?>> entry : sheetDataMap.entrySet()) {
+                String sheetName = entry.getKey();
+                Collection<?> data = entry.getValue();
+                Class<?> head = null;
+                // 获取第一个元素的类型
+                if (!data.isEmpty()) {
+                    Object firstElement = data.iterator().next();
+                    head = firstElement.getClass();
+                }
+                excelWriter.write(data, EasyExcel.writerSheet(sheetName).head(head).build());
+            }
         }
     }
 

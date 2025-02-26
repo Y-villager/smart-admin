@@ -39,6 +39,8 @@ public class CommissionRecordVO {
     @Schema(description = "当时上级id")
     private Long currentParentId;
 
+    private String currentParentName;
+
     @Schema(description = "当时上级级别id")
     private Integer currentParentLevelId;
 

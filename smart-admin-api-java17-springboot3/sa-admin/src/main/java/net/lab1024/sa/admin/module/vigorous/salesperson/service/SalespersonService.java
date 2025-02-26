@@ -286,6 +286,20 @@ public class SalespersonService {
         return salespersonList;
     }
 
+    public Map<Long, String> getSalespersonIdNameMap() {
+        List<SalespersonDto> allSalesperson = getAllSalesperson();
+
+        // 创建一个 Map，用于存储 id 和 name 的对应关系
+        Map<Long, String> idToNameMap = new HashMap<>();
+
+        // 遍历所有 SalespersonDto，将 id 和 name 放入 Map 中
+        for (SalespersonDto dto : allSalesperson) {
+            idToNameMap.put(dto.getId(), dto.getName());
+        }
+
+        return idToNameMap;
+    }
+
     // 将数据存入 Redis 中，并设置过期时间（例如 1 天）
     private void saveToRedis(List<SalespersonDto> salespersonList) {
         String cacheKey = REDIS_KEY;

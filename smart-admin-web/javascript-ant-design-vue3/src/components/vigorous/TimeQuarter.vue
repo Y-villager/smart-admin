@@ -44,7 +44,6 @@ export default defineComponent({
   setup(props, { emit }) {
     const currentYear = ref(dayjs().format('YYYY'));
     const value = ref([]); // 用于存储选中的值
-
     // 计算季度或月份的选项
     const formattedMonths = computed(() => {
       let monthNames = null;
@@ -55,8 +54,9 @@ export default defineComponent({
       }
       return monthNames.map((month) => `${currentYear.value}-${month}`);
     });
+
     const monthNames = props.types === "1"
-        ? ['一季度', '二季度', '三季度', '四季度']
+        ? ['第一季度', '第二季度', '第三季度', '第四季度']
         : ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
 
 

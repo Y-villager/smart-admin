@@ -448,7 +448,12 @@
 
   async function onExportCommissionRecord() {
     exportLoading.value = true
-    await commissionRecordApi.exportCommissionRecord(queryForm);
+    try {
+      await commissionRecordApi.exportCommissionRecord(queryForm);
+    }catch (e){
+      console.log("错误：", e)
+      exportLoading.value = false;
+    }
     exportLoading.value = false;
   }
 
