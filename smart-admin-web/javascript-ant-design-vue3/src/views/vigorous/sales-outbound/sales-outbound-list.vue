@@ -257,6 +257,7 @@
     {
       title: '单据编号',
       dataIndex: 'billNo',
+      width: '150px'
     },
     {
       title: '出库日期',

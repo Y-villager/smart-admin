@@ -131,6 +131,13 @@
             <if test="queryForm.salesBillNo != null">
                 AND INSTR(v_commission_record.sales_bill_no,#{queryForm.salesBillNo})
             </if>
+            <if test="queryForm.filterDateList != null and queryForm.filterDateList.size() > 0">
+                <foreach collection="queryForm.filterDateList" item="dateVO" index="index" open="(" close=")" separator="OR">
+                    <if test="dateVO.startDate != null and dateVO.endDate != null">
+                        order_date BETWEEN #{dateVO.startDate} AND #{dateVO.endDate}
+                    </if>
+                </foreach>
+            </if>
         </where>
         order by v_commission_record.order_date desc
     </select>

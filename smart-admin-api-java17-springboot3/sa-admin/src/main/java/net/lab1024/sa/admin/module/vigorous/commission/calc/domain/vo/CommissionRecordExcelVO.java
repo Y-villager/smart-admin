@@ -25,12 +25,6 @@ public class CommissionRecordExcelVO {
     @ExcelProperty("销售出库-单据编号")
     private String salesBillNo;
 
-    @ExcelProperty("业务金额")
-    private BigDecimal salesAmount;
-
-    @ExcelProperty("应收-币别")
-    private String currencyType;
-
     @ExcelProperty("销售员")
     private String salespersonName;
 
@@ -42,6 +36,12 @@ public class CommissionRecordExcelVO {
 
     @ExcelProperty("客户合作年份")
     private Integer customerYear ;
+
+    @ExcelProperty("业务金额")
+    private BigDecimal salesAmount;
+
+    @ExcelProperty("应收-币别")
+    private String currencyType;
 
     @ExcelProperty("业务提成系数(%)")
     private BigDecimal businessCommissionRate;

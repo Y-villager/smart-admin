@@ -396,10 +396,6 @@ public class SalesOutboundService {
     }
 
     private CommissionRecordVO classifyData(SalesCommissionDto salesCommission) {
-        // 查询缓存
-        CommissionRuleVO business = commissionRuleService.queryCommissionRuleFromCache(salesCommission, CommissionTypeEnum.BUSINESS);
-        CommissionRuleVO management = commissionRuleService.queryCommissionRuleFromCache(salesCommission, CommissionTypeEnum.MANAGEMENT);
-
         CommissionRecordVO recordVO = new CommissionRecordVO();
         BigDecimal hundred = BigDecimal.valueOf(100);
 
@@ -421,6 +417,18 @@ public class SalesOutboundService {
         // 导出信息
         recordVO.setCustomerCode(salesCommission.getCustomerCode());      // 客户编码
         recordVO.setSalespersonName(salesCommission.getSalespersonName());// 业务员名称
+
+        // 没有设置转交状态
+        if (salesCommission.getTransferStatus() == null ){
+            recordVO.setRemark("客户未设置转交状态");
+            return recordVO;
+        }
+        if (salesCommission.getTransferStatus() != 0 && salesCommission.getTransferStatus() != 1){
+            salesCommission.setTransferStatus(1);
+        }
+        // 查询缓存
+        CommissionRuleVO business = commissionRuleService.queryCommissionRuleFromCache(salesCommission, CommissionTypeEnum.BUSINESS);
+        CommissionRuleVO management = commissionRuleService.queryCommissionRuleFromCache(salesCommission, CommissionTypeEnum.MANAGEMENT);
 
         // 客户年份
         Integer customerYear = null;
@@ -501,7 +509,7 @@ public class SalesOutboundService {
         BigDecimal managementCommission = BigDecimal.ZERO;
         // 管理提成
         if (management != null) {
-            if (management.getUseDynamicFormula() != null) { // 动态计算：（上级系数-自身系数）* 客户年份系数
+            if (management.getUseDynamicFormula() != 0) { // 动态计算：（上级系数-自身系数）* 客户年份系数
                 // 如果存在上级id，计算 管理提成
                 if (salesCommission.getPLevelRate() != null) {
                     if (pLevelRate.compareTo(levelRate) > 0) { // 上级系数不能比自身小
@@ -516,7 +524,7 @@ public class SalesOutboundService {
 
             } else {
                 managementCommissionRate = Optional.ofNullable(management.getCommissionRate()).orElse(BigDecimal.ZERO);
-                managementCommission = levelRate.multiply(amount);
+                managementCommission = levelRate.multiply(managementCommissionRate);
             }
             recordVO.setManagementCommissionAmount(managementCommission);
             recordVO.setManagementCommissionRate(managementCommissionRate);

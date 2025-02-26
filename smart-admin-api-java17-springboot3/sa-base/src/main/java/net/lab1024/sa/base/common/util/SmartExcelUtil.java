@@ -23,6 +23,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Map;
 
 /**
  *
@@ -47,6 +48,35 @@ public final class SmartExcelUtil {
                 .autoCloseStream(Boolean.FALSE)
                 .sheet(sheetName)
                 .doWrite(data);
+    }
+
+    /**
+     * 导出多个Sheet的Excel文件
+     *
+     * @param response     HttpServletResponse
+     * @param fileName     文件名
+     * @param sheetDataMap 每个Sheet的数据，键是Sheet名称，值是Sheet对应的表头和数据
+     * @throws IOException 异常
+     */
+    public static void exportExcel(HttpServletResponse response, String fileName, Class head, Map<String,Collection<?>> sheetDataMap) throws IOException {
+        // 设置下载消息头
+        SmartResponseUtil.setDownloadFileHeader(response, fileName, null);
+
+        // 使用EasyExcel写入Excel
+        EasyExcel.write(response.getOutputStream(), head)
+                .autoCloseStream(Boolean.FALSE);
+
+        // 遍历sheetDataMap，为每个Sheet写入数据
+        for (Map.Entry<String, Collection<?>> entry : sheetDataMap.entrySet()) {
+            String sheetName = entry.getKey();
+            Collection<?> data = entry.getValue();
+
+            // 为每个sheet写入数据
+            EasyExcel.write(response.getOutputStream(), head)
+                    .sheet(sheetName)       // 设置Sheet名称
+                    .head(head)             // 设置表头
+                    .doWrite(data);         // 写入数据
+        }
     }
 
     /**

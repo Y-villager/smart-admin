@@ -14,7 +14,7 @@ import java.time.LocalDate;
 public class CommissionRecordExportForm {
 
     @ExcelProperty("销售出库id")
-    private String salesBoundId;
+    private Long salesOutboundId;
 
     @ExcelProperty("销售出库-单据编号")
     private String salesBillNo;

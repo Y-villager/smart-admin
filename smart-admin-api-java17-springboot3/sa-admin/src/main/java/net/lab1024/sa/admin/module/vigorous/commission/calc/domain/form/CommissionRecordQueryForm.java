@@ -3,9 +3,11 @@ package net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import net.lab1024.sa.admin.module.vigorous.common.vo.DateVO;
 import net.lab1024.sa.base.common.domain.PageParam;
 
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * 业务提成记录 分页查询表单
@@ -33,5 +35,8 @@ public class CommissionRecordQueryForm extends PageParam {
 
     @Schema(description = "销售出库日期")
     private LocalDate orderDateEnd;
+
+    @Schema(description = "筛选日期列表")
+    private List<DateVO> filterDateList;
 
 }
