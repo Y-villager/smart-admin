@@ -32,6 +32,7 @@ public class SalesCommissionDto {
     @Schema(description = "客户id")
     private Long customerId;
     private String customerCode;
+    private String customerName;
     private Integer customerGroup;
 
     @Schema(description = "客户是否转交/转交状态")
@@ -51,6 +52,7 @@ public class SalesCommissionDto {
 
     @Schema(description = "当时上级id")
     private Long pSalespersonId;
+    private String pSalespersonName;
     private Integer pSalespersonLevelId;
     private BigDecimal pLevelRate;
 

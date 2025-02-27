@@ -31,6 +31,9 @@ public class CommissionRecordExportForm {
     @ExcelProperty("客户编码")
     private String customerCode;
 
+    @ExcelProperty("客户名称")
+    private String customerName;
+
     @ExcelProperty("首单日期")
     private LocalDate firstOrderDate;
 

@@ -97,6 +97,7 @@
       :scroll="{ x: 'max-content', y: 500 }"
     >
       <template #bodyCell="{ text, record, column }">
+
         <template v-if="column.dataIndex === 'action'">
           <div class="smart-table-operate">
             <a-button @click="onDelete(record)" danger type="link">删除</a-button>
@@ -191,7 +192,7 @@
     },
     {
       title: '业务员',
-      dataIndex: 'salespersonName',
+      dataIndex: 'salespersonId',
       ellipsis: true,
       width: '80px'
     },

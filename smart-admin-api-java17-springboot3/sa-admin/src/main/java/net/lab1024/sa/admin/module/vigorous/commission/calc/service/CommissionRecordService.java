@@ -236,7 +236,7 @@ public class CommissionRecordService {
             baseInfo.setCustomerCode(e.getCustomerCode());
             baseInfo.setFirstOrderDate(e.getAdjustedFirstOrderDate() != null ? e.getAdjustedFirstOrderDate() : e.getFirstOrderDate());
             baseInfo.setCustomerYear(e.getCustomerYear());
-            baseInfo.setIsTransfer(e.getTransferStatus() == 0);
+            baseInfo.setIsTransfer(e.getTransferStatus() != 0);
             baseInfo.setOrderDate(e.getOrderDate());
 
             // 创建业务提成对象并填充数据

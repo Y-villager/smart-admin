@@ -411,11 +411,13 @@ public class SalesOutboundService {
 
         recordVO.setCurrentSalespersonLevelId(salesCommission.getSalespersonLevelId()); // 当时业务员级别id
         recordVO.setCurrentParentId(salesCommission.getPSalespersonId()); // 当时上级id
+        recordVO.setCurrentParentName(salesCommission.getPSalespersonName()); // 当时上级名称
         recordVO.setCurrentParentLevelId(salesCommission.getSalespersonLevelId()); // 当时上级id
         recordVO.setTransferStatus(salesCommission.getTransferStatus()); // 转交状态
 
         // 导出信息
         recordVO.setCustomerCode(salesCommission.getCustomerCode());      // 客户编码
+        recordVO.setCustomerName(salesCommission.getCustomerName());      // 客户名称
         recordVO.setSalespersonName(salesCommission.getSalespersonName());// 业务员名称
 
         // 没有设置转交状态
