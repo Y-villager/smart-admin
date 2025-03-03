@@ -27,8 +27,17 @@
         <a-form-item label="国家"  name="country">
           <a-input style="width: 100%" v-model:value="form.country" placeholder="国家" />
         </a-form-item>
+        <a-form-item label="币别"  name="currencyType">
+          <DictSelect width="100%" v-model:aria-valuemax="form.currencyType" keyCode="CURRENCY_TYPE" placeholder="币别"/>
+        </a-form-item>
         <a-form-item label="客户分组"  name="customerGroup">
           <SmartEnumSelect enum-name="CUSTOMER_GROUP_ENUM" v-model:value="form.customerGroup" width="100%"/>
+        </a-form-item>
+        <a-form-item label="转交情况"  name="transferStatus">
+          <SmartEnumSelect enum-name="TRANSFER_STATUS_ENUM" v-model:value="form.transferStatus" width="100%"/>
+        </a-form-item>
+        <a-form-item label="是否报关"  name="isCustomsDeclaration">
+          <SmartEnumSelect enum-name="SYSTEM_YES_NO" v-model:value="form.isCustomsDeclaration" width="100%"/>
         </a-form-item>
         <a-form-item label="首单日期"  name="firstOrderDate">
           <a-date-picker valueFormat="YYYY-MM-DD" v-model:value="form.firstOrderDate" style="width: 100%" placeholder="首单日期"/>
@@ -36,7 +45,7 @@
         <a-form-item label="客户类别"  name="customerCategory">
           <a-input style="width: 100%" v-model:value="form.customerCategory" placeholder="客户类别" />
         </a-form-item>
-        <a-form-item label="业务员"  name="salespersonName">
+        <a-form-item label="业务员"  name="salespersonId">
           <SalespersonSelect width="100%" v-model:value="form.salespersonId" placeholder=""/>
         </a-form-item>
 
@@ -59,6 +68,7 @@
   import { smartSentry } from '/@/lib/smart-sentry';
   import SmartEnumSelect from '/@/components/framework/smart-enum-select/index.vue';
   import SalespersonSelect from "/@/components/vigorous/salesperson-select/index.vue";
+  import DictSelect from "/@/components/support/dict-select/index.vue";
 
   // ------------------------ 数据 ------------------------
   const salespersons = []
@@ -103,17 +113,24 @@
       shortName: undefined, //简称
       country: undefined, //国家
       customerGroup: undefined, //客户分组
+      currencyType: undefined, //币别
       customerCategory: undefined, //客户类别
       salespersonId: undefined, //业务员
       customerCode: undefined, //客户编码
+      transferStatus: undefined, //转交情况
+      isCustomsDeclaration: undefined, //转交情况
       firstOrderDate: undefined
   };
 
   let form = reactive({ ...formDefault });
 
   const rules = {
-      customerName: [{ required: true, message: '客户名称 必填' }],
-      customerCode: [{ required: true, message: '客户编码 必填' }],
+    customerCode: [{ required: true, message: '客户编码 必填' }],
+    customerName: [{ required: true, message: '客户名称 必填' }],
+    currencyType: [{ required: true, message: '币别 必填' }],
+    transferStatus: [{ required: true, message: '转交情况 必填' }],
+    isCustomsDeclaration: [{ required: true, message: '是否报关 必填' }],
+    salespersonId: [{ required: true, message: '业务员 必填' }],
   };
 
   // 点击确定，验证表单

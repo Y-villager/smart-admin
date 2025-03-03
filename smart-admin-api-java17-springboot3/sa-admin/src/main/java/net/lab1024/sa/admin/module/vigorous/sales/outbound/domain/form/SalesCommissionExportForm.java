@@ -1,17 +1,15 @@
 package net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form;
 
 import com.alibaba.excel.annotation.ExcelProperty;
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-@NoArgsConstructor
-@AllArgsConstructor
+@Builder
 @Data
-public class CommissionRecordExportForm {
+public class SalesCommissionExportForm {
 
     @ExcelProperty("出库单日期")
     private LocalDate orderDate;
@@ -43,11 +41,11 @@ public class CommissionRecordExportForm {
     @ExcelProperty("销售员")
     private String salespersonName;
 
-    @ExcelProperty("级别提成系数")
-    private BigDecimal levelRate;
-
     @ExcelProperty("上级销售员")
     private String currentParentName;
+
+    @ExcelProperty("销售员级别系数")
+    private BigDecimal levelRate;
 
     @ExcelProperty("转交状态")
     private Integer transferStatus;

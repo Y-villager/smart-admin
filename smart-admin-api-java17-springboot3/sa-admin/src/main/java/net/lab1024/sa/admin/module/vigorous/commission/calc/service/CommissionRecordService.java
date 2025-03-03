@@ -4,10 +4,8 @@ import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
 import net.lab1024.sa.admin.enumeration.CommissionFlagEnum;
+import net.lab1024.sa.admin.enumeration.CommissionTypeEnum;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.dao.CommissionRecordDao;
-import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.dto.BusinessCommissionExcel;
-import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.dto.CommissionExcel;
-import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.dto.ManagementCommissionExcel;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.entity.CommissionRecordEntity;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form.CommissionRecordAddForm;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form.CommissionRecordImportForm;
@@ -36,7 +34,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -212,83 +209,23 @@ public class CommissionRecordService {
         return entity;
     }
 
+
     /**
      * 导出
+     * @param queryForm
+     * @return
      */
     public Map<String, Collection<?>> exportCommissionRecord(CommissionRecordQueryForm queryForm) {
         Map<String, Collection<?>> resList = new HashMap<>();
-        List<CommissionRecordVO> entityList = commissionRecordDao.queryPage(null, queryForm);
-
-        Map<Long, String> salespersonIdNameMap = salespersonService.getSalespersonIdNameMap();
-
-        // 划分成两个列表：一个是业务列表，另一个是管理列表
-        List<BusinessCommissionExcel> businessList = new ArrayList<>();
-        List<ManagementCommissionExcel> managementList = new ArrayList<>();
-
-        // 遍历提成记录，并将数据提取到相应对象
-        for (CommissionRecordVO e : entityList) {
-            // 提取基础信息，避免重复设置
-            CommissionExcel baseInfo = new CommissionExcel();
-            baseInfo.setSalesBillNo(e.getSalesBillNo());
-            baseInfo.setSalesAmount(e.getSalesAmount());
-            baseInfo.setCurrencyType(e.getCurrencyType());
-            baseInfo.setCustomerName(e.getCustomerName());
-            baseInfo.setCustomerCode(e.getCustomerCode());
-            baseInfo.setFirstOrderDate(e.getAdjustedFirstOrderDate() != null ? e.getAdjustedFirstOrderDate() : e.getFirstOrderDate());
-            baseInfo.setCustomerYear(e.getCustomerYear());
-            baseInfo.setIsTransfer(e.getTransferStatus() != 0);
-            baseInfo.setOrderDate(e.getOrderDate());
-
-            // 创建业务提成对象并填充数据
-            BusinessCommissionExcel business = new BusinessCommissionExcel();
-            copyBaseInfoToBusinessCommission(business, baseInfo, e, salespersonIdNameMap);
-            businessList.add(business);
-
-            // 如果有管理提成数据，将其添加到管理提成列表
-            if (e.getBusinessCommissionAmount().compareTo(BigDecimal.ZERO) != 0) {
-                ManagementCommissionExcel management = new ManagementCommissionExcel();
-                copyBaseInfoToManagementCommission(management, baseInfo, e, salespersonIdNameMap);
-                managementList.add(management);
-            }
+        List<CommissionRecordVO> businessList = null;
+        String commissionTypeDesc = CommissionTypeEnum.getDescByValue(queryForm.getCommissionType());
+        if (commissionTypeDesc != null){
+            List<CommissionRecordVO> commissionList = commissionRecordDao.queryPage(null, queryForm);
+            resList.put(commissionTypeDesc, commissionList);
+            return resList;
         }
 
-        resList.put("业务提成", businessList);
-        resList.put("管理提成", managementList);
-
         return resList;
-    }
-
-    // 提取到独立的方法中，用于减少重复代码
-    private void copyBaseInfoToBusinessCommission(BusinessCommissionExcel business, CommissionExcel baseInfo, CommissionRecordVO e, Map<Long, String> salespersonIdNameMap) {
-        business.setSalesBillNo(baseInfo.getSalesBillNo());
-        business.setSalesAmount(baseInfo.getSalesAmount());
-        business.setCurrencyType(baseInfo.getCurrencyType());
-        business.setCustomerName(baseInfo.getCustomerName());
-        business.setCustomerCode(baseInfo.getCustomerCode());
-        business.setFirstOrderDate(baseInfo.getFirstOrderDate());
-        business.setCustomerYear(baseInfo.getCustomerYear());
-        business.setIsTransfer(baseInfo.getIsTransfer());
-        business.setOrderDate(baseInfo.getOrderDate());
-        business.setSalespersonId(e.getSalespersonId());
-        business.setSalespersonName(salespersonIdNameMap.get(e.getSalespersonId()));
-        business.setBusinessCommissionRate(e.getBusinessCommissionRate());
-        business.setBusinessCommissionAmount(e.getBusinessCommissionAmount());
-    }
-
-    private void copyBaseInfoToManagementCommission(ManagementCommissionExcel management, CommissionExcel baseInfo, CommissionRecordVO e, Map<Long, String> salespersonIdNameMap) {
-        management.setSalesBillNo(baseInfo.getSalesBillNo());
-        management.setSalesAmount(baseInfo.getSalesAmount());
-        management.setCurrencyType(baseInfo.getCurrencyType());
-        management.setCustomerName(baseInfo.getCustomerName());
-        management.setCustomerCode(baseInfo.getCustomerCode());
-        management.setFirstOrderDate(baseInfo.getFirstOrderDate());
-        management.setCustomerYear(baseInfo.getCustomerYear());
-        management.setIsTransfer(baseInfo.getIsTransfer());
-        management.setOrderDate(baseInfo.getOrderDate());
-        management.setCurrentParentId(e.getCurrentParentId());
-        management.setCurrentParentName(salespersonIdNameMap.get(e.getCurrentParentId()));
-        management.setManagementCommissionRate(e.getManagementCommissionRate());
-        management.setManagementCommissionAmount(e.getManagementCommissionAmount());
     }
 
 
@@ -323,14 +260,14 @@ public class CommissionRecordService {
      * 批量插入
      */
     @Transactional
-    public int batchInsertCommissionRecordAndUpdate(List<CommissionRecordVO> commissionRecordVOList) {
+    public int batchInsertCommissionRecordAndUpdate(List<CommissionRecordEntity> commissionRecordVOList) {
         if (commissionRecordVOList == null || commissionRecordVOList.isEmpty()) {
             return 0;
         }
 
         int batchSize = 1000;
         // 将数据分成多个批次
-        List<List<CommissionRecordVO>> batches = createBatches(commissionRecordVOList, batchSize);
+        List<List<CommissionRecordEntity>> batches = createBatches(commissionRecordVOList, batchSize);
 
         // 初始化自定义线程池
         ThreadPoolExecutor threadPool = ThreadPoolUtils.createThreadPool();
@@ -339,13 +276,13 @@ public class CommissionRecordService {
 
         // 并行处理每个批次的插入操作
         AtomicInteger count = new AtomicInteger();
-        for (List<CommissionRecordVO> batch : batches) {
+        for (List<CommissionRecordEntity> batch : batches) {
             futures.add(threadPool.submit(() -> transactionTemplate.execute(status -> {
                 int insert = commissionRecordDao.batchInsertOrUpdate(batch);
-                Set<Long> salesBillIds = batch.stream().map(CommissionRecordVO::getSalesOutboundId)
+                Set<String> salesBillNos = batch.stream().map(CommissionRecordEntity::getSalesBillNo)
                         .collect(Collectors.toSet());
                 // 批量更新 提成标识
-                int update = salesOutboundDao.batchUpdateCommissionFlag(salesBillIds, CommissionFlagEnum.CREATED.getValue());
+                int update = salesOutboundDao.batchUpdateCommissionFlag2(salesBillNos, CommissionFlagEnum.CREATED.getValue());
                 count.addAndGet(insert);
                 return insert;
             })));
@@ -366,8 +303,8 @@ public class CommissionRecordService {
     }
 
     // 将列表分割成多个批次
-    private List<List<CommissionRecordVO>> createBatches(List<CommissionRecordVO> list, int batchSize) {
-        List<List<CommissionRecordVO>> batches = new ArrayList<>();
+    private List<List<CommissionRecordEntity>> createBatches(List<CommissionRecordEntity> list, int batchSize) {
+        List<List<CommissionRecordEntity>> batches = new ArrayList<>();
         int totalSize = list.size();
         for (int i = 0; i < totalSize; i += batchSize) {
             int end = Math.min(i + batchSize, totalSize);

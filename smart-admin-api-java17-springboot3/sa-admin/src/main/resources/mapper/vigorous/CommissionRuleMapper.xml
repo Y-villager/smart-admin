@@ -5,9 +5,9 @@
     <!-- 查询结果列 -->
     <sql id="base_columns">
         v_commission_rule.rule_id,
-        v_commission_rule.transfer_status,
-        v_commission_rule.customer_group,
         v_commission_rule.commission_type,
+        v_commission_rule.transfer_status,
+        v_commission_rule.is_customs_declaration,
         v_commission_rule.use_dynamic_formula,
         v_commission_rule.commission_rate,
         v_commission_rule.formula_id,
@@ -23,22 +23,22 @@
         <include refid="base_columns"/>
         FROM v_commission_rule
         <where>
-            <!--客户分组-->
-            <if test="queryForm.customerGroup != null">
-                AND v_commission_rule.customer_group = #{queryForm.customerGroup}
+            <!--提成类型（1业务 2管理）-->
+            <if test="queryForm.commissionType != null">
+                AND v_commission_rule.commission_type = #{queryForm.commissionType}
             </if>
             <!--转交状态（0自主开发，非0转交）-->
             <if test="queryForm.transferStatus != null">
                 AND v_commission_rule.transfer_status = #{queryForm.transferStatus}
             </if>
-            <!--提成类型（1业务 2管理）-->
-            <if test="queryForm.commissionType != null">
-                AND v_commission_rule.commission_type = #{queryForm.commissionType}
+            <!--客户是否报关-->
+            <if test="queryForm.isCustomsDeclaration != null">
+                AND v_commission_rule.is_customs_declaration = #{queryForm.isCustomsDeclaration}
             </if>
         </where>
-        order by v_commission_rule.transfer_status asc,
-            v_commission_rule.customer_group asc,
-        v_commission_rule.commission_type asc
+        order by v_commission_rule.commission_type asc,
+            v_commission_rule.transfer_status asc,
+        v_commission_rule.is_customs_declaration asc
     </select>
 
     <select id="queryCommissionRule"
@@ -47,8 +47,8 @@
             from v_commission_rule
         <where>
             <!--客户分组-->
-            <if test="commissionRule.customerGroup != null">
-                AND v_commission_rule.customer_group = #{commissionRule.customerGroup}
+            <if test="commissionRule.isCustomsDeclaration != null">
+                AND v_commission_rule.is_customs_declaration = #{commissionRule.isCustomsDeclaration}
             </if>
             <!--转交状态（0自主开发，非0转交）-->
             <if test="commissionRule.transferStatus != null">

@@ -113,6 +113,9 @@
         <template v-if="column.dataIndex === 'transferStatus'">
           <span>{{$smartEnumPlugin.getDescByValue('TRANSFER_STATUS_ENUM', text)}}</span>
         </template>
+        <template v-if="column.dataIndex === 'isCustomsDeclaration'">
+          <span>{{$smartEnumPlugin.getDescByValue('SYSTEM_YES_NO', text)}}</span>
+        </template>
 
         <template v-if="column.dataIndex === 'action'">
           <div class="smart-table-operate">
@@ -242,6 +245,11 @@
     {
       title: '转交状态',
       dataIndex: 'transferStatus',
+      ellipsis: true,
+    },
+    {
+      title: '是否报关',
+      dataIndex: 'isCustomsDeclaration',
       ellipsis: true,
     },
     {

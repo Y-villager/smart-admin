@@ -1,4 +1,4 @@
-package net.lab1024.sa.admin.module.vigorous.commission.calc.domain.vo;
+package net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form;
 
 import com.alibaba.excel.annotation.ExcelProperty;
 import lombok.AllArgsConstructor;
@@ -20,7 +20,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Data
 @Builder
-public class CommissionRecordExcelVO {
+public class CommissionRecordExportForm {
 
     @ExcelProperty("销售出库-单据编号")
     private String salesBillNo;
@@ -43,17 +43,11 @@ public class CommissionRecordExcelVO {
     @ExcelProperty("应收-币别")
     private String currencyType;
 
-    @ExcelProperty("业务提成系数(%)")
-    private BigDecimal businessCommissionRate;
+    @ExcelProperty("提成系数(%)")
+    private BigDecimal commissionRate;
 
-    @ExcelProperty("业务提成金额")
-    private BigDecimal businessCommissionAmount;
-
-    @ExcelProperty("管理提成系数(%)")
-    private BigDecimal managementCommissionRate;
-
-    @ExcelProperty("业务提成金额")
-    private BigDecimal managementCommissionAmount;
+    @ExcelProperty("提成金额")
+    private BigDecimal commissionAmount;
 
     @ExcelProperty("是否为转交客户")
     private Integer transferStatus;

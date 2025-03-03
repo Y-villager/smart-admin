@@ -22,4 +22,14 @@ public enum CommissionTypeEnum implements BaseEnum {
     private final Integer value;
 
     private final String desc;
+
+    // 根据 value 获取对应的 desc
+    public static String getDescByValue(Integer value) {
+        for (CommissionTypeEnum type : CommissionTypeEnum.values()) {
+            if (type.getValue().equals(value)) {
+                return type.getDesc();
+            }
+        }
+        return null; // 如果没有找到对应的 value，返回 null 或者可以抛出异常
+    }
 }

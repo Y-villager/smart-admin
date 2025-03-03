@@ -26,6 +26,10 @@ public class CommissionRuleUpdateForm {
     @NotBlank(message = "转交状态（0自主开发，非0转交） 不能为空")
     private Integer transferStatus;
 
+    @Schema(description = "客户报关（0不需要报关，1需要报关）", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotBlank(message = "客户报关 不能为空")
+    private Integer isCustomsDeclaration;
+
     @Schema(description = "客户分组(1内贸 2外贸)", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "客户分组(1内贸 2外贸) 不能为空")
     private Integer customerGroup;

@@ -1,6 +1,4 @@
-package
-
-        net.lab1024.sa.admin.module.vigorous.commission.calc.domain.entity;
+package net.lab1024.sa.admin.module.vigorous.commission.calc.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
@@ -28,29 +26,9 @@ public class CommissionRecordEntity {
     private Long commissionId;
 
     /**
-     * 销售出库id
+     * 销售出库日期/ 业务日期
      */
-    private Long salesOutboundId;
-
-    /**
-     * 业务员id
-     */
-    private Long salespersonId;
-
-    /**
-     * 当时业务员级别id
-     */
-    private Integer currentSalespersonLevelId;
-
-    /**
-     * 当时上级id
-     */
-    private Long currentParentId;
-
-    /**
-     * 客户id
-     */
-    private Long customerId;
+    private LocalDate orderDate;
 
     /**
      * 销售出库-单据编号
@@ -58,28 +36,106 @@ public class CommissionRecordEntity {
     private String salesBillNo;
 
     /**
+     * 应收表-单据编号
+     */
+    private String receiveBillNo;
+
+    /**
+     * 业务员id
+     */
+    private Long salespersonId;
+
+    /**
+     * 客户id
+     */
+    private Long customerId;
+
+
+    /**
+     * 客户首单日期
+     */
+    private LocalDate firstOrderDate;
+
+    /**
+     * 调整后-客户首单日期
+     */
+    private LocalDate adjustedFirstOrderDate;
+
+    /**
+     * 客户是否转交
+     */
+    private Integer isTransfer;
+
+    /**
+     * 客户是否报关
+     */
+    private Integer isCustomsDeclaration;
+
+    /**
+     * 当时业务员级别id
+     */
+    private Integer currentSalespersonLevelId;
+
+    /**
+     * 业务员级别系数
+     */
+    private BigDecimal currentSalespersonLevelRate;
+
+    /**
+     * 当时上级id
+     */
+    private Long currentParentId;
+
+    /**
+     * 上级级别id
+     */
+    private Integer currentParentLevelId;
+
+    /**
+     * 上级级别系数
+     */
+    private BigDecimal currentParentLevelRate;
+
+    /**
      * 销售金额
      */
     private BigDecimal salesAmount;
 
     /**
+     * 币别
+     */
+    private String currencyType;
+
+    /**
      * 用户合作年数
      */
     private Integer customerYear;
+
+    /**
+     * 客户年份系数
+     */
     private BigDecimal customerYearRate;
 
-    private BigDecimal businessCommissionAmount;
-    private BigDecimal businessCommissionRate;
+    /**
+     * 提成类别(1业务 2管理
+     */
+    private Integer commissionType;
 
-    private BigDecimal managementCommissionAmount;
-    private BigDecimal managementCommissionRate;
+    /**
+     * 最终提成系数
+     */
+    private BigDecimal commissionRate;
+
+    /**
+     * 提成金额
+     */
+    private BigDecimal commissionAmount;
 
 
     /**
-     * 销售出库日期/ 业务日期
+     * 备注
      */
-    private LocalDate orderDate;
-
+    private String remark;
 
     /**
      * 创建时间
@@ -88,14 +144,8 @@ public class CommissionRecordEntity {
     private LocalDateTime createTime;
 
     /**
-     *
+     * 更新时间
      */
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime updateTime;
-
-    /**
-     * 备注
-     */
-    private String remark;
-
 }

@@ -38,17 +38,11 @@ public class CommissionRecordImportForm {
     @ExcelProperty("客户合作年份")
     private Integer customerYear;
 
-    @ExcelProperty("业务提成系数(%)")
-    private BigDecimal businessCommissionRate;
+    @ExcelProperty("提成系数(%)")
+    private BigDecimal commissionRate;
 
-    @ExcelProperty("业务提成金额")
-    private BigDecimal businessCommissionAmount;
-
-    @ExcelProperty("管理提成系数(%)")
-    private BigDecimal managementCommissionRate;
-
-    @ExcelProperty("上级管理提成金额")
-    private BigDecimal managementCommissionAmount;
+    @ExcelProperty("提成金额")
+    private BigDecimal commissionAmount;
 
     @ExcelProperty("转交状态")
     private Integer isTransfer;

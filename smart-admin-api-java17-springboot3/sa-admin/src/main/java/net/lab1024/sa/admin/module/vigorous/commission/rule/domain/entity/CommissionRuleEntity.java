@@ -27,19 +27,20 @@ public class CommissionRuleEntity {
     private Long ruleId;
 
     /**
+     * 提成类型（1业务 2管理）
+     */
+    private Integer commissionType;
+
+    /**
      * 转交状态（0自主开发，非0转交）
      */
     private Integer transferStatus;
 
     /**
-     * 客户分组(1内贸 2外贸)
+     * 是否报关(0不需要报关 1需要报关)
      */
-    private Integer customerGroup;
+    private Integer isCustomsDeclaration;
 
-    /**
-     * 提成类型（1业务 2管理）
-     */
-    private Integer commissionType;
 
     /**
      * 是否计算公式（0否 1是）

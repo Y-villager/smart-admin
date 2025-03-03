@@ -33,6 +33,15 @@
         </foreach>
     </update>
 
+    <update id="batchUpdateCommissionFlag2" parameterType="java.util.List">
+        UPDATE v_sales_outbound
+        SET commission_flag = #{flag}
+        WHERE bill_no IN
+        <foreach collection="list" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </update>
+
     <update id="batchUpdate">
         <foreach collection="list" item="item" separator=";">
             UPDATE v_sales_outbound
@@ -216,7 +225,7 @@
         SELECT
             vso.sales_bound_id as sales_outbound_id,
             vso.bill_no AS sales_bill_no,
-            vso.sales_bound_date,
+            vso.sales_bound_date as order_date,
             vso.amount AS sales_amount,
             vso.commission_flag,
             vc.adjusted_first_order_date,
@@ -235,7 +244,8 @@
             pvs.salesperson_level_id AS p_salesperson_level_id,
             pvsl.commission_rate AS p_level_rate,
             vr.bill_no as receive_bill_no,
-            vr.rate
+            vr.rate,
+            vr.currency_type
         FROM
             v_sales_outbound vso
             left JOIN v_receivables vr ON vso.bill_no = vr.origin_bill_no
@@ -328,24 +338,27 @@
     <select id="queryByIdList"
             resultType="net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.dto.SalesCommissionDto">
         SELECT
-        vso.sales_bound_id as sales_outbound_id,
-        vso.bill_no AS sales_bill_no,
-        vso.sales_bound_date,
-        vso.amount AS sales_amount,
-        vso.commission_flag,
-        vc.adjusted_first_order_date,
-        vc.customer_id,
-        vc.customer_group,
-        vc.transfer_status,
-        vc.first_order_date,
-        vs.id AS salesperson_id,
-        vs.salesperson_level_id,
-        vsl.commission_rate as level_rate,
-        pvs.id AS p_salesperson_id,
-        pvs.salesperson_level_id AS p_salesperson_level_id,
-        pvsl.commission_rate AS p_level_rate,
-        vr.bill_no as receive_bill_no,
-        vr.rate
+            vso.bill_no AS sales_bill_no,
+            vso.sales_bound_date as order_date,
+            vso.amount AS sales_amount,
+            vso.commission_flag,
+            vc.customer_id,
+            vc.customer_name,
+            vc.customer_code,
+            vc.first_order_date,
+            vc.adjusted_first_order_date,
+            vc.transfer_status,
+            vc.is_customs_declaration,
+            vs.id AS salesperson_id,
+            vs.salesperson_name,
+            vs.salesperson_level_id,
+            vsl.commission_rate as level_rate,
+            pvs.id AS p_salesperson_id,
+            pvs.salesperson_name AS p_salesperson_name,
+            pvs.salesperson_level_id AS p_salesperson_level_id,
+            pvsl.commission_rate AS p_level_rate,
+            vr.bill_no as receive_bill_no,
+            vr.currency_type
         FROM
         v_sales_outbound vso
         left JOIN v_receivables vr ON vso.bill_no = vr.origin_bill_no

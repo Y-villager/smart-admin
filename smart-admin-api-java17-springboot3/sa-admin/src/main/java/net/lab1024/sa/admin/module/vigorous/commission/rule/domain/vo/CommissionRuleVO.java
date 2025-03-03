@@ -22,18 +22,17 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class CommissionRuleVO {
 
-
     @Schema(description = "提成规则id")
     private Long ruleId;
+
+    @Schema(description = "提成类型（1业务 2管理）")
+    private Integer commissionType;
 
     @Schema(description = "转交状态（0自主开发，非0转交）")
     private Integer transferStatus;
 
-    @Schema(description = "客户分组(1内贸 2外贸)")
-    private Integer customerGroup;
-
-    @Schema(description = "提成类型（1业务 2管理）")
-    private Integer commissionType;
+    @Schema(description = "客户是否报关(0未报关 1报关)")
+    private Integer isCustomsDeclaration;
 
     @Schema(description = "是否计算公式（0否 1是）")
     private Integer useDynamicFormula;
@@ -53,5 +52,9 @@ public class CommissionRuleVO {
     @Schema(description = "更新")
     private LocalDateTime updateTime;
 
-
+    public CommissionRuleVO(Integer commissionType, Integer transferStatus, Integer isDeclared) {
+        this.commissionType = commissionType;
+        this.transferStatus = transferStatus;
+        this.isCustomsDeclaration = isDeclared;
+    }
 }

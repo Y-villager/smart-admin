@@ -42,6 +42,9 @@ public class CustomerExportForm {
     @ExcelProperty("转交状态")
     private String transferStatus;
 
+    @ExcelProperty("是否报关")
+    private Integer isCustomsDeclaration;
+
     @ExcelProperty(value = "错误信息")
     private String errorMsg;
 }

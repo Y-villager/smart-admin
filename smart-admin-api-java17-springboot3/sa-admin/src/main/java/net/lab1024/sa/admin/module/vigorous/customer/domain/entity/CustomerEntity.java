@@ -74,6 +74,11 @@ public class CustomerEntity {
     private Integer transferStatus;
 
     /**
+     * 是否报关
+     */
+    private Integer isCustomsDeclaration;
+
+    /**
      * 转交历史
      */
     private String transferHistory;

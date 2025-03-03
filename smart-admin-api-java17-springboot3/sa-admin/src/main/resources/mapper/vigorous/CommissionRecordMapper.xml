@@ -5,61 +5,72 @@
     <!-- 查询结果列 -->
     <sql id="base_columns">
         v_commission_record.commission_id,
-        v_commission_record.sales_bill_no,
-        v_commission_record.receive_bill_no,
-        v_commission_record.salesperson_id,
-        v_commission_record.current_parent_id,
-        v_commission_record.customer_id,
-        v_commission_record.sales_amount,
         v_commission_record.order_date,
+        v_commission_record.receive_bill_no,
+        v_commission_record.sales_bill_no,
+        v_commission_record.customer_id,
+        v_commission_record.salesperson_id,
+        v_commission_record.current_salesperson_level_id,
+        v_commission_record.current_salesperson_level_rate,
+        v_commission_record.current_parent_id,
+        v_commission_record.current_parent_level_id,
+        v_commission_record.current_parent_level_rate,
+        v_commission_record.sales_amount,
+        v_commission_record.currency_type,
         v_commission_record.customer_year,
         v_commission_record.customer_year_rate,
-        v_commission_record.business_commission_rate,
-        v_commission_record.business_commission_amount,
-        v_commission_record.management_commission_rate,
-        v_commission_record.management_commission_amount,
-        v_commission_record.transfer_status,
+        v_commission_record.commission_type,
+        v_commission_record.commission_rate,
+        v_commission_record.commission_amount,
+        v_commission_record.is_transfer,
+        v_commission_record.is_customs_declaration,
         v_commission_record.remark,
         v_commission_record.create_time,
         v_commission_record.update_time
     </sql>
 
     <sql id="insert_columns">
-        v_commission_record.sales_bill_no,
+        v_commission_record.order_date,
         v_commission_record.receive_bill_no,
+        v_commission_record.sales_bill_no,
+        v_commission_record.customer_id,
         v_commission_record.salesperson_id,
         v_commission_record.current_salesperson_level_id,
+        v_commission_record.current_salesperson_level_rate,
         v_commission_record.current_parent_id,
         v_commission_record.current_parent_level_id,
-        v_commission_record.customer_id,
+        v_commission_record.current_parent_level_rate,
         v_commission_record.sales_amount,
-        v_commission_record.order_date,
+        v_commission_record.currency_type,
         v_commission_record.customer_year,
         v_commission_record.customer_year_rate,
-        v_commission_record.business_commission_rate,
-        v_commission_record.business_commission_amount,
-        v_commission_record.management_commission_rate,
-        v_commission_record.management_commission_amount,
-        v_commission_record.transfer_status
+        v_commission_record.commission_type,
+        v_commission_record.commission_rate,
+        v_commission_record.commission_amount,
+        v_commission_record.is_transfer,
+        v_commission_record.is_customs_declaration
     </sql>
 
     <sql id="insert_item">
-        #{item.salesBillNo},
+        #{item.orderDate},
         #{item.receiveBillNo},
+        #{item.salesBillNo},
+        #{item.customerId},
         #{item.salespersonId},
         #{item.currentSalespersonLevelId},
+        #{item.currentSalespersonLevelRate},
         #{item.currentParentId},
         #{item.currentParentLevelId},
-        #{item.customerId},
+        #{item.currentParentLevelRate},
         #{item.salesAmount},
-        #{item.orderDate},
+        #{item.currencyType},
         #{item.customerYear},
         #{item.customerYearRate},
-        #{item.businessCommissionRate},
-        #{item.businessCommissionAmount},
-        #{item.managementCommissionRate},
-        #{item.managementCommissionAmount},
-        #{item.transferStatus}
+        #{item.commissionType},
+        #{item.commissionRate},
+        #{item.commissionAmount},
+        #{item.isTransfer},
+        #{item.isCustomsDeclaration}
     </sql>
 
     <insert id="batchInsertOrUpdate" parameterType="list">
@@ -69,22 +80,24 @@
             (<include refid="insert_item"/>)
         </foreach>
         ON DUPLICATE KEY UPDATE
-            sales_bill_no = VALUES(sales_bill_no),
+            order_date = VALUES(order_date),
             receive_bill_no = VALUES(receive_bill_no),
+            sales_bill_no = VALUES(sales_bill_no),
+            customer_id = VALUES(customer_id),
             salesperson_id = VALUES(salesperson_id),
             current_salesperson_level_id = VALUES(current_salesperson_level_id),
+            current_salesperson_level_rate = VALUES(current_salesperson_level_rate),
             current_parent_id = VALUES(current_parent_id),
             current_parent_level_id = VALUES(current_parent_level_id),
-            customer_id = VALUES(customer_id),
+            current_parent_level_rate = VALUES(current_parent_level_rate),
             sales_amount = VALUES(sales_amount),
-            order_date = VALUES(order_date),
             customer_year = VALUES(customer_year),
             customer_year_rate = VALUES(customer_year_rate),
-            business_commission_rate = VALUES(business_commission_rate),
-            business_commission_amount = VALUES(business_commission_amount),
-            management_commission_rate = VALUES(management_commission_rate),
-            management_commission_amount = VALUES(management_commission_amount),
-            transfer_status = VALUES(transfer_status)
+            commission_type = VALUES(commission_type),
+            commission_rate = VALUES(commission_rate),
+            commission_amount = VALUES(commission_amount),
+            is_transfer = VALUES(is_transfer),
+            is_customs_declaration = VALUES(is_customs_declaration)
     </insert>
 
     <insert id="batchInsert">
@@ -102,15 +115,13 @@
         <include refid="base_columns"/>,
             vc.customer_name,
             vc.customer_code,
-            vc.adjusted_first_order_date,
             vc.first_order_date,
-            vc.transfer_status,
-            vso.amount,
-            vr.currency_type
+            vc.adjusted_first_order_date,
+            vc.transfer_status as is_transfer,
+            vso.amount
         FROM v_commission_record
             left join v_customer vc on v_commission_record.customer_id = vc.customer_id
             left join v_sales_outbound vso on v_commission_record.sales_bill_no = vso.bill_no
-            left join v_receivables vr on v_commission_record.sales_bill_no = vr.origin_bill_no
         <where>
             <!--业务员-->
             <if test="queryForm.salespersonName != null and queryForm.salespersonName != ''">

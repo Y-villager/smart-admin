@@ -9,14 +9,14 @@
     <!---------- 查询表单form begin ----------->
     <a-form class="smart-query-form">
         <a-row class="smart-query-form-row">
+          <a-form-item label="提成类型" class="smart-query-form-item">
+            <SmartEnumSelect width="200px" v-model:value="queryForm.commissionType" enumName="COMMISSION_TYPE_ENUM" placeholder="提成类型（1业务 2管理）"/>
+          </a-form-item>
           <a-form-item label="转交状态" class="smart-query-form-item">
             <SmartEnumSelect width="200px" v-model:value="queryForm.transferStatus" enumName="IS_TRANSFERRED_ENUM" placeholder="转交状态（0自主开发，非0转交）"/>
           </a-form-item>
-            <a-form-item label="客户分组" class="smart-query-form-item">
-                <SmartEnumSelect width="200px" v-model:value="queryForm.customerGroup" enumName="CUSTOMER_GROUP_ENUM" placeholder="客户分组"/>
-            </a-form-item>
-            <a-form-item label="提成类型" class="smart-query-form-item">
-                <SmartEnumSelect width="200px" v-model:value="queryForm.commissionType" enumName="COMMISSION_TYPE_ENUM" placeholder="提成类型（1业务 2管理）"/>
+            <a-form-item label="客户是否报关" class="smart-query-form-item">
+                <SmartEnumSelect width="200px" v-model:value="queryForm.isDeclared" enumName="SYSTEM_YES_NO" placeholder="客户分组"/>
             </a-form-item>
             <a-form-item class="smart-query-form-item">
                 <a-button type="primary" @click="onSearch">
@@ -100,8 +100,8 @@
               <template v-if="column.dataIndex === 'transferStatus'">
                 <span>{{$smartEnumPlugin.getDescByValue('IS_TRANSFERRED_ENUM', text)}}</span>
               </template>
-              <template v-if="column.dataIndex === 'customerGroup'">
-                <span>{{$smartEnumPlugin.getDescByValue('CUSTOMER_GROUP_ENUM', text)}}</span>
+              <template v-if="column.dataIndex === 'isCustomsDeclaration'">
+                <span>{{$smartEnumPlugin.getDescByValue('SYSTEM_YES_NO', text)}}</span>
               </template>
               <template v-if="column.dataIndex === 'commissionType'">
                 <span>{{$smartEnumPlugin.getDescByValue('COMMISSION_TYPE_ENUM', text)}}</span>
@@ -198,18 +198,18 @@
 
     const columns = ref([
         {
+          title: '提成类型',
+          dataIndex: 'commissionType',
+          ellipsis: true,
+        },
+        {
             title: '转交状态',
             dataIndex: 'transferStatus',
             ellipsis: true,
         },
         {
-            title: '客户分组',
-            dataIndex: 'customerGroup',
-            ellipsis: true,
-        },
-        {
-            title: '提成类型',
-            dataIndex: 'commissionType',
+            title: '客户是否报关',
+            dataIndex: 'isCustomsDeclaration',
             ellipsis: true,
         },
         {
@@ -253,7 +253,7 @@
     // ---------------------------- 查询数据表单和方法 ----------------------------
 
     const queryFormState = {
-        customerGroup: undefined, //客户分组
+        isCustomsDeclaration: undefined, //客户分组
         transferStatus: undefined, //转交状态（0自主开发，非0转交）
         commissionType: undefined, //提成类型（1业务 2管理）
         pageNum: 1,

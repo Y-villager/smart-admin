@@ -46,5 +46,8 @@ public class CustomerAddForm {
     @SchemaEnum(TransferStatusEnum.class)
     private Integer transferStatus;
 
+    @Schema(description = "是否报关")
+    private Integer isCustomsDeclaration;
+
 
 }

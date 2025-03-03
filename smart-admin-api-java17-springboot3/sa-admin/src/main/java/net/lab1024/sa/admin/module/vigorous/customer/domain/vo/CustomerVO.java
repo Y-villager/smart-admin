@@ -55,6 +55,9 @@ public class CustomerVO {
     @Schema(description = "转交状态")
     private Integer transferStatus;
 
+    @Schema(description = "是否报关")
+    private Integer isCustomsDeclaration;
+
     @Schema(description = "转交历史")
     private String transferHistory;
 

@@ -16,17 +16,17 @@
   >
     <a-form ref="formRef" :model="form" :rules="rules" :label-col="{ span: 5 }" >
 
-      <a-form-item label="客户分组" class="smart-query-form-item">
-        <SmartEnumSelect width="200px" v-model:value="form.customerGroup" enumName="CUSTOMER_GROUP_ENUM" placeholder="客户分组"/>
+      <a-form-item label="是否需要报关" class="smart-query-form-item">
+        <SmartEnumSelect width="100%" v-model:value="form.isCustomsDeclaration" enumName="SYSTEM_YES_NO" placeholder="是否需要报关"/>
       </a-form-item>
       <a-form-item label="转交状态" class="smart-query-form-item">
-        <SmartEnumSelect width="200px" v-model:value="form.transferStatus" enumName="IS_TRANSFERRED_ENUM" placeholder="转交状态（0自主开发，非0转交）"/>
+        <SmartEnumSelect width="100%" v-model:value="form.transferStatus" enumName="IS_TRANSFERRED_ENUM" placeholder="转交状态（0自主开发，非0转交）"/>
       </a-form-item>
       <a-form-item label="提成类型" class="smart-query-form-item">
-        <SmartEnumSelect width="200px" v-model:value="form.commissionType" enumName="COMMISSION_TYPE_ENUM" placeholder="提成类型（1业务 2管理）"/>
+        <SmartEnumSelect width="100%" v-model:value="form.commissionType" enumName="COMMISSION_TYPE_ENUM" placeholder="提成类型（1业务 2管理）"/>
       </a-form-item>
       <a-form-item label="是否计算公式"  name="useDynamicFormula">
-        <SmartEnumSelect width="200px" v-model:value="form.useDynamicFormula" enumName="SYSTEM_YES_NO" placeholder="提成类型（1业务 2管理）"/>
+        <SmartEnumSelect width="100%" v-model:value="form.useDynamicFormula" enumName="SYSTEM_YES_NO" placeholder="提成类型（1业务 2管理）"/>
       </a-form-item>
         <a-form-item label="提成系数"  name="commissionRate">
           <a-input-number style="width: 100%" v-model:value="form.commissionRate" placeholder="提成系数" />
@@ -91,7 +91,7 @@
 
   const formDefault = {
       transferStatus: undefined, //转交状态（0自主开发，非0转交）
-      customerGroup: undefined, //客户分组(1内贸 2外贸)
+      isCustomsDeclaration: undefined, //客户分组(1内贸 2外贸)
       commissionType: undefined, //提成类型（1业务 2管理）
       useDynamicFormula: 0, //是否计算公式（0否 1是）
       commissionRate: undefined, //提成系数
@@ -103,7 +103,7 @@
 
   const rules = {
       transferStatus: [{ required: true, message: '转交状态 必填' }],
-      customerGroup: [{ required: true, message: '客户分组 必填' }],
+      isCustomsDeclaration: [{ required: true, message: '客户分组 必填' }],
       commissionType: [{ required: true, message: '提成类型 必填' }],
       useDynamicFormula: [{ required: true, message: '是否计算公式 必填' }],
   };

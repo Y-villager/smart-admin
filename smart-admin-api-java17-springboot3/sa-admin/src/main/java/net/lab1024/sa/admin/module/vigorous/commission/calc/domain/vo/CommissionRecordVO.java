@@ -28,23 +28,8 @@ public class CommissionRecordVO {
     @Schema(description = "提成id")
     private Long commissionId;
 
+    // 销售出库id
     private Long salesOutboundId;
-
-    @Schema(description = "业务员id")
-    private Long salespersonId;
-
-    @Schema(description = "当时业务员级别id")
-    private Integer currentSalespersonLevelId;
-
-    @Schema(description = "当时上级id")
-    private Long currentParentId;
-
-    private String currentParentName;
-
-    @Schema(description = "当时上级级别id")
-    private Integer currentParentLevelId;
-
-    private String salespersonName;
 
     @Schema(description = "销售出库-单据编号")
     private String salesBillNo;
@@ -52,29 +37,50 @@ public class CommissionRecordVO {
     @Schema(description = "应收单-单据编号")
     private String receiveBillNo;
 
+    @Schema(description = "销售出库日期/业务日期")
+    private LocalDate orderDate;
+
+    @Schema(description = "业务员id")
+    private Long salespersonId;
+
+    // 业务员名称
+    private String salespersonName;
+
     @Schema(description = "客户id")
     private Long customerId;
 
+    // 客户编码
     private String customerCode;
 
+    // 客户名称
     private String customerName;
 
-    private LocalDate adjustedFirstOrderDate;
 
+    @Schema(description = "当时业务员级别id")
+    private Integer currentSalespersonLevelId;
+
+    @Schema(description = "当时上级id")
+    private Long currentParentId;
+
+    // 当时上级名称
+    private String currentParentName;
+
+    @Schema(description = "当时上级级别id")
+    private Integer currentParentLevelId;
+
+    // 首单日期
     private LocalDate firstOrderDate;
+
+    // 调整后-首单日期
+    private LocalDate adjustedFirstOrderDate;
 
     @Schema(description = "销售金额")
     private BigDecimal salesAmount;
 
-    @Schema(description = "销售出库日期/业务日期")
-    private LocalDate orderDate;
-
+    // 应收-币别
     private String currencyType;
 
-    // 是否为转交客户
-    private Integer transferStatus;
-
-    // 提成标识（）
+    // 提成标识（0未生成 1已生成 2编辑中）
     private Integer commissionFlag;
 
     @Schema(description = "客户合作年数")
@@ -83,16 +89,20 @@ public class CommissionRecordVO {
     @Schema(description = "客户系数")
     private BigDecimal customerYearRate;
 
-    @Schema(description = "业务提成系数")
-    private BigDecimal businessCommissionRate;
+    @Schema(description = "提成类别")
+    private Integer commissionType;
 
-    @Schema(description = "业务提成金额")
-    private BigDecimal businessCommissionAmount;
+    @Schema(description = "提成系数")
+    private BigDecimal commissionRate;
 
-    @Schema(description = "管理提成系数")
-    private BigDecimal managementCommissionRate;
-    @Schema(description = "管理提成金额")
-    private BigDecimal managementCommissionAmount;
+    @Schema(description = "提成金额")
+    private BigDecimal commissionAmount;
+
+    @Schema(description = "客户是否转交")
+    private Integer isTransfer;
+
+    @Schema(description = "客户是否报关")
+    private Integer isCustomsDeclaration;
 
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
