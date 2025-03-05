@@ -93,6 +93,10 @@ file:
       secret-key:
       url-prefix: https://${file.storage.cloud.bucket-name}.${file.storage.cloud.endpoint}/
       private-url-expire-seconds: 3600
+  excel:
+    failed-import:
+      upload-path: /home/smart_admin_v3/failed_import/
+      failed-data-name: failed_import_data.xlsx
 
 
 # open api配置
