@@ -131,12 +131,18 @@
             <if test="queryForm.customerName != null and queryForm.customerName != ''">
                 AND INSTR(v_commission_record.customer_id,#{queryForm.customerName})
             </if>
+            <if test="queryForm.isCustomsDeclaration != null and queryForm.isCustomsDeclaration != ''">
+                AND INSTR(v_commission_record.is_customs_declaration,#{queryForm.isCustomsDeclaration})
+            </if>
             <!--销售出库日期-->
             <if test="queryForm.orderDateBegin != null">
                 AND v_commission_record.order_date &gt;= #{queryForm.orderDateBegin}
             </if>
             <if test="queryForm.orderDateEnd != null">
                 AND v_commission_record.order_date &lt;= #{queryForm.orderDateEnd}
+            </if>
+            <if test="queryForm.commissionType != null">
+                AND v_commission_record.commission_type = #{queryForm.commissionType}
             </if>
             <if test="queryForm.salesBillNo != null">
                 AND INSTR(v_commission_record.sales_bill_no,#{queryForm.salesBillNo})

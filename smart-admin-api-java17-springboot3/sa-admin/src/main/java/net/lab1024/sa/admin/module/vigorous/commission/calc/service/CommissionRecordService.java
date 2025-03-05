@@ -7,10 +7,7 @@ import net.lab1024.sa.admin.enumeration.CommissionFlagEnum;
 import net.lab1024.sa.admin.enumeration.CommissionTypeEnum;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.dao.CommissionRecordDao;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.entity.CommissionRecordEntity;
-import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form.CommissionRecordAddForm;
-import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form.CommissionRecordImportForm;
-import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form.CommissionRecordQueryForm;
-import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form.CommissionRecordUpdateForm;
+import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form.*;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.vo.CommissionRecordVO;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.dao.SalesOutboundDao;
 import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
@@ -72,7 +69,11 @@ public class CommissionRecordService {
      */
     public PageResult<CommissionRecordVO> queryPage(CommissionRecordQueryForm queryForm) {
         Page<?> page = SmartPageUtil.convert2PageQuery(queryForm);
+        Map<Long, String> salespersonIdNameMap = salespersonService.getSalespersonIdNameMap();
         List<CommissionRecordVO> list = commissionRecordDao.queryPage(page, queryForm);
+        for (CommissionRecordVO record : list) {
+            record.setSalespersonName(salespersonIdNameMap.get(record.getSalespersonId()));
+        }
         PageResult<CommissionRecordVO> pageResult = SmartPageUtil.convert2PageResult(page, list);
         return pageResult;
     }
@@ -217,14 +218,55 @@ public class CommissionRecordService {
      */
     public Map<String, Collection<?>> exportCommissionRecord(CommissionRecordQueryForm queryForm) {
         Map<String, Collection<?>> resList = new HashMap<>();
-        List<CommissionRecordVO> businessList = null;
-        String commissionTypeDesc = CommissionTypeEnum.getDescByValue(queryForm.getCommissionType());
-        if (commissionTypeDesc != null){
-            List<CommissionRecordVO> commissionList = commissionRecordDao.queryPage(null, queryForm);
-            resList.put(commissionTypeDesc, commissionList);
-            return resList;
-        }
 
+        // 获取销售人员 ID 到名称的映射
+        Map<Long, String> salespersonIdNameMap = salespersonService.getSalespersonIdNameMap();
+        // 查询提成记录
+        List<CommissionRecordVO> commissionList = commissionRecordDao.queryPage(null, queryForm);
+
+        // 使用 groupingBy 进行分组，根据 commissionType 进行分类
+        Map<String, List<CommissionRecordExportForm>> groupedResult = commissionList.stream()
+                .map(e -> {
+                    // 创建 CommissionRecordExportForm
+                    return CommissionRecordExportForm.builder()
+                            .orderDate(e.getOrderDate())
+                            .salesBillNo(e.getSalesBillNo())
+                            .customerName(e.getCustomerName())
+                            .customerCode(e.getCustomerCode())
+                            .salespersonName(salespersonIdNameMap.get(e.getSalespersonId()))
+                            .salespersonLevelRate(e.getCurrentSalespersonLevelRate())
+                            .currentParentName(salespersonIdNameMap.get(e.getCurrentParentId()))
+                            .currentParentLevelRate(e.getCurrentParentLevelRate())
+                            .firstOrderDate(e.getFirstOrderDate())
+                            .adjustedFirstOrderDate(e.getAdjustedFirstOrderDate())
+                            .customerYear(e.getCustomerYear())
+                            .customerYearRate(e.getCustomerYearRate())
+                            .salesAmount(e.getSalesAmount())
+                            .currencyType(e.getCurrencyType())
+                            .commissionRate(e.getCommissionRate())
+                            .commissionAmount(e.getCommissionAmount())
+                            .isCustomsDeclaration(e.getIsCustomsDeclaration() == 0 ? "不报关" : "报关")
+                            .isTransfer(e.getIsTransfer() == 0 ? "自主开发" : "转交客户")
+                            .commissionType(e.getCommissionType()) // 保留 commissionType
+                            .build();
+                })
+                .collect(Collectors.groupingBy(e -> {
+                    // 根据 commissionType 分类
+                    if (e.getCommissionType().equals(CommissionTypeEnum.BUSINESS.getValue())) {
+                        return "业务提成";
+                    } else if (e.getCommissionType().equals(CommissionTypeEnum.MANAGEMENT.getValue())) {
+                        return "管理提成";
+                    } else {
+                        return "其他、未知";
+                    }
+                }));
+
+        // 将分组后的结果添加到 resList 中
+        groupedResult.forEach((key, value) -> {
+            if (!value.isEmpty()) {
+                resList.put(key, value);
+            }
+        });
         return resList;
     }
 

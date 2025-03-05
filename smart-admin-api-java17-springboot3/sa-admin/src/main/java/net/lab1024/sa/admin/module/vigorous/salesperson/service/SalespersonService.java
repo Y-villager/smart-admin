@@ -287,11 +287,15 @@ public class SalespersonService {
     }
 
     public Map<Long, String> getSalespersonIdNameMap() {
-        List<SalespersonDto> allSalesperson = getAllSalesperson();
+        List<SalespersonDto> allSalesperson = getSalespersonFromRedis();
+
+        if (allSalesperson == null || allSalesperson.isEmpty()) {
+            allSalesperson = salespersonDao.getAllSalesperson();
+            saveToRedis(allSalesperson);
+        }
 
         // 创建一个 Map，用于存储 id 和 name 的对应关系
         Map<Long, String> idToNameMap = new HashMap<>();
-
         // 遍历所有 SalespersonDto，将 id 和 name 放入 Map 中
         for (SalespersonDto dto : allSalesperson) {
             idToNameMap.put(dto.getId(), dto.getName());

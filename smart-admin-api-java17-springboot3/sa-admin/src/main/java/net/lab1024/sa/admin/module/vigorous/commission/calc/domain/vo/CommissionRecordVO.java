@@ -46,6 +46,12 @@ public class CommissionRecordVO {
     // 业务员名称
     private String salespersonName;
 
+    @Schema(description = "当时业务员级别id")
+    private Integer currentSalespersonLevelId;
+
+    @Schema(description = "当时业务员级别级别系数")
+    private BigDecimal currentSalespersonLevelRate;
+
     @Schema(description = "客户id")
     private Long customerId;
 
@@ -56,9 +62,6 @@ public class CommissionRecordVO {
     private String customerName;
 
 
-    @Schema(description = "当时业务员级别id")
-    private Integer currentSalespersonLevelId;
-
     @Schema(description = "当时上级id")
     private Long currentParentId;
 
@@ -67,6 +70,9 @@ public class CommissionRecordVO {
 
     @Schema(description = "当时上级级别id")
     private Integer currentParentLevelId;
+
+    @Schema(description = "上级级别系数")
+    private BigDecimal currentParentLevelRate;
 
     // 首单日期
     private LocalDate firstOrderDate;

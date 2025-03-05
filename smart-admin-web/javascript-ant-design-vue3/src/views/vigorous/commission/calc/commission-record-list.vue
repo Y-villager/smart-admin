@@ -13,10 +13,16 @@
         <a-input style="width: 200px" v-model:value="queryForm.salesBillNo" placeholder="销售出库-单据编号" />
       </a-form-item>
       <a-form-item label="业务员" class="smart-query-form-item">
-        <a-input style="width: 200px" v-model:value="queryForm.salespersonName" placeholder="业务员" />
+        <salesperson-select width="200px" v-model:value="queryForm.parentId" placeholder="业务员"/>
       </a-form-item>
       <a-form-item label="客户名称" class="smart-query-form-item">
         <a-input style="width: 200px" v-model:value="queryForm.customerName" placeholder="客户名称" />
+      </a-form-item>
+      <a-form-item label="提成类别" class="smart-query-form-item">
+        <SmartEnumSelect enum-name="COMMISSION_TYPE_ENUM" placeholder="提成类别" v-model:value="queryForm.commissionType" width="160px" />
+      </a-form-item>
+      <a-form-item label="是否报关" class="smart-query-form-item">
+        <SmartEnumSelect enum-name="SYSTEM_YES_NO" placeholder="是否报关" v-model:value="queryForm.isCustomsDeclaration" width="160px" />
       </a-form-item>
       <a-form-item label="销售出库日期" class="smart-query-form-item">
         <a-range-picker v-model:value="queryForm.orderDate" :presets="defaultTimeRanges" style="width: 260px" @change="onChangeOrderDate" />
@@ -98,6 +104,11 @@
     >
       <template #bodyCell="{ text, record, column }">
 
+        <template v-if="column.dataIndex === 'commissionType'">
+          <div class="smart-table-operate">
+            <span>{{$smartEnumPlugin.getDescByValue('COMMISSION_TYPE_ENUM', text)}}</span>
+          </div>
+        </template>
         <template v-if="column.dataIndex === 'action'">
           <div class="smart-table-operate">
             <a-button @click="onDelete(record)" danger type="link">删除</a-button>
@@ -174,6 +185,8 @@
   import {defaultTimeRanges} from '/@/lib/default-time-ranges';
   import CommissionRecordForm from './commission-record-form.vue';
   import Quarter from "/@/components/vigorous/TimeQuarter.vue";
+  import SmartEnumSelect from "/@/components/framework/smart-enum-select/index.vue";
+  import SalespersonSelect from "/@/components/vigorous/salesperson-select/index.vue";
 
   // ---------------------------- 表格列 ----------------------------
 
@@ -192,7 +205,7 @@
     },
     {
       title: '业务员',
-      dataIndex: 'salespersonId',
+      dataIndex: 'salespersonName',
       ellipsis: true,
       width: '80px'
     },
@@ -203,13 +216,25 @@
       width: '150px'
     },
     {
+      title: '提成类型',
+      dataIndex: 'commissionType',
+      ellipsis: true,
+      width: '150px'
+    },
+    {
       title: '首单日期',
+      dataIndex: 'firstOrderDate',
+      ellipsis: true,
+      width: '100px'
+    },
+    {
+      title: '计算-首单日期',
       dataIndex: 'adjustedFirstOrderDate',
       ellipsis: true,
       width: '100px'
     },
     {
-      title: '业务金额',
+      title: '销售金额',
       dataIndex: 'salesAmount',
       ellipsis: true,
       width: '100px'
@@ -233,33 +258,20 @@
       width: '100px'
     },
     {
-      title: '业务提成比例(%)',
-      dataIndex: 'businessCommissionRate',
-      ellipsis: true,
-      width: '130px'
-
-    },
-    {
-      title: '业务提成金额',
-      dataIndex: 'businessCommissionAmount',
-      ellipsis: true,
-      width: '110px'
-    },
-    {
       title: '上级',
       dataIndex: 'currentParentId',
       ellipsis: true,
       width: '110px'
     },
     {
-      title: '上级管理提成比例(%)',
-      dataIndex: 'managementCommissionRate',
+      title: '提成比例(%)',
+      dataIndex: 'commissionRate',
       ellipsis: true,
       width: '130px'
     },
     {
-      title: '上级管理提成金额',
-      dataIndex: 'managementCommissionAmount',
+      title: '提成金额',
+      dataIndex: 'commissionAmount',
       ellipsis: true,
       width: '110px'
     },
@@ -277,6 +289,8 @@
     salesBillNo: undefined,
     salespersonName: undefined, //业务员
     customerName: undefined, //客户名称
+    isCustomsDeclaration: undefined, //客户名称
+    commissionType: undefined, //提成类别
     orderDate: [], //销售出库日期
     orderDateBegin: undefined, //销售出库日期 开始
     orderDateEnd: undefined, //销售出库日期 结束

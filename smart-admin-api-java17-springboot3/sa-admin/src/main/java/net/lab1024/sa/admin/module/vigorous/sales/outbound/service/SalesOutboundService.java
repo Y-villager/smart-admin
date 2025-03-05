@@ -561,14 +561,14 @@ public class SalesOutboundService {
 
         }
         // 转交
-        salesCommission.setTransferStatus(salesCommission.getTransferStatus() !=0 ? 0 : 1);
+        salesCommission.setTransferStatus(salesCommission.getTransferStatus() ==0 ? 0 : 1);
 
         // 查询提成规则
         CommissionRuleVO commissionRule =
                 commissionRuleCacheService.getCommissionRuleFromCache(entity.getCommissionType(), salesCommission.getTransferStatus(), salesCommission.getIsCustomsDeclaration());
 
         // 1.计算客户合作年数
-        Integer customerYear = calculateCooperationYears(salesCommission.getFirstOrderDate(), LocalDate.now());
+        Integer customerYear = calculateCooperationYears(salesCommission, LocalDate.now());
         entity.setCustomerYear(customerYear); // 客户合作年数
 
         // 2.计算客户合作年份系数
@@ -639,7 +639,14 @@ public class SalesOutboundService {
     }
 
     // 计算客户合作年数
-    public static int calculateCooperationYears(LocalDate startDate, LocalDate today) {
+    public static int calculateCooperationYears(SalesCommissionDto dto, LocalDate today) {
+        if (dto.getFirstOrderDate() == null){
+            throw new RuntimeException("缺少客户首单日期");
+        }
+        LocalDate startDate = dto.getFirstOrderDate();
+        if (dto.getAdjustedFirstOrderDate() != null){
+            startDate = dto.getAdjustedFirstOrderDate();
+        }
         // 计算开始日期与今天的日期差距
         Period period = Period.between(startDate, today);
 

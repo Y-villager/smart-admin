@@ -22,20 +22,44 @@ import java.time.LocalDate;
 @Builder
 public class CommissionRecordExportForm {
 
+    @ExcelProperty("业务日期")
+    private LocalDate orderDate;
+
     @ExcelProperty("销售出库-单据编号")
     private String salesBillNo;
 
     @ExcelProperty("销售员")
     private String salespersonName;
 
+    @ExcelProperty("销售员级别系数")
+    private BigDecimal salespersonLevelRate;
+
+    @ExcelProperty("销售员上级")
+    private String currentParentName;
+
+    @ExcelProperty("上级系数")
+    private BigDecimal currentParentLevelRate;
+
+    @ExcelProperty("客户编码")
+    private String customerCode;
+
     @ExcelProperty("客户名称")
     private String customerName;
 
-    @ExcelProperty("首单日期")
+    @ExcelProperty("初始-首单日期")
     private LocalDate firstOrderDate;
+
+    @ExcelProperty("调整后-首单日期")
+    private LocalDate adjustedFirstOrderDate;
 
     @ExcelProperty("客户合作年份")
     private Integer customerYear ;
+
+    @ExcelProperty("客户年份系数")
+    private BigDecimal customerYearRate ;
+
+    @ExcelProperty("提成类别")
+    private Integer commissionType;
 
     @ExcelProperty("业务金额")
     private BigDecimal salesAmount;
@@ -43,16 +67,17 @@ public class CommissionRecordExportForm {
     @ExcelProperty("应收-币别")
     private String currencyType;
 
-    @ExcelProperty("提成系数(%)")
+    @ExcelProperty("是否为转交客户")
+    private String isTransfer;
+
+    @ExcelProperty("是否报关")
+    private String isCustomsDeclaration;
+
+    @ExcelProperty("最终提成系数(%)")
     private BigDecimal commissionRate;
 
     @ExcelProperty("提成金额")
     private BigDecimal commissionAmount;
 
-    @ExcelProperty("是否为转交客户")
-    private Integer transferStatus;
-
-    @ExcelProperty("业务日期")
-    private LocalDate orderDate;
 
 }

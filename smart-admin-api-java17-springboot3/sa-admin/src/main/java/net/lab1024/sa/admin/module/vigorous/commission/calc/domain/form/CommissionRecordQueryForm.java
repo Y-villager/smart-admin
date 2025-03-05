@@ -36,6 +36,9 @@ public class CommissionRecordQueryForm extends PageParam {
     @Schema(description = "提成类别")
     private Integer commissionType;
 
+    @Schema(description = "是否报关")
+    private Integer isCustomsDeclaration;
+
     @Schema(description = "销售出库日期")
     private LocalDate orderDateEnd;
 
