@@ -33,7 +33,7 @@
       </a-form-item>
 
       <a-form-item label="快速筛选" class="smart-query-form-item">
-        <a-radio-group v-model:value="queryForm.shelvesFlag" @change="onSearch">
+        <a-radio-group v-model:value="queryForm.shelvesFlag" @change="onSearch" v-privilege="'goods:query'">
           <a-radio-button :value="undefined">全部</a-radio-button>
           <a-radio-button :value="true">上架</a-radio-button>
           <a-radio-button :value="false">下架</a-radio-button>
@@ -71,21 +71,22 @@
           新建
         </a-button>
 
-        <a-button @click="confirmBatchDelete" danger :disabled="selectedRowKeyList.length === 0" v-privilege="'goods:batchDelete'">
+        <a-button @click="confirmBatchDelete" danger :disabled="selectedRowKeyList.length === 0"
+                  v-privilege="'goods:batchDelete'">
           <template #icon>
             <DeleteOutlined />
           </template>
           批量删除
         </a-button>
 
-        <a-button @click="showImportModal" type="primary" v-privilege="'goods:importGoods'">
+        <a-button @click="showImportModal" type="primary" v-privilege="'goods:import'">
           <template #icon>
             <ImportOutlined />
           </template>
           导入
         </a-button>
 
-        <a-button @click="onExportGoods" type="primary" v-privilege="'goods:exportGoods'">
+        <a-button @click="onExportGoods" type="primary" v-privilege="'goods:export'">
           <template #icon>
             <ExportOutlined />
           </template>

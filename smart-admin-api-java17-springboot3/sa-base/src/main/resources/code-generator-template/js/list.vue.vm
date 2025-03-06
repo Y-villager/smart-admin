@@ -64,7 +64,7 @@
         <a-row class="smart-table-btn-block">
             <div class="smart-table-operate-block">
 #if($insertAndUpdate.isSupportInsertAndUpdate)
-                <a-button @click="showForm" type="primary" v-privilege="'${name.lowerCamel}:update'">
+                <a-button @click="showForm" type="primary" v-privilege="'${name.lowerCamel}:add'">
                     <template #icon>
                         <PlusOutlined />
                     </template>

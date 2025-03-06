@@ -40,27 +40,28 @@
         <!---------- 表格操作行 begin ----------->
         <a-row class="smart-table-btn-block">
             <div class="smart-table-operate-block">
-                <a-button @click="showForm" type="primary" size="small">
+                <a-button @click="showForm" type="primary" size="small" v-privilege="'salesperson:update'">
                     <template #icon>
                         <PlusOutlined />
                     </template>
                     新建
                 </a-button>
-                <a-button @click="confirmBatchDelete" type="primary" danger size="small" :disabled="selectedRowKeyList.length == 0">
+                <a-button @click="confirmBatchDelete" type="primary" danger size="small" :disabled="selectedRowKeyList.length === 0"
+                          v-privilege="'salesperson:batchDelete'">
                     <template #icon>
                         <DeleteOutlined />
                     </template>
                     批量删除
                 </a-button>
 
-              <a-button @click="showImportModal" type="primary" v-privilege="'salesperson:importSalesperson'">
+              <a-button @click="showImportModal" type="primary" v-privilege="'salesperson:import'">
                 <template #icon>
                   <ImportOutlined />
                 </template>
                 导入
               </a-button>
 
-              <a-button @click="onExportSalesperson" type="primary" v-privilege="'salesperson:exportSalesperson'">
+              <a-button @click="onExportSalesperson" type="primary" v-privilege="'salesperson:export'">
                 <template #icon>
                   <ExportOutlined />
                 </template>
@@ -101,9 +102,9 @@
 
                 <template v-if="column.dataIndex === 'action'">
                     <div class="smart-table-operate">
-                        <a-button @click="showForm(record)" type="link">编辑</a-button>
-                        <a-button @click="showChangeLevel(record)" type="link">调成级别</a-button>
-                        <a-button @click="onDelete(record)" danger type="link">删除</a-button>
+                        <a-button @click="showForm(record)" type="link" v-privilege="'salesperson:update'">编辑</a-button>
+                        <a-button @click="showChangeLevel(record)" type="link" v-privilege="'salesperson:update'">调成级别</a-button>
+                        <a-button @click="onDelete(record)" danger type="link" v-privilege="'salesperson:delete'">删除</a-button>
                     </div>
                 </template>
             </template>

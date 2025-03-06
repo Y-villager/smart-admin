@@ -50,20 +50,21 @@
     <a-row class="smart-table-btn-block">
       <div class="smart-table-operate-block">
 
-        <a-button @click="confirmBatchDelete" type="primary" danger :disabled="selectedRowKeyList.length == 0">
+        <a-button @click="confirmBatchDelete" type="primary" danger :disabled="selectedRowKeyList.length === 0"
+                  v-privilege="'receivables:batchDelete'">
           <template #icon>
             <DeleteOutlined />
           </template>
           批量删除
         </a-button>
-        <a-button @click="showImportModal" type="primary" v-privilege="'receivables:importReceivables'">
+        <a-button @click="showImportModal" type="primary" v-privilege="'receivables:import'">
           <template #icon>
             <ImportOutlined />
           </template>
           导入
         </a-button>
 
-        <a-button @click="onExportReceivables" type="primary" v-privilege="'receivables:exportReceivables'">
+        <a-button @click="onExportReceivables" type="primary" v-privilege="'receivables:export'">
           <template #icon>
             <ExportOutlined />
           </template>
@@ -104,8 +105,8 @@
 
         <template v-if="column.dataIndex === 'action'">
           <div class="smart-table-operate">
-            <a-button @click="showForm(record)" type="link">编辑</a-button>
-            <a-button @click="onDelete(record)" danger type="link">删除</a-button>
+            <a-button @click="showForm(record)" type="link" v-privilege="'receivables:update'">编辑</a-button>
+            <a-button @click="onDelete(record)" danger type="link" v-privilege="'receivables:delete'">删除</a-button>
           </div>
         </template>
       </template>

@@ -31,7 +31,7 @@
         <a-input style="width: 200px" v-model:value="queryForm.country" placeholder="国家" />
       </a-form-item>
       <a-form-item class="smart-query-form-item">
-        <a-button type="primary" @click="onSearch">
+        <a-button type="primary" @click="onSearch" v-privilege="'customer:query'">
           <template #icon>
             <SearchOutlined />
           </template>
@@ -52,26 +52,27 @@
     <!---------- 表格操作行 begin ----------->
     <a-row class="smart-table-btn-block">
       <div class="smart-table-operate-block">
-        <a-button @click="showForm" type="primary">
+        <a-button @click="showForm" type="primary" v-privilege="'customer:update'">
           <template #icon>
             <PlusOutlined />
           </template>
           新建
         </a-button>
-        <a-button @click="confirmBatchDelete" type="primary" danger :disabled="selectedRowKeyList.length == 0">
+        <a-button @click="confirmBatchDelete" type="primary" danger :disabled="selectedRowKeyList.length === 0"
+                  v-privilege="'customer:batchDelete'">
           <template #icon>
             <DeleteOutlined />
           </template>
           批量删除
         </a-button>
-        <a-button @click="showImportModal" type="primary" v-privilege="'customer:importCustomer'">
+        <a-button @click="showImportModal" type="primary" v-privilege="'customer:import'">
           <template #icon>
             <ImportOutlined />
           </template>
           导入
         </a-button>
 
-        <a-button @click="onExportCustomer" type="primary" v-privilege="'customer:exportCustomer'">
+        <a-button @click="onExportCustomer" type="primary" v-privilege="'customer:export'">
           <template #icon>
             <ExportOutlined />
           </template>
@@ -119,8 +120,8 @@
 
         <template v-if="column.dataIndex === 'action'">
           <div class="smart-table-operate">
-            <a-button @click="showForm(record)" type="link">编辑</a-button>
-            <a-button @click="onDelete(record)" danger type="link">删除</a-button>
+            <a-button @click="showForm(record)" type="link" v-privilege="'customer:update'">编辑</a-button>
+            <a-button @click="onDelete(record)" danger type="link" v-privilege="'customer:delete'">删除</a-button>
           </div>
         </template>
       </template>

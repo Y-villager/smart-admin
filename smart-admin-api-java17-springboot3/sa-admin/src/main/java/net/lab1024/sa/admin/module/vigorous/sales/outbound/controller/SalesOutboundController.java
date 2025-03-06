@@ -92,18 +92,21 @@ class SalesOutboundController {
 
     @Operation(summary = "生成所有业绩提成")
     @PostMapping("/salesOutbound/createAllCommission")
+    @SaCheckPermission("salesOutbound:createCommission")
     public ResponseDTO<String>  exportAllCommission(HttpServletResponse response, @RequestBody @Valid SalesOutboundQueryForm queryForm) throws IOException {
         return salesOutboundService.createCommission(queryForm);
     }
 
     @Operation(summary = "生成选中业绩提成")
     @PostMapping("/salesOutbound/createSelectedCommission")
+    @SaCheckPermission("salesOutbound:createCommission")
     public ResponseDTO<String>  exportSelectedCommission(@RequestBody ValidateList<Long> idList) throws IOException {
         return salesOutboundService.createSelectedCommission(idList);
     }
 
     @Operation(summary = "调整生成标识-可覆盖")
     @PostMapping("/salesOutbound/batchUpdateCommissionFlag")
+    @SaCheckPermission("salesOutbound:update")
     public ResponseDTO<String>  batchUpdateCommissionFlag(@RequestBody ValidateList<Long> idList) throws IOException {
         // 转换为 Set<Long>
         Set<Long> idSet = new HashSet<>(idList);

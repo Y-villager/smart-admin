@@ -85,7 +85,7 @@ public class GoodsController {
 
     @Operation(summary = "导出 @author 卓大")
     @GetMapping("/goods/exportGoods")
-    @SaCheckPermission("goods:exportGoods")
+    @SaCheckPermission("goods:export")
     public void exportGoods(HttpServletResponse response) throws IOException {
         List<GoodsExcelVO> goodsList = goodsService.getAllGoods();
         SmartExcelUtil.exportExcel(response,"商品列表.xlsx","商品",GoodsExcelVO.class, goodsList);

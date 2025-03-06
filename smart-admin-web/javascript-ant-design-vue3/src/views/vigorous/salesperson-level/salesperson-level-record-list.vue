@@ -79,7 +79,7 @@
                 <template v-if="column.dataIndex === 'action'">
                     <div class="smart-table-operate">
                         <a-button @click="showForm(record)" type="link">编辑</a-button>
-                        <a-button @click="onDelete(record)" danger type="link">删除</a-button>
+                        <a-button @click="onDelete(record)" danger type="link" v-privilege="'salespersonLevelRecord:delete'">删除</a-button>
                     </div>
                 </template>
             </template>

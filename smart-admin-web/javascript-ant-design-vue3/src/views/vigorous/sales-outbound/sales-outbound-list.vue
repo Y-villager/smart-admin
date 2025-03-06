@@ -58,14 +58,14 @@
         <a-button  @click="onExportSelectedCommission"
                    type="primary"
                    :disabled="selectedRowKeyList.length === 0"
-                   v-privilege="'salesOutbound:export'"
+                   v-privilege="'salesOutbound:createCommission'"
                    :loading="initDisabled">
           <template #icon>
             <ExportOutlined />
           </template>
           生成选中部分
         </a-button>
-        <a-button class="smart-margin-left20" @click="onExportAllCommission" danger v-privilege="'salesOutbound:export'" :loading="initDisabled">
+        <a-button class="smart-margin-left20" @click="onExportAllCommission" danger v-privilege="'salesOutbound:createCommission'" :loading="initDisabled">
           <template #icon>
             <ExportOutlined />
           </template>
@@ -85,14 +85,15 @@
     <!---------- 表格操作行 begin ----------->
     <a-row class="smart-table-btn-block">
       <div class="smart-table-operate-block">
-        <a-button @click="showForm" type="primary">
+        <a-button @click="showForm" type="primary"  v-privilege="'salesOutbound:add'">
           <template #icon>
             <PlusOutlined />
           </template>
           新建
         </a-button>
 
-        <a-button @click="confirmBatchDelete" type="primary" danger :disabled="selectedRowKeyList.length === 0">
+        <a-button @click="confirmBatchDelete" type="primary" danger :disabled="selectedRowKeyList.length === 0"
+                  v-privilege="'salesOutbound:batchDelete'">
           <template #icon>
             <DeleteOutlined />
           </template>
@@ -106,6 +107,7 @@
             'custom-btn-disabled': selectedRowKeyList.length === 0,
           }"
           :disabled="selectedRowKeyList.length === 0"
+          v-privilege="'salesOutbound:updateFlag'"
         >
           <template #icon>
             <CheckOutlined />
@@ -167,8 +169,8 @@
 
         <template v-if="column.dataIndex === 'action'">
           <div class="smart-table-operate">
-            <a-button @click="showForm(record)" type="link">编辑</a-button>
-            <a-button @click="onDelete(record)" danger type="link">删除</a-button>
+            <a-button @click="showForm(record)" type="link" v-privilege="'salesOutbound:update'">编辑</a-button>
+            <a-button @click="onDelete(record)" danger type="link" v-privilege="'salesOutbound:delete'">删除</a-button>
           </div>
         </template>
       </template>
