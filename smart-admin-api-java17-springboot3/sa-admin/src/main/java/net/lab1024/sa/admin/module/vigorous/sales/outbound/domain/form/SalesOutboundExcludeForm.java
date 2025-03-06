@@ -12,6 +12,9 @@ public class SalesOutboundExcludeForm {
     @Schema(description = "顾客")
     private String customerName;
 
-    @Schema(description = "提成标识")
-    private Integer commissionFlag;
+    @Schema(description = "假删除业务员")
+    private Integer deletedSalesmanFlag;
+
+    @Schema(description = "禁用状态业务员")
+    private Integer disabledSalesmanFlag;
 }

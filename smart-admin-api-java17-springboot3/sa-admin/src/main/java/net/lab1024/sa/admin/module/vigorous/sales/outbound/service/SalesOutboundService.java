@@ -3,7 +3,6 @@ package net.lab1024.sa.admin.module.vigorous.sales.outbound.service;
 import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
-import net.lab1024.sa.admin.enumeration.CommissionFlagEnum;
 import net.lab1024.sa.admin.enumeration.CommissionTypeEnum;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.dao.CommissionRecordDao;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.entity.CommissionRecordEntity;
@@ -86,10 +85,10 @@ public class SalesOutboundService {
      * @param queryForm
      * @return
      */
-    public PageResult<SalesOutboundVO> queryPage(SalesOutboundQueryForm queryForm) {
+    public PageResult<SalesOutboundVO> queryPage(SalesOutboundQueryForm queryForm, SalesOutboundExcludeForm excludeForm) {
         Page<?> page = SmartPageUtil.convert2PageQuery(queryForm);
 
-        List<SalesOutboundVO> list = salesOutboundDao.queryPage(page, queryForm);
+        List<SalesOutboundVO> list = salesOutboundDao.queryPage(page, queryForm, excludeForm);
 
         return SmartPageUtil.convert2PageResult(page, list);
     }
@@ -286,9 +285,9 @@ public class SalesOutboundService {
     /**
      * 导出
      */
-    public List<SalesOutboundExcelVO> getExportList(SalesOutboundQueryForm queryForm) {
+    public List<SalesOutboundExcelVO> getExportList(SalesOutboundQueryForm queryForm, SalesOutboundExcludeForm excludeForm) {
 //        List<SalesOutboundEntity> entityList = salesOutboundDao.selectList(null);
-        List<SalesOutboundVO> entityList = salesOutboundDao.queryPage(null, queryForm);
+        List<SalesOutboundVO> entityList = salesOutboundDao.queryPage(null, queryForm, excludeForm);
 
         // 使用并行流进行转换，提高处理速度
         return entityList.parallelStream()
@@ -382,8 +381,7 @@ public class SalesOutboundService {
      * @param queryForm 查询条件
      * @return
      */
-    public ResponseDTO<String> createCommission(SalesOutboundQueryForm queryForm) {
-        SalesOutboundExcludeForm excludeForm = new SalesOutboundExcludeForm("个人", CommissionFlagEnum.CREATED.getValue());
+    public ResponseDTO<String> createCommission(SalesOutboundQueryForm queryForm, SalesOutboundExcludeForm excludeForm) {
 
         // 需要生成业绩提成 的列表
         List<SalesCommissionDto> list = salesOutboundDao.queryPageWithReceivables(null, queryForm, excludeForm);
@@ -578,7 +576,8 @@ public class SalesOutboundService {
         // 计算百分比时使用 hundred 的倒数
         BigDecimal hundredInverse = BigDecimal.ONE.divide(hundred, 4, RoundingMode.HALF_UP);
 
-        BigDecimal amount = salesCommission.getSalesAmount();   // 销售金额
+        BigDecimal amount = Optional.ofNullable(salesCommission.getSalesAmount())
+                .orElse(BigDecimal.ZERO);   // 销售金额
         BigDecimal levelRate = salesCommission.getLevelRate();  // 业务员提成级别系数
         BigDecimal pLevelRate = salesCommission.getPLevelRate();    // 上级提成级别
 

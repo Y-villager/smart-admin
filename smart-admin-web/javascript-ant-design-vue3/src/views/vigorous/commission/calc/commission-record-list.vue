@@ -64,12 +64,12 @@
     <!---------- 表格操作行 begin ----------->
     <a-row class="smart-table-btn-block">
       <div class="smart-table-operate-block">
-        <a-button @click="showForm" type="primary" v-privilege="'commissionRecord:add'">
-          <template #icon>
-            <PlusOutlined />
-          </template>
-          新建
-        </a-button>
+<!--        <a-button @click="showForm" type="primary" v-privilege="'commissionRecord:add'">-->
+<!--          <template #icon>-->
+<!--            <PlusOutlined />-->
+<!--          </template>-->
+<!--          新建-->
+<!--        </a-button>-->
         <a-button @click="confirmBatchDelete" type="primary" danger :disabled="selectedRowKeyList.length === 0"
                   v-privilege="'commissionRecord:batchDelete'">
           <template #icon>

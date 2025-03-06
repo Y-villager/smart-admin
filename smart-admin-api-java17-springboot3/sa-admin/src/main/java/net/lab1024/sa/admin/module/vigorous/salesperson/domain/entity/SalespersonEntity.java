@@ -51,7 +51,12 @@ public class SalespersonEntity {
     /**
      * 删除标识
      */
-    private Integer deletedFlag;
+    private Boolean deletedFlag;
+
+    /**
+     * 禁用状态
+     */
+    private Boolean disabledFlag;
 
     /**
      * 上级id

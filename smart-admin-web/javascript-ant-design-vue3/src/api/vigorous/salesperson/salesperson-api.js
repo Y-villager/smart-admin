@@ -57,6 +57,10 @@ export const salespersonApi = {
 
     getAllSalesperson : () =>{
         return getRequest('/salesperson/getAllSalesperson');
+    },
+
+    updateDisabled:(id)=>{
+      return postRequest(`/salesperson/updateDisabled/${id}`)
     }
 
 

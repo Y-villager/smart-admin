@@ -26,5 +26,8 @@ public class SalespersonExcelVO {
     @ExcelProperty("上级业务员")
     private String parentName;
 
+    @ExcelProperty("禁用状态")
+    private String disableFlag;
+
 
 }

@@ -103,4 +103,12 @@ public class SalespersonController {
         return ResponseDTO.ok(allSalesperson);
     }
 
+    @Operation(summary = "单个删除 @author yxz")
+    @PostMapping("/salesperson/updateDisabled/{id}")
+    @SaCheckPermission("salesperson:disabled")
+    public ResponseDTO<String> updateDisabled(@PathVariable Long id) {
+        return salespersonService.updateDisabledFlag(id);
+    }
+
+
 }

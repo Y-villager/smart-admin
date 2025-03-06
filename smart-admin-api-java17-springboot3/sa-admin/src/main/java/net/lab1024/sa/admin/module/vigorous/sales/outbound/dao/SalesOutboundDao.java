@@ -35,7 +35,9 @@ public interface SalesOutboundDao extends BaseMapper<SalesOutboundEntity> {
      * @param queryForm
      * @return
      */
-    List<SalesOutboundVO> queryPage(Page page, @Param("queryForm") SalesOutboundQueryForm queryForm);
+//    List<SalesOutboundVO> queryPage(Page page, @Param("queryForm") SalesOutboundQueryForm queryForm);
+
+    List<SalesOutboundVO> queryPage(Page page, @Param("queryForm") SalesOutboundQueryForm queryForm, @Param("excludeForm") SalesOutboundExcludeForm excludeForm);
 
     List<SalesOutboundVO2> queryPage2(Page page, @Param("queryForm") SalesOutboundQueryForm queryForm);
 

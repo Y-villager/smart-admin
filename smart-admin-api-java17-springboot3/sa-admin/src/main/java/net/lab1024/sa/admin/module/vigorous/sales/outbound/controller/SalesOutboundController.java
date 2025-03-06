@@ -6,7 +6,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.dto.SalesOutboundRequestDTO;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutboundAddForm;
+import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutboundExcludeForm;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutboundQueryForm;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutboundUpdateForm;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundExcelVO;
@@ -42,8 +44,10 @@ class SalesOutboundController {
     @Operation(summary = "分页查询 @author yxz")
     @PostMapping("/salesOutbound/queryPage")
     @SaCheckPermission("salesOutbound:query")
-    public ResponseDTO<PageResult<SalesOutboundVO>> queryPage(@RequestBody @Valid SalesOutboundQueryForm queryForm) {
-        return ResponseDTO.ok(salesOutboundService.queryPage(queryForm));
+    public ResponseDTO<PageResult<SalesOutboundVO>> queryPage(@RequestBody @Valid SalesOutboundRequestDTO requestDTO) {
+        SalesOutboundQueryForm queryForm = requestDTO.getQueryForm();
+        SalesOutboundExcludeForm excludeForm = requestDTO.getExcludeForm();
+        return ResponseDTO.ok(salesOutboundService.queryPage(queryForm, excludeForm));
     }
 
     @Operation(summary = "添加 @author yxz")
@@ -85,16 +89,20 @@ class SalesOutboundController {
     @Operation(summary = "导出")
     @PostMapping("/salesOutbound/export")
     @SaCheckPermission("salesOutbound:export")
-    public void exportSalesOutbound(HttpServletResponse response, @RequestBody @Valid SalesOutboundQueryForm queryForm) throws IOException {
-        List<SalesOutboundExcelVO> list = salesOutboundService.getExportList(queryForm);
+    public void exportSalesOutbound(HttpServletResponse response, @RequestBody @Valid SalesOutboundRequestDTO requestDTO) throws IOException {
+        SalesOutboundQueryForm queryForm = requestDTO.getQueryForm();
+        SalesOutboundExcludeForm excludeForm = requestDTO.getExcludeForm();
+        List<SalesOutboundExcelVO> list = salesOutboundService.getExportList(queryForm, excludeForm);
         SmartExcelUtil.exportExcel(response,"销售出库.xlsx","销售出库", SalesOutboundExcelVO.class, list);
     }
 
     @Operation(summary = "生成所有业绩提成")
     @PostMapping("/salesOutbound/createAllCommission")
     @SaCheckPermission("salesOutbound:createCommission")
-    public ResponseDTO<String>  exportAllCommission(HttpServletResponse response, @RequestBody @Valid SalesOutboundQueryForm queryForm) throws IOException {
-        return salesOutboundService.createCommission(queryForm);
+    public ResponseDTO<String>  exportAllCommission(HttpServletResponse response,@RequestBody @Valid SalesOutboundRequestDTO requestDTO) throws IOException {
+        SalesOutboundQueryForm queryForm = requestDTO.getQueryForm();
+        SalesOutboundExcludeForm excludeForm = requestDTO.getExcludeForm();
+        return salesOutboundService.createCommission(queryForm, excludeForm);
     }
 
     @Operation(summary = "生成选中业绩提成")

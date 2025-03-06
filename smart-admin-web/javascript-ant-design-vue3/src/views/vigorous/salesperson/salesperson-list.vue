@@ -83,6 +83,7 @@
             bordered
             :loading="tableLoading"
             :pagination="false"
+            :scroll="{ x: 1500 }"
             :row-selection="{ selectedRowKeys: selectedRowKeyList, onChange: onSelectChange }"
         >
             <template #bodyCell="{ text, record, column }">
@@ -99,12 +100,18 @@
                   {{ text && text.length > 0 ? text.map((e) => e.valueName).join(',') : '暂无' }}
                 </a-tag>
               </template> -->
+              <template v-if="column.dataIndex === 'disabledFlag'">
+                <a-tag :color="text ? 'error' : 'processing'">{{ text ? '禁用' : '启用' }}</a-tag>
+              </template>
 
                 <template v-if="column.dataIndex === 'action'">
                     <div class="smart-table-operate">
                         <a-button @click="showForm(record)" type="link" v-privilege="'salesperson:update'">编辑</a-button>
-                        <a-button @click="showChangeLevel(record)" type="link" v-privilege="'salesperson:update'">调成级别</a-button>
+<!--                        <a-button @click="showChangeLevel(record)" type="link" v-privilege="'salesperson:update'">调成级别</a-button>-->
                         <a-button @click="onDelete(record)" danger type="link" v-privilege="'salesperson:delete'">删除</a-button>
+                      <a-button v-privilege="'salesperson:disabled'" type="link" @click="updateDisabled(record.id, record.disabledFlag)">{{
+                          record.disabledFlag ? '启用' : '禁用'
+                        }}</a-button>
                     </div>
                 </template>
             </template>
@@ -164,7 +171,7 @@
     </a-card>
 </template>
 <script setup>
-    import { reactive, ref, onMounted } from 'vue';
+import {reactive, ref, onMounted, createVNode} from 'vue';
     import { message, Modal } from 'ant-design-vue';
     import { SmartLoading } from '/@/components/framework/smart-loading';
     import { salespersonApi } from '/@/api/vigorous/salesperson/salesperson-api';
@@ -175,6 +182,7 @@
     import SalespersonLevelSelect from "/@/components/vigorous/salesperson-level-select/index.vue";
     import SalespersonLevelRecordForm from "/@/views/vigorous/salesperson-level/salesperson-level-record-form.vue";
     import LevelChangeForm from "/@/views/vigorous/salesperson/level-change-form.vue";
+import {ExclamationCircleOutlined} from "@ant-design/icons-vue";
     //import FilePreview from '/@/components/support/file-preview/index.vue'; // 图片预览组件
 
     // ---------------------------- 表格列 ----------------------------
@@ -199,6 +207,12 @@
             title: '业务员级别',
             dataIndex: 'salespersonLevelName',
             ellipsis: true,
+        },
+        {
+          title: '启用状态',
+          dataIndex: 'disabledFlag',
+          ellipsis: true,
+          width: '80px'
         },
         {
             title: '层级路径',
@@ -404,4 +418,29 @@
     // 下载模板
     function downloadExcel() {
     }
+
+// 禁用 / 启用
+function updateDisabled(id, disabledFlag) {
+  Modal.confirm({
+    title: '提醒',
+    icon: createVNode(ExclamationCircleOutlined),
+    content: `确定要${disabledFlag ? '启用' : '禁用'}吗?`,
+    okText: '确定',
+    okType: 'danger',
+    async onOk() {
+      SmartLoading.show();
+      try {
+        await salespersonApi.updateDisabled(id);
+        message.success(`${disabledFlag ? '启用' : '禁用'}成功`);
+        await queryData();
+      } catch (error) {
+        smartSentry.captureError(error);
+      } finally {
+        SmartLoading.hide();
+      }
+    },
+    cancelText: '取消',
+    onCancel() {},
+  });
+}
 </script>

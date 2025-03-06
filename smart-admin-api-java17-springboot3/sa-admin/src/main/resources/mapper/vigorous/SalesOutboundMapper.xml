@@ -122,7 +122,9 @@
         vc.first_order_date,
         vc.adjusted_first_order_date,
         vs.id,
-        vs.salesperson_name
+        vs.salesperson_name,
+        vs.disabled_flag,
+        vs.deleted_flag
         FROM   v_sales_outbound
             left join v_customer vc on vc.customer_id= v_sales_outbound.customer_id
             left join v_salesperson vs on vs.id = v_sales_outbound.salesperson_id
@@ -161,6 +163,15 @@
                     AND vc.first_order_date IS NULL
                 </when>
             </choose>
+            <if test="excludeForm.customerName != null and excludeForm.customerName != ''">
+                And vc.customer_name != #{excludeForm.customerName}
+            </if>
+            <if test="excludeForm.deletedSalesmanFlag != null and excludeForm.deletedSalesmanFlag != 0">
+                And vs.deleted_flag != #{excludeForm.deletedSalesmanFlag}
+            </if>
+            <if test="excludeForm.disabledSalesmanFlag != null and excludeForm.disabledSalesmanFlag != 0">
+                And vs.disabled_flag != #{excludeForm.disabledSalesmanFlag}
+            </if>
         </where>
         order by v_sales_outbound.sales_bound_date desc
     </select>
@@ -238,6 +249,8 @@
             vs.id AS salesperson_id,
             vs.salesperson_name,
             vs.salesperson_level_id,
+            vs.deleted_flag,
+            vs.disabled_flag,
             vsl.commission_rate as level_rate,
             pvs.id AS p_salesperson_id,
             pvs.salesperson_name AS p_salesperson_name,
@@ -290,9 +303,13 @@
             <if test="excludeForm.customerName != null and excludeForm.customerName != ''">
                 And vc.customer_name != #{excludeForm.customerName}
             </if>
-            <if test="excludeForm.commissionFlag != null">
-                And vso.commission_flag != #{excludeForm.commissionFlag}
+            <if test="excludeForm.deletedSalesmanFlag != null and excludeForm.deletedSalesmanFlag != 0">
+                And vs.deleted_flag != #{excludeForm.deletedSalesmanFlag}
             </if>
+            <if test="excludeForm.disabledSalesmanFlag != null and excludeForm.disabledSalesmanFlag != 0">
+                And vs.disabled_flag != #{excludeForm.disabledSalesmanFlag}
+            </if>
+            and commission_flag != 1
         </where>
         order by vso.sales_bound_date DESC
     </select>

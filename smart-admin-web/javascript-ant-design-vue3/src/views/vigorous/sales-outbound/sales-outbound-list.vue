@@ -76,6 +76,15 @@
         </a-button>
       </a-form-item>
     </a-row>
+    <a-row class="smart-query-form-row" v-show="moreCreateCondition">
+      <a-form-item label="排除" class="smart-query-form-item">
+        <a-checkbox-group :default-value="selectedValues"  @change="handleSelectionChange">
+          <a-checkbox value="customerName" >个人客户</a-checkbox>
+          <a-checkbox value="deletedSalesman" >已删除业务员</a-checkbox>
+          <a-checkbox value="disabledSalesman">已禁用业务员</a-checkbox>
+        </a-checkbox-group>
+      </a-form-item>
+    </a-row>
 
   </a-form>
 
@@ -317,6 +326,14 @@
 
   // ---------------------------- 查询数据表单和方法 ----------------------------
 
+  const selectedValues = ref(['customerName', 'deletedSalesman', 'disabledSalesman']);
+
+  const excludeFormState = {
+    customerName: '个人',
+    deletedSalesmanFlag: 1,
+    disabledSalesmanFlag: 1
+  };
+
   const queryFormState = {
     billNo: undefined, //单据编号
     customerName: undefined, //客户编码
@@ -333,6 +350,8 @@
   };
   // 查询表单form
   const queryForm = reactive({ ...queryFormState });
+  const excludeForm = reactive({ ...excludeFormState });
+
   // 表格加载loading
   const tableLoading = ref(false);
   // 表格数据
@@ -350,6 +369,7 @@
   function resetQuery() {
     let pageSize = queryForm.pageSize;
     Object.assign(queryForm, queryFormState);
+    Object.assign(excludeForm, excludeFormState);
     queryForm.pageSize = pageSize;
     queryData();
   }
@@ -364,7 +384,10 @@
   async function queryData() {
     tableLoading.value = true;
     try {
-      let queryResult = await salesOutboundApi.queryPage(queryForm);
+      let queryResult = await salesOutboundApi.queryPage({
+        queryForm: queryForm,  // queryForm对象
+        excludeForm: excludeForm  // excludeForm对象
+      });
       tableData.value = queryResult.data.list;
       total.value = queryResult.data.total;
     } catch (e) {
@@ -527,7 +550,10 @@
 
     try {
       // 等待导出 API 请求完成
-      await salesOutboundApi.exportSalesOutbound(queryForm);
+      await salesOutboundApi.exportSalesOutbound({
+        queryForm: queryForm,
+        excludeForm: excludeForm
+      });
 
       // 导出完成后恢复按钮可用状态
       exportDisabled.value = false;
@@ -559,7 +585,10 @@
     initDisabled.value = true;
     try {
       failedCommissionPath.value = undefined
-      let res = await salesOutboundApi.createAllCommission(queryForm);
+      let res = await salesOutboundApi.createAllCommission({
+        queryForm: queryForm,
+        excludeForm: excludeForm
+      });
       failedCommissionPath.value = res.data
       initDisabled.value = false;
       message.success(res.msg)
@@ -618,6 +647,24 @@
     } catch (e) {
       smartSentry.captureError(e);
     }
+  }
+
+  // 多选框改变
+  function handleSelectionChange(value) {
+    // 更新 excludeForm 根据 selectedOptions 的值
+    const hasCustomer = value.includes('customerName');
+    console.log(value)
+    console.log(hasCustomer)
+    if (hasCustomer){
+      excludeForm.customerName = "个人"
+    }else {
+      excludeForm.customerName = ""
+    }
+    excludeForm.deletedSalesmanFlag = value.includes('deletedSalesman') ? 1 : 0;
+    excludeForm.disabledSalesmanFlag = value.includes('disabledSalesman') ? 1 : 0;
+
+    // 打印 excludeForm 的值来查看更新
+    console.log(excludeForm);
   }
 
 </script>

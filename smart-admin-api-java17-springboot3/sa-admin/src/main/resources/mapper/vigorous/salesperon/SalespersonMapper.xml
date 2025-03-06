@@ -11,6 +11,7 @@
         v_salesperson.salesperson_level_id,
         v_salesperson.path,
         v_salesperson.deleted_flag,
+        v_salesperson.disabled_flag,
         v_salesperson.parent_id
     </sql>
 
@@ -69,6 +70,11 @@
     <update id="updateLevel">
         update v_salesperson set salesperson_level_id = #{form.newLevel}
         where id = #{form.salespersonId}
+    </update>
+
+    <update id="updateDisabledFlag">
+        update v_salesperson set disabled_flag = #{flag}
+        where id = #{id}
     </update>
 
 

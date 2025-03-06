@@ -319,4 +319,17 @@ public class SalespersonService {
         }
         return null;
     }
+
+    public ResponseDTO<String> updateDisabledFlag(Long id) {
+        if (null == id){
+            return ResponseDTO.ok();
+        }
+        SalespersonEntity salesperson = salespersonDao.selectById(id);
+        if (null == salesperson){
+            return ResponseDTO.ok();
+        }
+        salespersonDao.updateDisabledFlag(id, !salesperson.getDisabledFlag());
+
+        return ResponseDTO.ok();
+    }
 }

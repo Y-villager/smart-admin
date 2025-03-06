@@ -46,4 +46,11 @@ public class SalespersonVO {
 
     private String parentName;
 
+    @Schema(description = "假删除")
+    private Integer deletedFlag;
+
+    @Schema(description = "禁用状态")
+    private Integer disabledFlag;
+
+
 }
