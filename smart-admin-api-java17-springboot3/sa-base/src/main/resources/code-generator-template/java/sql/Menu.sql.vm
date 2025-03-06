@@ -20,3 +20,12 @@ VALUES ( '更新', 3, @parent_id, false, true, true, false, '${name.lowerCamel}:
 
 INSERT INTO t_menu ( menu_name, menu_type, parent_id, frame_flag, cache_flag, visible_flag, disabled_flag, api_perms, perms_type, context_menu_id, create_user_id )
 VALUES ( '删除', 3, @parent_id, false, true, true, false, '${name.lowerCamel}:delete', 1, @parent_id, 1 );
+
+INSERT INTO t_menu ( menu_name, menu_type, parent_id, frame_flag, cache_flag, visible_flag, disabled_flag, api_perms, perms_type, context_menu_id, create_user_id )
+VALUES ( '批量删除', 3, @parent_id, false, true, true, false, '${name.lowerCamel}:batchDelete', 1, @parent_id, 1 );
+
+INSERT INTO t_menu ( menu_name, menu_type, parent_id, frame_flag, cache_flag, visible_flag, disabled_flag, api_perms, perms_type, context_menu_id, create_user_id )
+VALUES ( '导入', 3, @parent_id, false, true, true, false, '${name.lowerCamel}:import', 1, @parent_id, 1 );
+
+INSERT INTO t_menu ( menu_name, menu_type, parent_id, frame_flag, cache_flag, visible_flag, disabled_flag, api_perms, perms_type, context_menu_id, create_user_id )
+VALUES ( '导出', 3, @parent_id, false, true, true, false, '${name.lowerCamel}:export', 1, @parent_id, 1 );

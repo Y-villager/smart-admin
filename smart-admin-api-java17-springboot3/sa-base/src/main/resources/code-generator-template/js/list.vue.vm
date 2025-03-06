@@ -42,13 +42,13 @@
 #end
 #end
             <a-form-item class="smart-query-form-item">
-                <a-button type="primary" @click="onSearch">
+                <a-button type="primary" @click="onSearch" v-privilege="'${name.lowerCamel}:query'">
                     <template #icon>
                         <SearchOutlined />
                     </template>
                     查询
                 </a-button>
-                <a-button @click="resetQuery" class="smart-margin-left10">
+                <a-button @click="resetQuery" class="smart-margin-left10" v-privilege="'${name.lowerCamel}:query'">
                     <template #icon>
                         <ReloadOutlined />
                     </template>
@@ -64,7 +64,7 @@
         <a-row class="smart-table-btn-block">
             <div class="smart-table-operate-block">
 #if($insertAndUpdate.isSupportInsertAndUpdate)
-                <a-button @click="showForm" type="primary">
+                <a-button @click="showForm" type="primary" v-privilege="'${name.lowerCamel}:update'">
                     <template #icon>
                         <PlusOutlined />
                     </template>
@@ -72,21 +72,22 @@
                 </a-button>
 #end
 #if($deleteInfo.isSupportDelete && ($deleteInfo.deleteEnum == "Batch"||$deleteInfo.deleteEnum == "SingleAndBatch"))
-                <a-button @click="confirmBatchDelete" type="primary" danger :disabled="selectedRowKeyList.length == 0">
+                <a-button @click="confirmBatchDelete" type="primary" danger :disabled="selectedRowKeyList.length === 0"
+                          v-privilege="'${name.lowerCamel}:batchDelete'">
                     <template #icon>
                         <DeleteOutlined />
                     </template>
                     批量删除
                 </a-button>
 #end
-              <a-button @click="showImportModal" type="primary" v-privilege="'${name.lowerCamel}:import${name.upperCamel}'">
+              <a-button @click="showImportModal" type="primary" v-privilege="'${name.lowerCamel}:import'">
                 <template #icon>
                   <ImportOutlined />
                 </template>
                 导入
               </a-button>
 
-              <a-button @click="onExport${name.upperCamel}" type="primary" v-privilege="'${name.lowerCamel}:export${name.upperCamel}'" :loading="exportLoading">
+              <a-button @click="onExport${name.upperCamel}" type="primary" v-privilege="'${name.lowerCamel}:export'" :loading="exportLoading">
                 <template #icon>
                   <ExportOutlined />
                 </template>
@@ -130,10 +131,10 @@
                 <template v-if="column.dataIndex === 'action'">
                     <div class="smart-table-operate">
 #if($insertAndUpdate.isSupportInsertAndUpdate)
-                        <a-button @click="showForm(record)" type="link">编辑</a-button>
+                        <a-button @click="showForm(record)" type="link" v-privilege="'${name.lowerCamel}:update'">编辑</a-button>
 #end
 #if($deleteInfo.isSupportDelete && ($deleteInfo.deleteEnum == "Single"||$deleteInfo.deleteEnum == "SingleAndBatch"))
-                        <a-button @click="onDelete(record)" danger type="link">删除</a-button>
+                        <a-button @click="onDelete(record)" danger type="link" v-privilege="'${name.lowerCamel}:delete'">删除</a-button>
 #end
                     </div>
                 </template>
