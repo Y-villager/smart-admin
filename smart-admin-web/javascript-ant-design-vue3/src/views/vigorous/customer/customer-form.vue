@@ -28,7 +28,8 @@
           <a-input style="width: 100%" v-model:value="form.country" placeholder="国家" />
         </a-form-item>
         <a-form-item label="币别"  name="currencyType">
-          <DictSelect width="100%" v-model:aria-valuemax="form.currencyType" keyCode="CURRENCY_TYPE" placeholder="币别"/>
+          {{form}}
+          <DictSelect width="100%" v-model:value="form.currencyType" mode="" keyCode="CURRENCY_TYPE" placeholder="币别"/>
         </a-form-item>
         <a-form-item label="客户分组"  name="customerGroup">
           <SmartEnumSelect enum-name="CUSTOMER_GROUP_ENUM" v-model:value="form.customerGroup" width="100%"/>
@@ -60,7 +61,7 @@
   </a-drawer>
 </template>
 <script setup>
-  import { reactive, ref, nextTick } from 'vue';
+import {reactive, ref, nextTick, computed} from 'vue';
   import _ from 'lodash';
   import { message } from 'ant-design-vue';
   import { SmartLoading } from '/@/components/framework/smart-loading';

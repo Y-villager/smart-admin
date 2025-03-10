@@ -1,7 +1,9 @@
 package net.lab1024.sa.admin.module.vigorous.customer.domain.form;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import net.lab1024.sa.base.common.json.deserializer.DictValueVoDeserializer;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -37,6 +39,10 @@ public class CustomerUpdateForm {
 
     @Schema(description = "客户类别")
     private String customerCategory;
+
+    @Schema(description = "币别")
+    @JsonDeserialize(using = DictValueVoDeserializer.class)
+    private String currencyType;
 
     @Schema(description = "首单日期")
     private LocalDate firstOrderDate;

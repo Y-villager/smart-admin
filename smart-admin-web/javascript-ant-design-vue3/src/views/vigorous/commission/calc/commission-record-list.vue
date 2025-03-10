@@ -107,7 +107,9 @@
 
         <template v-if="column.dataIndex === 'commissionType'">
           <div class="smart-table-operate">
-            <span>{{$smartEnumPlugin.getDescByValue('COMMISSION_TYPE_ENUM', text)}}</span>
+            <a-tag :color="getTagClass(text)">
+              {{$smartEnumPlugin.getDescByValue('COMMISSION_TYPE_ENUM', text)}}
+            </a-tag>
           </div>
         </template>
         <template v-if="column.dataIndex === 'action'">
@@ -220,7 +222,7 @@
       title: '提成类型',
       dataIndex: 'commissionType',
       ellipsis: true,
-      width: '150px'
+      width: '90px'
     },
     {
       title: '首单日期',
@@ -524,6 +526,15 @@
     } else {
       message.error("当前没有导入失败数据")
     }
+  }
+
+  function getTagClass(text){
+    if (text === 1) {
+      return 'success';  // 使用绿色标签
+    } else if (text === 2) {
+      return 'processing';   // 使用蓝色标签
+    }
+    return '';  // 默认不使用样式
   }
 
 </script>

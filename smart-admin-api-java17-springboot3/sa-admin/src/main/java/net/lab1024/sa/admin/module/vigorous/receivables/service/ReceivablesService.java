@@ -190,19 +190,9 @@ public class ReceivablesService {
         Set<String> customerNames = new HashSet<>();
 
         for (ReceivablesImportForm form : dataList) {
-            if (form.getOriginBillNo() == null){
-                form.setOriginBillNo("缺少源单编号");
-                failedDataList.add(form);
-                continue;
-            }
             billNos.add(form.getBillNo());
             salespersonNames.add(form.getSalespersonName());
             customerNames.add(form.getCustomerName());
-        }
-
-        // 全部缺少源单编号
-        if (failedDataList.size() == dataList.size()) {
-            return null;
         }
 
         // 单据编号 map

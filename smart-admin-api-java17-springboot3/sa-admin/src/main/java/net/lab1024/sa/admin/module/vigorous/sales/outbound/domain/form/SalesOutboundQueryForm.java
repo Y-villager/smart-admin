@@ -48,5 +48,4 @@ public class SalesOutboundQueryForm extends PageParam {
     private Integer commissionFlag;
 
     private String errorMsg;
-
 }

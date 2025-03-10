@@ -384,6 +384,10 @@
   async function queryData() {
     tableLoading.value = true;
     try {
+      console.log({
+        queryForm: queryForm,  // queryForm对象
+        excludeForm: excludeForm  // excludeForm对象
+      })
       let queryResult = await salesOutboundApi.queryPage({
         queryForm: queryForm,  // queryForm对象
         excludeForm: excludeForm  // excludeForm对象
@@ -391,6 +395,7 @@
       tableData.value = queryResult.data.list;
       total.value = queryResult.data.total;
     } catch (e) {
+      console.log(e)
       smartSentry.captureError(e);
     } finally {
       tableLoading.value = false;
@@ -537,6 +542,7 @@
     try {
       let res = await salesOutboundApi.importSalesOutbound(formData);
       failedImportData.value = res.data;
+      message.success(res.msg)
     } catch (e) {
       smartSentry.captureError(e);
     } finally {

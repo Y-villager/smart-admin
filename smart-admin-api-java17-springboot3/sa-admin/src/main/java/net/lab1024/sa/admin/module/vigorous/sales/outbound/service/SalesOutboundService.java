@@ -4,7 +4,6 @@ import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
 import net.lab1024.sa.admin.enumeration.CommissionTypeEnum;
-import net.lab1024.sa.admin.module.vigorous.commission.calc.dao.CommissionRecordDao;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.entity.CommissionRecordEntity;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.service.CommissionRecordService;
 import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.vo.CommissionRuleVO;
@@ -31,7 +30,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.executor.BatchResult;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -73,9 +71,7 @@ public class SalesOutboundService {
     private CommissionRecordService commissionRecordService;
     @Autowired
     private BatchUtils batchUtils;
-    @Qualifier("commissionRecordDao")
-    @Autowired
-    private CommissionRecordDao commissionRecordDao;
+
     @Autowired
     private CommissionRuleCacheService commissionRuleCacheService;
 
@@ -87,9 +83,7 @@ public class SalesOutboundService {
      */
     public PageResult<SalesOutboundVO> queryPage(SalesOutboundQueryForm queryForm, SalesOutboundExcludeForm excludeForm) {
         Page<?> page = SmartPageUtil.convert2PageQuery(queryForm);
-
         List<SalesOutboundVO> list = salesOutboundDao.queryPage(page, queryForm, excludeForm);
-
         return SmartPageUtil.convert2PageResult(page, list);
     }
 
@@ -497,18 +491,17 @@ public class SalesOutboundService {
         if (currencyType == null || currencyType.isEmpty()){
             errorMsg.append("客户未设置币别，无法生成提成；");
         }else {
-            if (currencyType.equalsIgnoreCase("USD")){
+            if (currencyType.equalsIgnoreCase("CNY")){
+                if (salesCommission.getIsCustomsDeclaration() == null){
+                    // 人民币默认不报关
+                    salesCommission.setIsCustomsDeclaration(0);
+                }
+            }else {
                 if (salesCommission.getIsCustomsDeclaration() == null){
                     salesCommission.setIsCustomsDeclaration(1);
                 }
                 if (salesCommission.getIsCustomsDeclaration() == 0){    // 如果为不需要报关
                     errorMsg.append("客户是否报关设置有误，请调整；");
-                }
-            }
-            if (currencyType.equalsIgnoreCase("CNY")){
-                if (salesCommission.getIsCustomsDeclaration() == null){
-                    // 人民币默认不报关
-                    salesCommission.setIsCustomsDeclaration(0);
                 }
             }
         }

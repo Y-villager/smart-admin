@@ -115,7 +115,9 @@
           <span>{{$smartEnumPlugin.getDescByValue('TRANSFER_STATUS_ENUM', text)}}</span>
         </template>
         <template v-if="column.dataIndex === 'isCustomsDeclaration'">
-          <span>{{$smartEnumPlugin.getDescByValue('SYSTEM_YES_NO', text)}}</span>
+          <a-tag :color="text ? 'processing' : 'error'">
+            {{$smartEnumPlugin.getDescByValue('SYSTEM_YES_NO', text)}}
+          </a-tag>
         </template>
 
         <template v-if="column.dataIndex === 'action'">

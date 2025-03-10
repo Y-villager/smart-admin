@@ -134,10 +134,10 @@
       { required: true, message: '姓名不能为空' },
       { max: 30, message: '姓名不能大于30个字符', trigger: 'blur' },
     ],
-    phone: [
-      { required: true, message: '手机号不能为空' },
-      { pattern: regular.phone, message: '请输入正确的手机号码', trigger: 'blur' },
-    ],
+    // phone: [
+    //   { required: true, message: '手机号不能为空' },
+    //   { pattern: regular.phone, message: '请输入正确的手机号码', trigger: 'blur' },
+    // ],
     loginName: [
       { required: true, message: '登录账号不能为空' },
       { max: 30, message: '登录账号不能大于30个字符', trigger: 'blur' },
@@ -146,7 +146,6 @@
     departmentId: [{ required: true, message: '部门不能为空' }],
     disabledFlag: [{ required: true, message: '状态不能为空' }],
     leaveFlag: [{ required: true, message: '在职状态不能为空' }],
-    email: [{ required: true, message: '请输入邮箱' }],
   };
 
   // 校验表单

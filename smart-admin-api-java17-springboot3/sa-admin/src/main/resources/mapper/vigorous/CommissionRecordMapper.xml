@@ -129,10 +129,10 @@
             </if>
             <!--客户名称-->
             <if test="queryForm.customerName != null and queryForm.customerName != ''">
-                AND INSTR(v_commission_record.customer_id,#{queryForm.customerName})
+                AND INSTR(vc.customer_name,#{queryForm.customerName})
             </if>
             <if test="queryForm.isCustomsDeclaration != null and queryForm.isCustomsDeclaration != ''">
-                AND INSTR(v_commission_record.is_customs_declaration,#{queryForm.isCustomsDeclaration})
+                AND v_commission_record.is_customs_declaration = #{queryForm.isCustomsDeclaration}
             </if>
             <!--销售出库日期-->
             <if test="queryForm.orderDateBegin != null">
@@ -156,7 +156,7 @@
                 </foreach>
             </if>
         </where>
-        order by v_commission_record.order_date desc
+        order by v_commission_record.order_date desc, v_commission_record.sales_bill_no
     </select>
 
 
