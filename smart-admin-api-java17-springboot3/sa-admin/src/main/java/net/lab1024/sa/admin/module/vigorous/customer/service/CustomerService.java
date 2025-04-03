@@ -4,15 +4,12 @@ import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
+import net.lab1024.sa.admin.convert.FlexibleDateConverter;
 import net.lab1024.sa.admin.enumeration.CustomerGroupEnum;
 import net.lab1024.sa.admin.enumeration.TransferStatusEnum;
 import net.lab1024.sa.admin.module.vigorous.customer.dao.CustomerDao;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.entity.CustomerEntity;
-import net.lab1024.sa.admin.module.vigorous.customer.domain.form.CustomerAddForm;
-import net.lab1024.sa.admin.module.vigorous.customer.domain.form.CustomerImportForm;
-import net.lab1024.sa.admin.module.vigorous.customer.domain.form.CustomerQueryForm;
-import net.lab1024.sa.admin.module.vigorous.customer.domain.form.CustomerUpdateForm;
-import net.lab1024.sa.admin.module.vigorous.customer.domain.form.CustomerExportForm;
+import net.lab1024.sa.admin.module.vigorous.customer.domain.form.*;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerVO;
 import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
 import net.lab1024.sa.admin.util.BatchUtils;
@@ -31,9 +28,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -132,6 +126,7 @@ public class CustomerService {
         try {
             dataList = EasyExcel.read(file.getInputStream()).head(CustomerImportForm.class)
                     .sheet()
+                    .registerConverter(new FlexibleDateConverter())
                     .doReadSync();
         } catch (IOException e) {
             throw new BusinessException("数据格式存在问题，无法读取");
@@ -213,68 +208,47 @@ public class CustomerService {
                                            List<CustomerImportForm> failedDataList,
                                            Boolean mode) {
         CustomerEntity entity = new CustomerEntity();
+        StringBuilder errorMsg = new StringBuilder();
         if (form.getCustomerCode() == null){
-            form.setErrorMsg("没有客户编码，不允许导入");
+            errorMsg.append("没有客户编码，不允许导入；");
             failedDataList.add(form);
-            return null;
         }
+
+        String currencyType = currencyMap.get(form.getCurrencyType());
+
         // 根据 mode 的值简化条件判断，true为追加
         if (mode){
             if (keyMap.containsKey(form.getCustomerCode())){
-                form.setErrorMsg("追加模式: 系统已存在该编码的客户");
+                errorMsg.append("追加模式: 系统已存在该编码的客户；");
                 failedDataList.add(form);
-                return null;
             }
+            if (!salespersonMap.containsKey(form.getSalespersonName())){
+                errorMsg.append("没有该业务员；");
+                failedDataList.add(form);
+            }
+            // 获取编码
+            if (currencyType == null){
+                errorMsg.append("币别系统不存在：").append(form.getCurrencyType()).append(";");
+                failedDataList.add(form);
+            }
+
         }else {
             if (!keyMap.containsKey(form.getCustomerCode())){
-                form.setErrorMsg("覆盖模式：系统中不存在该编码的客户");
+                errorMsg.append("覆盖模式：系统中不存在该编码的客户；");
                 failedDataList.add(form);
-                return null;
             }
         }
 
-        if (!salespersonMap.containsKey(form.getSalespersonName())){
-            form.setErrorMsg("没有该业务员");
-            failedDataList.add(form);
+        if (!errorMsg.isEmpty()){
+            form.setErrorMsg(errorMsg.toString());
             return null;
-        }
-
-        // 获取编码
-        String currencyType = currencyMap.get(form.getCurrencyType());
-        if (currencyType == null){
-            form.setErrorMsg("币别系统不存在："+form.getCurrencyType());
-            failedDataList.add(form);
-            return null;
-        }
-
-        // 选择适当的日期格式
-        String orderDate = form.getOrderDate();
-        DateTimeFormatter fmt = null;
-        if (orderDate != null) {
-            if (orderDate.contains("-")) {
-                fmt = DateTimeFormatter.ofPattern("yyyy-M-d");
-            } else if (orderDate.contains("/")) {
-                fmt = DateTimeFormatter.ofPattern("yyyy/M/d");
-            }
-            if (fmt != null) {
-                try {
-                    LocalDate date = LocalDate.parse(orderDate, fmt);
-                    entity.setFirstOrderDate(date);
-                } catch (DateTimeParseException e) {
-                    form.setErrorMsg("首单日期格式不符合");
-                    failedDataList.add(form);
-                    return null;
-                }
-            } else {
-                form.setErrorMsg("首单日期格式不符合");
-                failedDataList.add(form);
-                return null;
-            }
         }
 
         entity.setCustomerName(form.getCustomerName()); // 客户名
         entity.setShortName(form.getShortName());   // 客户简称
         entity.setCountry(form.getCountry());   // 国家
+        entity.setCreateDate(form.getCreateDate());   // 金蝶-创建日期
+        entity.setFirstOrderDate(form.getOrderDate()); // 首单日期
         entity.setCustomerCode(form.getCustomerCode()); // 客户编码
         entity.setCustomerGroup(form.getCustomerGroup());   // 客户分组
         entity.setCurrencyType(currencyType); // 结算币别

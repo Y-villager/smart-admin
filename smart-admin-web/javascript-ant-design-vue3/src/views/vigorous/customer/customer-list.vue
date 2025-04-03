@@ -95,7 +95,7 @@
       :loading="tableLoading"
       :pagination="false"
       :row-selection="{ selectedRowKeys: selectedRowKeyList, onChange: onSelectChange }"
-      :scroll="{x: 100, y: 500 }"
+      :scroll="{x: 1500 }"
     >
       <template #bodyCell="{ text, record, column }">
         <template v-if="column.dataIndex === 'salesperson'">
@@ -215,11 +215,13 @@
       title: '客户名称',
       dataIndex: 'customerName',
       ellipsis: true,
+      width: '200px'
     },
     {
       title: '简称',
       dataIndex: 'shortName',
       ellipsis: true,
+      width: '140px'
     },
     {
       title: '国家',
@@ -256,7 +258,12 @@
       ellipsis: true,
     },
     {
-      title: '创建日期',
+      title: '金蝶创建日期',
+      dataIndex: 'createDate',
+      ellipsis: true,
+    },
+    {
+      title: '系统-创建日期',
       dataIndex: 'createTime',
       ellipsis: true,
     },

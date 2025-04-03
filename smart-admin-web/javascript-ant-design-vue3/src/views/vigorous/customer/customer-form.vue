@@ -28,7 +28,6 @@
           <a-input style="width: 100%" v-model:value="form.country" placeholder="国家" />
         </a-form-item>
         <a-form-item label="币别"  name="currencyType">
-          {{form}}
           <DictSelect width="100%" v-model:value="form.currencyType" mode="" keyCode="CURRENCY_TYPE" placeholder="币别"/>
         </a-form-item>
         <a-form-item label="客户分组"  name="customerGroup">
@@ -48,6 +47,9 @@
         </a-form-item>
         <a-form-item label="业务员"  name="salespersonId">
           <SalespersonSelect width="100%" v-model:value="form.salespersonId" placeholder=""/>
+        </a-form-item>
+        <a-form-item label="创建日期"  name="createDate">
+          <a-date-picker valueFormat="YYYY-MM-DD" v-model:value="form.createDate" style="width: 100%" placeholder="金蝶-创建日期"/>
         </a-form-item>
 
     </a-form>
@@ -120,7 +122,8 @@ import {reactive, ref, nextTick, computed} from 'vue';
       customerCode: undefined, //客户编码
       transferStatus: undefined, //转交情况
       isCustomsDeclaration: undefined, //转交情况
-      firstOrderDate: undefined
+      firstOrderDate: undefined,
+      createDate: undefined,  // 金蝶-创建日期
   };
 
   let form = reactive({ ...formDefault });

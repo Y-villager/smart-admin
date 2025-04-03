@@ -64,6 +64,9 @@ public class CustomerVO {
     @Schema(description = "客户分组")
     private Integer customerGroup;
 
+    @Schema(description = "金蝶-创建日期")
+    private LocalDate createDate;
+
     @Schema(description = "更新时间")
     private LocalDateTime updateTime;
 

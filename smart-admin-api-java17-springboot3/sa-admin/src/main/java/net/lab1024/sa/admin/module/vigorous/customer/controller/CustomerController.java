@@ -50,6 +50,7 @@ public class CustomerController {
     @PostMapping("/customer/add")
     @SaCheckPermission("customer:add")
     public ResponseDTO<String> add(@RequestBody @Valid CustomerAddForm addForm) {
+
         return customerService.add(addForm);
     }
 

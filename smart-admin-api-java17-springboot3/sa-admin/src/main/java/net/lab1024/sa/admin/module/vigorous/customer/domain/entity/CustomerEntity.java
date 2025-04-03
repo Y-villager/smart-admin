@@ -89,6 +89,12 @@ public class CustomerEntity {
     private Integer customerGroup;
 
     /**
+     * 金蝶客户创建日期
+     */
+    private LocalDate createDate;
+
+
+    /**
      * 更新时间
      */
     @TableField(fill = FieldFill.INSERT_UPDATE)

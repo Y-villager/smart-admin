@@ -4,6 +4,8 @@ import com.alibaba.excel.annotation.ExcelProperty;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDate;
+
 /**
  * 顾客 列表VO
  *
@@ -44,6 +46,9 @@ public class CustomerExportForm {
 
     @ExcelProperty("是否报关")
     private Integer isCustomsDeclaration;
+
+    @ExcelProperty("创建日期")
+    private LocalDate createDate;
 
     @ExcelProperty(value = "错误信息")
     private String errorMsg;

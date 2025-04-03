@@ -17,6 +17,7 @@
         v_customer.adjusted_first_order_date,
         v_customer.transfer_status,
         v_customer.is_customs_declaration,
+        v_customer.create_date,
         v_customer.create_time,
         v_customer.update_time
     </sql>
@@ -57,6 +58,9 @@
                 </if>
                 <if test="item.transferStatus != null">
                     transfer_status = #{item.transferStatus},
+                </if>
+                <if test="item.createDate != null">
+                    create_date = #{item.createDate}
                 </if>
             </trim>
             WHERE customer_code = #{item.customerCode}
@@ -128,6 +132,7 @@
                 AND INSTR(v_customer.country,#{queryForm.country})
             </if>
         </where>
+        order by create_date desc
     </select>
 
     <select id="queryByCustomerCode"

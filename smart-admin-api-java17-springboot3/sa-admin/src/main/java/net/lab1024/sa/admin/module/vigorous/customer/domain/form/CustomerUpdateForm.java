@@ -24,6 +24,10 @@ public class CustomerUpdateForm {
     @NotNull(message = "主键 不能为空")
     private Long customerId;
 
+    @Schema(description = "客户编码", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotBlank(message = "客户编码 不能为空")
+    private String customerCode;
+
     @Schema(description = "客户名称", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "客户名称 不能为空")
     private String customerName;
@@ -51,8 +55,12 @@ public class CustomerUpdateForm {
     @NotBlank(message = "业务员编码 不能为空")
     private Long salespersonId;
 
-    @Schema(description = "客户编码", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotBlank(message = "客户编码 不能为空")
-    private String customerCode;
+    @Schema(description = "转交状态")
+    private Integer transferStatus;
 
+    @Schema(description = "是否报关")
+    private Integer isCustomsDeclaration;
+
+    @Schema(description = "金蝶-创建日期")
+    private LocalDate createDate;
 }

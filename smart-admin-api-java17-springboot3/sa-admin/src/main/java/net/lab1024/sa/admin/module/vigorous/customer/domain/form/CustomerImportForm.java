@@ -4,7 +4,10 @@ import com.alibaba.excel.annotation.ExcelIgnore;
 import com.alibaba.excel.annotation.ExcelProperty;
 import lombok.Data;
 import net.lab1024.sa.admin.convert.CustomerGroupEnumConverter;
+import net.lab1024.sa.admin.convert.FlexibleDateConverter;
 import net.lab1024.sa.admin.convert.TransferStatusEnumConverter;
+
+import java.time.LocalDate;
 
 /**
  * 顾客 导入表单
@@ -38,11 +41,14 @@ public class CustomerImportForm {
     @ExcelProperty("结算币别")
     private String currencyType;
 
-    @ExcelProperty(value = "首单日期")
-    private String orderDate;
+    @ExcelProperty(value = "首单日期",  converter = FlexibleDateConverter.class)
+    private LocalDate orderDate;
 
     @ExcelProperty(value = "转交状态", converter = TransferStatusEnumConverter.class)
     private Integer transferStatus;
+
+    @ExcelProperty(value = "创建日期",  converter = FlexibleDateConverter.class)
+    private LocalDate createDate;
 
     @ExcelIgnore
     private String errorMsg;
