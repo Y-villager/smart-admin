@@ -155,6 +155,7 @@
       :loading="tableLoading"
       :pagination="false"
       :row-selection="{ selectedRowKeys: selectedRowKeyList, onChange: onSelectChange }"
+      :scroll="{x:1500}"
     >
       <template #bodyCell="{ text, record, column }">
         <!-- 有图片预览时 注释解开并把下面的'picture'修改成自己的图片字段名即可 -->
@@ -576,6 +577,7 @@
   async function onExportSelectedCommission(){
     try{
       failedCommissionPath.value = undefined
+      console.log(selectedRowKeyList.value)
       let res = await salesOutboundApi.createSelectedCommission(selectedRowKeyList.value);
       failedCommissionPath.value = res.data
       message.success(res.msg)

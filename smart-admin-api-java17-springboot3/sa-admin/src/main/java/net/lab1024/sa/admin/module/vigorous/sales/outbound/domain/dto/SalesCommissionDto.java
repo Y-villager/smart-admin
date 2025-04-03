@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
- * 销售出库-提成
+ * 销售-应收 类
  */
 @Data
 @AllArgsConstructor
@@ -29,6 +29,8 @@ public class SalesCommissionDto {
 
     @Schema(description = "应收币别")
     private String currencyType;
+
+
 
     @Schema(description = "销售出库-单据编号")
     private String receiveBillNo;

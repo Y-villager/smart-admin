@@ -46,20 +46,15 @@ public class CommissionRecordEntity {
     private Long salespersonId;
 
     /**
+     * 业务员名称
+     */
+    private String salespersonName;
+
+    /**
      * 客户id
      */
     private Long customerId;
 
-
-    /**
-     * 客户首单日期
-     */
-    private LocalDate firstOrderDate;
-
-    /**
-     * 调整后-客户首单日期
-     */
-    private LocalDate adjustedFirstOrderDate;
 
     /**
      * 客户是否转交
@@ -105,6 +100,16 @@ public class CommissionRecordEntity {
      * 币别
      */
     private String currencyType;
+
+    /**
+     * 汇率
+     */
+    private BigDecimal exchangeRate;
+
+    /**
+     * 价税合计（人民币）
+     */
+    private BigDecimal fallAmount;
 
     /**
      * 用户合作年数

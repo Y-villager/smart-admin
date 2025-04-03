@@ -69,6 +69,21 @@ public class ReceivablesEntity {
     private String currencyType;
 
     /**
+     * 汇率
+     */
+    private BigDecimal exchangeRate;
+
+    /**
+     * 税收合计（人民币
+     */
+    private BigDecimal fallAmount;
+
+    /**
+     * 付款方
+     */
+    private String payer;
+
+    /**
      * 应收比例(%)
      */
     private Integer rate;

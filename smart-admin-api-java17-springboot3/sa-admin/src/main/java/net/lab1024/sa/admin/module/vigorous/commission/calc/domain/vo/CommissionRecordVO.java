@@ -43,7 +43,7 @@ public class CommissionRecordVO {
     @Schema(description = "业务员id")
     private Long salespersonId;
 
-    // 业务员名称
+    @Schema(description = "业务员名称")
     private String salespersonName;
 
     @Schema(description = "当时业务员级别id")
@@ -61,6 +61,12 @@ public class CommissionRecordVO {
     // 客户名称
     private String customerName;
 
+    // 首单日期
+    private LocalDate firstOrderDate;
+
+    // 调整后-首单日期
+    private LocalDate adjustedFirstOrderDate;
+
 
     @Schema(description = "当时上级id")
     private Long currentParentId;
@@ -74,17 +80,17 @@ public class CommissionRecordVO {
     @Schema(description = "上级级别系数")
     private BigDecimal currentParentLevelRate;
 
-    // 首单日期
-    private LocalDate firstOrderDate;
-
-    // 调整后-首单日期
-    private LocalDate adjustedFirstOrderDate;
-
     @Schema(description = "销售金额")
     private BigDecimal salesAmount;
 
-    // 应收-币别
+    @Schema(description = "应收-币别")
     private String currencyType;
+
+    @Schema(description = "汇率")
+    private BigDecimal exchangeRate;
+
+    @Schema(description = "税收合计（人民币")
+    private BigDecimal fallAmount;
 
     // 提成标识（0未生成 1已生成 2编辑中）
     private Integer commissionFlag;

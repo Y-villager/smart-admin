@@ -308,7 +308,7 @@ public class SalespersonService {
     private void saveToRedis(List<SalespersonDto> salespersonList) {
         String cacheKey = REDIS_KEY;
         String redisData = JSON.toJSONString(salespersonList);  // 使用 JSON 序列化
-        redisTemplate.opsForValue().set(cacheKey, redisData, 7, TimeUnit.DAYS);  // 设置缓存过期时间
+        redisTemplate.opsForValue().set(cacheKey, redisData, 1, TimeUnit.DAYS);  // 设置缓存过期时间
     }
 
     private List<SalespersonDto> getSalespersonFromRedis() {

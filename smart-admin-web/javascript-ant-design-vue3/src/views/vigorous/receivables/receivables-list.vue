@@ -87,6 +87,7 @@
         :loading="tableLoading"
         :pagination="false"
         :row-selection="{ selectedRowKeys: selectedRowKeyList, onChange: onSelectChange }"
+        :scroll="{x:1500}"
     >
       <template #bodyCell="{ text, record, column }">
 
@@ -202,13 +203,13 @@ const columns = ref([
     ellipsis: true,
   },
   {
-    title: '业务员编号',
-    dataIndex: 'salespersonId',
+    title: '业务员',
+    dataIndex: 'salespersonName',
     ellipsis: true,
   },
   {
-    title: '客户编号',
-    dataIndex: 'customerId',
+    title: '客户',
+    dataIndex: 'customerName',
     ellipsis: true,
   },
   {
@@ -227,8 +228,18 @@ const columns = ref([
     ellipsis: true,
   },
   {
-    title: '应收比例(%)',
-    dataIndex: 'rate',
+    title: '汇率',
+    dataIndex: 'exchangeRate',
+    ellipsis: true,
+  },
+  {
+    title: '税收合计本位币',
+    dataIndex: 'fallAmount',
+    ellipsis: true,
+  },
+  {
+    title: '付款方',
+    dataIndex: 'payer',
     ellipsis: true,
   },
   {

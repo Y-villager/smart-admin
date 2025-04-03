@@ -32,10 +32,14 @@ public class ReceivablesVO {
     private LocalDate receivablesDate;
 
     @Schema(description = "业务员编号")
-    private String salespersonId;
+    private Long salespersonId;
+
+    private String salespersonName;
 
     @Schema(description = "客户编号")
-    private String customerId;
+    private Long customerId;
+
+    private String customerName;
 
     @Schema(description = "源单编号")
     private String originBillNo;
@@ -46,6 +50,15 @@ public class ReceivablesVO {
     @Schema(description = "币种")
     @JsonSerialize(using = DictValueVoSerializer.class)
     private String currencyType;
+
+    @Schema(description = "汇率")
+    private BigDecimal exchangeRate;
+
+    @Schema(description = "税价合计（人民币")
+    private BigDecimal fallAmount;
+
+    @Schema(description = "付款方")
+    private String payer;
 
     @Schema(description = "应收比例(%)")
     private Integer rate;

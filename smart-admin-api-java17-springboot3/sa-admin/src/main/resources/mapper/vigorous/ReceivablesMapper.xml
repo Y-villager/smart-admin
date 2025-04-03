@@ -12,7 +12,10 @@
         v_receivables.origin_bill_no,
         v_receivables.amount,
         v_receivables.rate,
-        v_receivables.currency_type
+        v_receivables.currency_type,
+        v_receivables.exchange_rate,
+        v_receivables.fall_amount,
+        v_receivables.payer
     </sql>
 
 <!--    <update id="updateReceivablesByBillNo">-->
@@ -74,7 +77,7 @@
                 <if test="item.customerId != null">
                     customer_id = #{item.customerId},
                 </if>
-                <if test="item.originBillNo != null">
+                <if test="item.originBillNo != null and item.originBillNo != ''">
                     origin_bill_no = #{item.originBillNo},
                 </if>
                 <if test="item.amount != null">
@@ -83,8 +86,17 @@
                 <if test="item.rate != null">
                     rate = #{item.rate},
                 </if>
-                <if test="item.currencyType != null">
-                    currency_type = #{item.currencyType}
+                <if test="item.currencyType != null and item.currencyType != ''">
+                    currency_type = #{item.currencyType},
+                </if>
+                <if test="item.exchangeRate != null">
+                    exchange_rate = #{item.exchangeRate},
+                </if>
+                <if test="item.fallAmount != null">
+                    fall_amount = #{item.fallAmount},
+                </if>
+                <if test="item.payer != null and item.payer != '' ">
+                    payer = #{item.payer}
                 </if>
             </trim>
             WHERE bill_no = #{item.billNo}
@@ -95,8 +107,8 @@
     <!-- 分页查询 -->
     <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.receivables.domain.vo.ReceivablesVO">
         SELECT
-        <include refid="base_columns"/>
-        FROM v_receivables
+        <include refid="base_columns"/>, vc.customer_name
+        FROM v_receivables join v_customer vc on v_receivables.customer_id = vc.customer_id
         <where>
             <!--单据编号-->
             <if test="queryForm.billNo != null and queryForm.billNo != '' ">
@@ -104,7 +116,7 @@
             </if>
             <!--客户名称-->
             <if test="queryForm.customerName != null and queryForm.customerName != ''">
-                        AND INSTR(v_receivables.customer_id,#{queryForm.customerName})
+                AND INSTR(v_receivables.customer_id,#{queryForm.customerName})
             </if>
             <!--销售员名称-->
             <if test="queryForm.salespersonName != null and queryForm.salespersonName != ''">
@@ -130,7 +142,7 @@
         select <include refid="base_columns"/>
             from v_receivables
         where
-            bill_no in
+            bill_no IN
         <foreach collection="billNos" index="index" item="item" open="(" close=")" separator=",">
             #{item}
         </foreach>

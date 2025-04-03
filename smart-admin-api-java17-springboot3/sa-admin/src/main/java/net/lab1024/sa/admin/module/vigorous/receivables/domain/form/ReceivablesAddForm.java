@@ -43,6 +43,12 @@ public class ReceivablesAddForm {
     @Schema(description = "税收合计")
     private BigDecimal amount;
 
+    @Schema(description = "汇率")
+    private BigDecimal exchangeRate;
+
+    @Schema(description = "税收合计(人民币)")
+    private BigDecimal fallAmount;
+
     @Schema(description = "币种", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "币种 不能为空")
     @JsonDeserialize(using = DictValueVoDeserializer.class)

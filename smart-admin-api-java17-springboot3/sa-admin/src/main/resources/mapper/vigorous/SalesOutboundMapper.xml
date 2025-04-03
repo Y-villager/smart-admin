@@ -246,6 +246,7 @@
             vc.customer_group,
             vc.transfer_status,
             vc.first_order_date,
+            vc.is_customs_declaration,
             vs.id AS salesperson_id,
             vs.salesperson_name,
             vs.salesperson_level_id,

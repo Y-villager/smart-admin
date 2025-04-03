@@ -71,6 +71,11 @@ public class ReceivablesService {
     public PageResult<ReceivablesVO> queryPage(ReceivablesQueryForm queryForm) {
         Page<?> page = SmartPageUtil.convert2PageQuery(queryForm);
         List<ReceivablesVO> list = receivablesDao.queryPage(page, queryForm);
+
+        Map<Long, String> salespersonIdNameMap = salespersonService.getSalespersonIdNameMap();
+        for (ReceivablesVO record : list) {
+            record.setSalespersonName(salespersonIdNameMap.get(record.getSalespersonId()));
+        }
         PageResult<ReceivablesVO> pageResult = SmartPageUtil.convert2PageResult(page, list);
         return pageResult;
     }
@@ -298,6 +303,9 @@ public class ReceivablesService {
         entity.setSalespersonId(salespersonMap.get(form.getSalespersonName())); // 业务员编号
         entity.setCurrencyType(currencyType); // 币别
         entity.setAmount(form.getAmount()); // 金额
+        entity.setExchangeRate(form.getExchangeRate()); // 汇率
+        entity.setFallAmount(form.getFallAmount()); // 本位币
+        entity.setPayer(form.getPayer()); // 付款方
         entity.setRate(form.getRate()); // 应收比例
 
         return entity;

@@ -490,20 +490,11 @@ public class SalesOutboundService {
         String currencyType = salesCommission.getCurrencyType();
         if (currencyType == null || currencyType.isEmpty()){
             errorMsg.append("客户未设置币别，无法生成提成；");
-        }else {
-            if (currencyType.equalsIgnoreCase("CNY")){
-                if (salesCommission.getIsCustomsDeclaration() == null){
-                    // 人民币默认不报关
-                    salesCommission.setIsCustomsDeclaration(0);
-                }
-            }else {
-                if (salesCommission.getIsCustomsDeclaration() == null){
-                    salesCommission.setIsCustomsDeclaration(1);
-                }
-                if (salesCommission.getIsCustomsDeclaration() == 0){    // 如果为不需要报关
-                    errorMsg.append("客户是否报关设置有误，请调整；");
-                }
-            }
+        }
+
+        // 4.是否报关
+        if (salesCommission.getIsCustomsDeclaration() == null){
+            errorMsg.append("客户未设置报关信息");
         }
 
         // 是否已生成提成
@@ -590,7 +581,7 @@ public class SalesOutboundService {
             entity.setCommissionRate(commissionRate);
             entity.setCommissionAmount(commissionAmount);
         } else if (entity.getCommissionType().equals(CommissionTypeEnum.MANAGEMENT.getValue())) {
-            if (commissionRule.getUseDynamicFormula().equals(0)) {
+            if (commissionRule.getUseDynamicFormula().equals(1)) {
                 // 动态计算：（上级系数-自身系数）* 客户年份系数
                 if (salesCommission.getPLevelRate() != null) {
                     // 如果存在上级id，计算 管理提成

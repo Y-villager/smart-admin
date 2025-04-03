@@ -40,13 +40,14 @@
         <!---------- 表格操作行 begin ----------->
         <a-row class="smart-table-btn-block">
             <div class="smart-table-operate-block">
-                <a-button @click="showForm" type="primary">
+                <a-button @click="showForm" type="primary"  v-privilege="'commissionRule:add'">
                     <template #icon>
                         <PlusOutlined />
                     </template>
                     新建
                 </a-button>
-                <a-button @click="confirmBatchDelete" type="primary" danger :disabled="selectedRowKeyList.length == 0">
+                <a-button @click="confirmBatchDelete" type="primary" danger :disabled="selectedRowKeyList.length == 0"
+                          v-privilege="'commissionRule:delete'">
                     <template #icon>
                         <DeleteOutlined />
                     </template>
@@ -59,7 +60,7 @@
 <!--                导入-->
 <!--              </a-button>-->
 
-              <a-button @click="onExportCommissionRule" type="primary" v-privilege="'commissionRule:exportCommissionRule'">
+              <a-button @click="onExportCommissionRule" type="primary" v-privilege="'commissionRule:export'">
                 <template #icon>
                   <ExportOutlined />
                 </template>
@@ -112,8 +113,8 @@
 
                 <template v-if="column.dataIndex === 'action'">
                     <div class="smart-table-operate">
-                        <a-button @click="showForm(record)" type="link">编辑</a-button>
-                        <a-button @click="onDelete(record)" danger type="link">删除</a-button>
+                        <a-button @click="showForm(record)" type="link"  v-privilege="'commissionRule:update'">编辑</a-button>
+                        <a-button @click="onDelete(record)" danger type="link"  v-privilege="'commissionRule:delete'">删除</a-button>
                     </div>
                 </template>
             </template>
@@ -142,7 +143,6 @@
         <div style="text-align: center; width: 400px; margin: 0 auto">
           <div id="app">
             <span>导入模式：</span>
-
             <!-- 绑定 radio 按钮 -->
             <label>
               <input type="radio" v-model="importMode" value="1"/> 追加
@@ -191,8 +191,6 @@
 
     import SmartEnumSelect from '/@/components/framework/smart-enum-select/index.vue';
     import CommissionRuleForm from './commission-rule-form.vue';
-    import {IS_TRANSFERRED_ENUM} from "/@/constants/vigorous/customer-const.js";
-    //import FilePreview from '/@/components/support/file-preview/index.vue'; // 图片预览组件
 
     // ---------------------------- 表格列 ----------------------------
 
