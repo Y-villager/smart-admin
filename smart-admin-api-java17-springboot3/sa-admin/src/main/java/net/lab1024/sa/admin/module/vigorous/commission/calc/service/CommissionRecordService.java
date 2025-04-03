@@ -3,7 +3,6 @@ package net.lab1024.sa.admin.module.vigorous.commission.calc.service;
 import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
-import net.lab1024.sa.admin.enumeration.CommissionFlagEnum;
 import net.lab1024.sa.admin.enumeration.CommissionTypeEnum;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.dao.CommissionRecordDao;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.entity.CommissionRecordEntity;
@@ -321,10 +320,6 @@ public class CommissionRecordService {
         for (List<CommissionRecordEntity> batch : batches) {
             futures.add(threadPool.submit(() -> transactionTemplate.execute(status -> {
                 int insert = commissionRecordDao.batchInsertOrUpdate(batch);
-                Set<String> salesBillNos = batch.stream().map(CommissionRecordEntity::getSalesBillNo)
-                        .collect(Collectors.toSet());
-                // 批量更新 提成标识
-                int update = salesOutboundDao.batchUpdateCommissionFlag2(salesBillNos, CommissionFlagEnum.CREATED.getValue());
                 count.addAndGet(insert);
                 return insert;
             })));
