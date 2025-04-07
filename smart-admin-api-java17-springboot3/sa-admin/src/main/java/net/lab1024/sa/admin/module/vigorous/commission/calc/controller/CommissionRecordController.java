@@ -80,11 +80,20 @@ public class CommissionRecordController {
         return commissionRecordService.importCommissionRecord(file, mode);
     }
 
-    @Operation(summary = "导出")
+    @Operation(summary = "按提成类别导出")
     @PostMapping("/commissionRecord/export")
     @SaCheckPermission("commissionRecord:export")
     public void exportCommissionRecord(HttpServletResponse response, @RequestBody @Valid CommissionRecordQueryForm queryForm) throws IOException {
         Map<String, Collection<?>> resList = commissionRecordService.exportCommissionRecord(queryForm);
+
+        SmartExcelUtil.exportExcel(response,"业务提成记录.xlsx", resList);
+    }
+
+    @Operation(summary = "按业务员导出")
+    @PostMapping("/commissionRecord/export2")
+    @SaCheckPermission("commissionRecord:export")
+    public void exportCommissionRecord2(HttpServletResponse response, @RequestBody @Valid CommissionRecordQueryForm queryForm) throws IOException {
+        Map<String, Collection<?>> resList = commissionRecordService.exportCommissionRecordBySalesperson(queryForm);
 
         SmartExcelUtil.exportExcel(response,"业务提成记录.xlsx", resList);
     }

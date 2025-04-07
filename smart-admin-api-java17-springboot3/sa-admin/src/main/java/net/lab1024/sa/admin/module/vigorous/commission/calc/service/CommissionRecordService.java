@@ -18,6 +18,7 @@ import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
 import net.lab1024.sa.base.common.exception.BusinessException;
 import net.lab1024.sa.base.common.util.SmartBeanUtil;
+import net.lab1024.sa.base.common.util.SmartEnumUtil;
 import net.lab1024.sa.base.common.util.SmartPageUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.executor.BatchResult;
@@ -30,10 +31,13 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static cn.dev33.satoken.SaManager.log;
 
@@ -211,64 +215,120 @@ public class CommissionRecordService {
 
 
     /**
-     * 导出
-     * @param queryForm
-     * @return
+     * 公共转换方法
      */
-    public Map<String, Collection<?>> exportCommissionRecord(CommissionRecordQueryForm queryForm) {
-        Map<String, Collection<?>> resList = new HashMap<>();
-
-        // 获取销售人员 ID 到名称的映射
+    private Stream<CommissionRecordExportForm> convertAndPrepareExport(CommissionRecordQueryForm queryForm) {
+        // 获取公共映射和查询结果
         Map<Long, String> salespersonIdNameMap = salespersonService.getSalespersonIdNameMap();
-        // 查询提成记录
         List<CommissionRecordVO> commissionList = commissionRecordDao.queryPage(null, queryForm);
 
-        // 使用 groupingBy 进行分组，根据 commissionType 进行分类
-        Map<String, List<CommissionRecordExportForm>> groupedResult = commissionList.stream()
-                .map(e -> {
-                    // 创建 CommissionRecordExportForm
-                    return CommissionRecordExportForm.builder()
-                            .orderDate(e.getOrderDate())
-                            .salesBillNo(e.getSalesBillNo())
-                            .customerName(e.getCustomerName())
-                            .customerCode(e.getCustomerCode())
-                            .salespersonName(salespersonIdNameMap.get(e.getSalespersonId()))
-                            .salespersonLevelRate(e.getCurrentSalespersonLevelRate())
-                            .currentParentName(salespersonIdNameMap.get(e.getCurrentParentId()))
-                            .currentParentLevelRate(e.getCurrentParentLevelRate())
-                            .firstOrderDate(e.getFirstOrderDate())
-                            .adjustedFirstOrderDate(e.getAdjustedFirstOrderDate())
-                            .customerYear(e.getCustomerYear())
-                            .customerYearRate(e.getCustomerYearRate())
-                            .salesAmount(e.getSalesAmount())
-                            .currencyType(e.getCurrencyType())
-                            .commissionRate(e.getCommissionRate())
-                            .commissionAmount(e.getCommissionAmount())
-                            .isCustomsDeclaration(e.getIsCustomsDeclaration() == 0 ? "不报关" : "报关")
-                            .isTransfer(e.getIsTransfer() == 0 ? "自主开发" : "转交客户")
-                            .commissionType(e.getCommissionType())
-                            .exchangeRate(e.getExchangeRate())
-                            .fallAmount(e.getFallAmount())
-                            .build();
-                })
-                .collect(Collectors.groupingBy(e -> {
-                    // 根据 commissionType 分类
-                    if (e.getCommissionType().equals(CommissionTypeEnum.BUSINESS.getValue())) {
-                        return "业务提成";
-                    } else if (e.getCommissionType().equals(CommissionTypeEnum.MANAGEMENT.getValue())) {
-                        return "管理提成";
-                    } else {
-                        return "其他、未知";
-                    }
-                }));
+        return commissionList.stream()
+                .map(e -> CommissionRecordExportForm.builder()
+                        .orderDate(e.getOrderDate())
+                        .salesBillNo(e.getSalesBillNo())
+                        .customerName(e.getCustomerName())
+                        .customerCode(e.getCustomerCode())
+                        .salespersonName(salespersonIdNameMap.get(e.getSalespersonId()))
+                        .salespersonLevelRate(e.getCurrentSalespersonLevelRate())
+                        .currentParentName(salespersonIdNameMap.get(e.getCurrentParentId()))
+                        .currentParentLevelRate(e.getCurrentParentLevelRate())
+                        .firstOrderDate(e.getFirstOrderDate())
+                        .adjustedFirstOrderDate(e.getAdjustedFirstOrderDate())
+                        .customerYear(e.getCustomerYear())
+                        .customerYearRate(e.getCustomerYearRate())
+                        .salesAmount(e.getSalesAmount())
+                        .currencyType(e.getCurrencyType())
+                        .commissionRate(e.getCommissionRate())
+                        .commissionAmount(e.getCommissionAmount())
+                        .isCustomsDeclaration(e.getIsCustomsDeclaration() == 0 ? "不报关" : "报关")
+                        .isTransfer(e.getIsTransfer() == 0 ? "非转交" : "转交")
+                        .commissionType(SmartEnumUtil.getEnumDescByValue(e.getCommissionType(), CommissionTypeEnum.class))
+                        .exchangeRate(e.getExchangeRate())
+                        .fallAmount(e.getFallAmount())
+                        .salespersonId(e.getSalespersonId())
+                        .currentParentId(e.getCurrentParentId())
+                        .build()
+                );
+    }
 
-        // 将分组后的结果添加到 resList 中
-        groupedResult.forEach((key, value) -> {
-            if (!value.isEmpty()) {
-                resList.put(key, value);
+    /**
+     * 通用分组收集方法
+     */
+    private Map<String, Collection<?>> groupAndCollect(
+            Stream<CommissionRecordExportForm> stream,
+            Function<CommissionRecordExportForm, String> classifier) {
+
+        Map<String, List<CommissionRecordExportForm>> grouped = stream
+                .collect(Collectors.groupingBy(classifier));
+
+        Map<String, Collection<?>> result = new HashMap<>();
+        grouped.forEach((key, list) -> {
+            if (!list.isEmpty()) {
+                // 计算每个分组的 commissionAmount 总和
+                BigDecimal totalAmount = list.stream()
+                        .map(CommissionRecordExportForm::getCommissionAmount)
+                        .filter(Objects::nonNull)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                // 创建一个新的统计行
+                CommissionRecordExportForm totalRecord = CommissionRecordExportForm.builder()
+                        .commissionType("总计")
+                        .commissionAmount(totalAmount)
+                        .build();
+
+                // 将统计行添加到该分组的最后
+                list.add(totalRecord);
+                result.put(key, list);
             }
         });
-        return resList;
+        return result;
+    }
+
+    /**
+     * 按提成类型导出
+     */
+    public Map<String, Collection<?>> exportCommissionRecord(CommissionRecordQueryForm queryForm) {
+        Map<String, Collection<?>>  groupedRecords = groupAndCollect(
+                convertAndPrepareExport(queryForm),
+                e -> {
+                    String type = e.getCommissionType();
+                    if (CommissionTypeEnum.BUSINESS.getDesc().equals(type)) {
+                        return "业务提成";
+                    } else if (CommissionTypeEnum.MANAGEMENT.getDesc().equals(type)) {
+                        return "管理提成";
+                    }
+                    return "其他、未知";
+                }
+        );
+
+        return groupedRecords;
+    }
+
+    // 工具方法：格式化分组键
+    private String formatKey(String name, Long id) {
+        return name != null ? String.format("%s (%d)", name, id) : String.valueOf(id);
+    }
+
+    /**
+     * 按销售人员导出
+     */
+    public Map<String, Collection<?>> exportCommissionRecordBySalesperson(CommissionRecordQueryForm queryForm) {
+        return groupAndCollect(
+                convertAndPrepareExport(queryForm),
+                e -> {
+                    if (e.getCommissionType().equals(CommissionTypeEnum.BUSINESS.getDesc())) {
+                        String name = e.getSalespersonName();
+                        Long id = e.getSalespersonId();
+                        return formatKey(name, id);
+                    }else if (e.getCommissionType().equals(CommissionTypeEnum.MANAGEMENT.getDesc())) {
+                        String parentName = e.getCurrentParentName();
+                        Long id = e.getCurrentParentId();
+                        return formatKey(parentName, id);
+                    }else {
+                        return "错误数据";
+                    }
+                }
+        );
     }
 
 
@@ -351,5 +411,6 @@ public class CommissionRecordService {
         }
         return batches;
     }
+
 
 }

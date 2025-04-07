@@ -26,6 +26,9 @@ public class SalespersonQueryForm extends PageParam {
     @Schema(description = "业务员级别")
     private String salespersonLevel;
 
+    @Schema(description = "部门名称")
+    private String departmentName;
+
     @Schema(hidden = true)
     private Boolean deletedFlag;
 

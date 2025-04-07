@@ -48,6 +48,10 @@
             <if test="queryForm.salespersonLevel != null and queryForm.salespersonLevel != ''">
                         AND INSTR(v_salesperson.salesperson_level_id,#{queryForm.salespersonLevel})
             </if>
+            <!--部门-->
+            <if test="queryForm.departmentName != null and queryForm.departmentName != ''">
+                AND INSTR(d.name,#{queryForm.departmentName})
+            </if>
             <if test="queryForm.deletedFlag != null">
                 AND INSTR(v_salesperson.deleted_flag,#{queryForm.deletedFlag})
             </if>

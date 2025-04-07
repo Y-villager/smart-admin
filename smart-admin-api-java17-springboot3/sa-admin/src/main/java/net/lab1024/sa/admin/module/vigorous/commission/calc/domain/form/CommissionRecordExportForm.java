@@ -22,17 +22,26 @@ import java.time.LocalDate;
 @Builder
 public class CommissionRecordExportForm {
 
+    @ExcelProperty("提成类别")
+    private String commissionType;
+
     @ExcelProperty("业务日期")
     private LocalDate orderDate;
 
     @ExcelProperty("销售出库-单据编号")
     private String salesBillNo;
 
+    @ExcelProperty("销售员id")
+    private Long salespersonId;
+
     @ExcelProperty("销售员")
     private String salespersonName;
 
     @ExcelProperty("销售员级别系数")
     private BigDecimal salespersonLevelRate;
+
+    @ExcelProperty("销售员级别系数")
+    private Long currentParentId;
 
     @ExcelProperty("销售员上级")
     private String currentParentName;
@@ -57,9 +66,6 @@ public class CommissionRecordExportForm {
 
     @ExcelProperty("客户年份系数")
     private BigDecimal customerYearRate ;
-
-    @ExcelProperty("提成类别")
-    private Integer commissionType;
 
     @ExcelProperty("税收合计")
     private BigDecimal salesAmount;

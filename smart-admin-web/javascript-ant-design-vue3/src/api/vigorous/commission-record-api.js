@@ -51,8 +51,12 @@ export const commissionRecordApi = {
     },
 
     // 导出
-    exportCommissionRecord : (form) =>{
+    exportCommissionRecordByType : (form) =>{
         return postDownload('/commissionRecord/export', form);
+    },
+
+    exportCommissionRecordBySalesperson : (form) =>{
+        return postDownload('/commissionRecord/export2', form);
     }
 
 };

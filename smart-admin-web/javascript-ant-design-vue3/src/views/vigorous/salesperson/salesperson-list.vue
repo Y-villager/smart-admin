@@ -18,6 +18,9 @@
             <a-form-item label="业务员级别" class="smart-query-form-item">
               <SalespersonLevelSelect width="200px" v-model:value="queryForm.salespersonLevelId" enumName="" placeholder="选择业务员级别"/>
             </a-form-item>
+          <a-form-item label="部门名称" class="smart-query-form-item">
+            <a-input style="width: 200px" v-model:value="queryForm.departmentName" placeholder="部门名称" />
+          </a-form-item>
             <a-form-item class="smart-query-form-item">
                 <a-button type="primary" @click="onSearch">
                     <template #icon>
@@ -83,7 +86,7 @@
             bordered
             :loading="tableLoading"
             :pagination="false"
-            :scroll="{ x: 1500 }"
+            :scroll="{ x: 1000 }"
             :row-selection="{ selectedRowKeys: selectedRowKeyList, onChange: onSelectChange }"
         >
             <template #bodyCell="{ text, record, column }">
@@ -192,21 +195,27 @@ import {ExclamationCircleOutlined} from "@ant-design/icons-vue";
             title: '业务员编码',
             dataIndex: 'salespersonCode',
             ellipsis: true,
+            width: '150px'
         },
         {
             title: '业务员名称',
             dataIndex: 'salespersonName',
             ellipsis: true,
+          width: '100px'
+
         },
         {
             title: '部门名称',
             dataIndex: 'departmentName',
             ellipsis: true,
+          width: '100px'
         },
         {
             title: '业务员级别',
             dataIndex: 'salespersonLevelName',
             ellipsis: true,
+          width: '100px'
+
         },
         {
           title: '启用状态',
@@ -214,21 +223,17 @@ import {ExclamationCircleOutlined} from "@ant-design/icons-vue";
           ellipsis: true,
           width: '80px'
         },
-        {
-            title: '层级路径',
-            dataIndex: 'path',
-            ellipsis: true,
-        },
-        {
-            title: '上级',
-            dataIndex: 'parentName',
-            ellipsis: true,
-        },
+      {
+        title: '上级',
+        dataIndex: 'parentName',
+        ellipsis: true,
+        width: '100px'
+      },
         {
             title: '操作',
             dataIndex: 'action',
             fixed: 'right',
-            width: 160,
+            width: 100,
         },
     ]);
 
@@ -238,6 +243,7 @@ import {ExclamationCircleOutlined} from "@ant-design/icons-vue";
         salespersonCode: undefined, //业务员编码
         salespersonName: undefined, //业务员名称
         salespersonLevelId: undefined, //业务员级别
+        departmentName: undefined, //业务员级别
         pageNum: 1,
         pageSize: 10,
     };

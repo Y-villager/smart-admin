@@ -78,7 +78,7 @@
           批量删除
         </a-button>
 
-        <a-button @click="onExportCommissionRecord" :loading="exportLoading" type="primary" v-privilege="'commissionRecord:export'">
+        <a-button @click="showExportDialog" type="primary" v-privilege="'commissionRecord:export'">
           <template #icon>
             <ExportOutlined />
           </template>
@@ -90,6 +90,24 @@
       </div>
     </a-row>
     <!---------- 表格操作行 end ----------->
+
+    <!-- 新增导出对话框 -->
+    <a-modal
+        v-model:visible="exportDialogVisible"
+        title="选择导出方式"
+        :confirm-loading="exportLoading"
+        @ok="handleExport"
+        @cancel="cancelExport"
+        :width="400">
+      <a-radio-group v-model:value="exportType" style="display: flex; flex-direction: column; gap: 12px">
+        <a-radio value="type">
+          <span style="font-weight: 500">按提成类别导出</span>
+        </a-radio>
+        <a-radio value="salesperson">
+          <span style="font-weight: 500">按业务员导出</span>
+        </a-radio>
+      </a-radio-group>
+    </a-modal>
 
     <!---------- 表格 begin ----------->
     <a-table
@@ -339,6 +357,43 @@
     queryForm.filterDateList = list
   };
 
+  // 导出类型状态
+  const exportType = ref('all');
+  // 对话框可见性
+  const exportDialogVisible = ref(false);
+  // 加载状态（保持原有）
+  const exportLoading = ref(false);
+
+  // 显示对话框
+  const showExportDialog = () => {
+    exportDialogVisible.value = true;
+  };
+
+  // --------------------------处理导出
+  const handleExport = async () => {
+    try {
+      exportLoading.value = true;
+
+      switch(exportType.value) {
+        case 'type':
+          await commissionRecordApi.exportCommissionRecordByType(queryForm);
+          break;
+        case 'salesperson':
+          await commissionRecordApi.exportCommissionRecordBySalesperson(queryForm);
+          break;
+          // 可扩展其他类型
+      }
+
+      message.success('导出成功');
+    } catch (error) {
+      message.error('导出失败: ' + (error.message || '未知错误'));
+    } finally {
+      exportLoading.value = false;
+      exportDialogVisible.value = false;
+    }
+  };
+
+
 
   // 重置查询条件
   function resetQuery() {
@@ -473,19 +528,6 @@
     importModalShowFlag.value = false;
   }
 
-  // 导出excel文件
-  const exportLoading = new ref(false);
-
-  async function onExportCommissionRecord() {
-    exportLoading.value = true
-    try {
-      await commissionRecordApi.exportCommissionRecord(queryForm);
-    }catch (e){
-      console.log("错误：", e)
-      exportLoading.value = false;
-    }
-    exportLoading.value = false;
-  }
 
   function handleRemove(file) {
     const index = fileList.value.indexOf(file);
