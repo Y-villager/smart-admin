@@ -1,5 +1,6 @@
 package net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form;
 
+import com.alibaba.excel.annotation.ExcelIgnore;
 import com.alibaba.excel.annotation.ExcelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,12 +36,14 @@ public class CommissionRecordExportForm {
     private Long salespersonId;
 
     @ExcelProperty("销售员")
+    @ExcelIgnore
     private String salespersonName;
 
     @ExcelProperty("销售员级别系数")
     private BigDecimal salespersonLevelRate;
 
-    @ExcelProperty("销售员级别系数")
+    @ExcelProperty("销售员上级")
+    @ExcelIgnore
     private Long currentParentId;
 
     @ExcelProperty("销售员上级")
