@@ -165,11 +165,11 @@
 
         <!-- 使用字典时 注释解开并把下面的'dict'修改成自己的字典字段名即可 有多个字典字段就复制多份同理修改 不然不显示字典 -->
         <!-- 方便修改tag的颜色 orange green purple success processing error default warning -->
-        <!-- <template v-if="column.dataIndex === 'dict'">
-                <a-tag color="cyan">
-                  {{ text && text.length > 0 ? text.map((e) => e.valueName).join(',') : '暂无' }}
-                </a-tag>
-              </template> -->
+        <template v-if="column.dataIndex === 'commissionFlag'">
+          <a-tag :color="$smartEnumPlugin.getColorByValue('COMMISSION_FLAG_ENUM', text) || null">
+            {{$smartEnumPlugin.getDescByValue('COMMISSION_FLAG_ENUM', text)}}
+          </a-tag>
+        </template>
         <!--              <template v-if="column.dataIndex==='receivables.currency'">-->
         <!--                {{ text !=null ? text.currency_type : '' }}-->
         <!--              </template>-->
@@ -302,7 +302,7 @@
       ellipsis: true,
     },
     {
-      title: '是否生成提成',
+      title: '提成状态',
       dataIndex: 'commissionFlag',
       ellipsis: true,
     },

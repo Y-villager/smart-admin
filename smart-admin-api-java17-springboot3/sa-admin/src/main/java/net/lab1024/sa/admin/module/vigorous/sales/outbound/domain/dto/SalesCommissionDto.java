@@ -30,12 +30,12 @@ public class SalesCommissionDto {
     @Schema(description = "应收币别")
     private String currencyType;
 
-
-
     @Schema(description = "销售出库-单据编号")
     private String receiveBillNo;
 
     private String receiveRate;
+    private BigDecimal exchangeRate;
+    private BigDecimal fallAmount;
 
     @Schema(description = "客户id")
     private Long customerId;
@@ -58,13 +58,13 @@ public class SalesCommissionDto {
     private String salespersonName;
 
     @Schema(description = "当时业务员级别id")
-    private Integer salespersonLevelId;
+    private String salespersonLevelName;
     private BigDecimal levelRate;
 
     @Schema(description = "当时上级id")
     private Long pSalespersonId;
     private String pSalespersonName;
-    private Integer pSalespersonLevelId;
+    private String pSalespersonLevelName;
     private BigDecimal pLevelRate;
 
     @Schema(description = "提成标识")

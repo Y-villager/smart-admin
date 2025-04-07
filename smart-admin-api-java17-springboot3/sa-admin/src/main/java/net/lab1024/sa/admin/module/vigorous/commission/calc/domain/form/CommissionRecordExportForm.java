@@ -61,11 +61,17 @@ public class CommissionRecordExportForm {
     @ExcelProperty("提成类别")
     private Integer commissionType;
 
-    @ExcelProperty("业务金额")
+    @ExcelProperty("税收合计")
     private BigDecimal salesAmount;
 
     @ExcelProperty("应收-币别")
     private String currencyType;
+
+    @ExcelProperty("汇率")
+    private BigDecimal exchangeRate;
+
+    @ExcelProperty("税收合计本位币")
+    private BigDecimal fallAmount;
 
     @ExcelProperty("是否为转交客户")
     private String isTransfer;
@@ -76,7 +82,7 @@ public class CommissionRecordExportForm {
     @ExcelProperty("最终提成系数(%)")
     private BigDecimal commissionRate;
 
-    @ExcelProperty("提成金额")
+    @ExcelProperty("提成金额(人民币)")
     private BigDecimal commissionAmount;
 
 

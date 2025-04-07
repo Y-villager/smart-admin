@@ -38,6 +38,25 @@ export default {
       }
       return '';
     };
+
+    smartEnumPlugin.getColorByValue = function (constantName, value) {
+      if (!smartEnumWrapper || !Object.prototype.hasOwnProperty.call(smartEnumWrapper, constantName)) {
+        console.error('无法找到变量名称：' + constantName + '，请检查 /constants/index.js 文件中是否引入此变量！');
+        return '';
+      }
+      // boolean类型需要做特殊处理
+      if (constantName === 'FLAG_NUMBER_ENUM' && !_.isUndefined(value) && typeof value === 'boolean') {
+        value = value ? FLAG_NUMBER_ENUM.TRUE.value : FLAG_NUMBER_ENUM.FALSE.value;
+      }
+
+      let smartEnum = smartEnumWrapper[constantName];
+      for (let item in smartEnum) {
+        if (smartEnum[item].value === value) {
+          return smartEnum[item].color;
+        }
+      }
+      return '';
+    };
     /**
      * 根据枚举名获取对应的描述键值对[{value:desc}]
      * @param {*} constantName 枚举名

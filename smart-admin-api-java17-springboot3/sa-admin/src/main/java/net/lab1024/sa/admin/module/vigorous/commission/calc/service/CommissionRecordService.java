@@ -246,7 +246,9 @@ public class CommissionRecordService {
                             .commissionAmount(e.getCommissionAmount())
                             .isCustomsDeclaration(e.getIsCustomsDeclaration() == 0 ? "不报关" : "报关")
                             .isTransfer(e.getIsTransfer() == 0 ? "自主开发" : "转交客户")
-                            .commissionType(e.getCommissionType()) // 保留 commissionType
+                            .commissionType(e.getCommissionType())
+                            .exchangeRate(e.getExchangeRate())
+                            .fallAmount(e.getFallAmount())
                             .build();
                 })
                 .collect(Collectors.groupingBy(e -> {

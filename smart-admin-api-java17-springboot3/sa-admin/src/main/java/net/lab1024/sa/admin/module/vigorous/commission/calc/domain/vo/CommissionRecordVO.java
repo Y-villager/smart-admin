@@ -47,7 +47,7 @@ public class CommissionRecordVO {
     private String salespersonName;
 
     @Schema(description = "当时业务员级别id")
-    private Integer currentSalespersonLevelId;
+    private String currentSalespersonLevelName;
 
     @Schema(description = "当时业务员级别级别系数")
     private BigDecimal currentSalespersonLevelRate;
@@ -75,7 +75,7 @@ public class CommissionRecordVO {
     private String currentParentName;
 
     @Schema(description = "当时上级级别id")
-    private Integer currentParentLevelId;
+    private String currentParentLevelName;
 
     @Schema(description = "上级级别系数")
     private BigDecimal currentParentLevelRate;

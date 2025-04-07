@@ -69,7 +69,7 @@ public class CommissionRecordEntity {
     /**
      * 当时业务员级别id
      */
-    private Integer currentSalespersonLevelId;
+    private String currentSalespersonLevelName;
 
     /**
      * 业务员级别系数
@@ -81,10 +81,13 @@ public class CommissionRecordEntity {
      */
     private Long currentParentId;
 
+
+    private String currentParentName;
+
     /**
      * 上级级别id
      */
-    private Integer currentParentLevelId;
+    private String currentParentLevelName;
 
     /**
      * 上级级别系数

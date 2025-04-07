@@ -21,9 +21,6 @@
         <a-form-item label="单据编号"  name="billNo">
           <a-input style="width: 100%" v-model:value="form.billNo" placeholder="单据编号" />
         </a-form-item>
-      <a-form-item label="单据状态" class="smart-query-form-item">
-        <DictSelect keyCode="BILL_STATUS" placeholder="单据状态" v-model:value="form.billStatus" width="100%" />
-      </a-form-item>
         <a-form-item label="出库日期"  name="salesBoundDate">
           <a-date-picker valueFormat="YYYY-MM-DD" v-model:value="form.salesBoundDate" style="width: 100%" placeholder="出库日期"/>
         </a-form-item>

@@ -48,10 +48,10 @@ public class SalesCommissionExportForm {
     private BigDecimal levelRate;
 
     @ExcelProperty("转交状态")
-    private Integer transferStatus;
+    private String transferStatus;
 
     @ExcelProperty("客户是否报关")
-    private Integer isDeclared;
+    private String isDeclared;
 
     @ExcelProperty("错误信息")
     private String errMsg;

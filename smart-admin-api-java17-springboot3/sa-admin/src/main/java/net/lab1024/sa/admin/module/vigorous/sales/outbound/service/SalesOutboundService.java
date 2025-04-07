@@ -4,6 +4,8 @@ import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
 import net.lab1024.sa.admin.enumeration.CommissionTypeEnum;
+import net.lab1024.sa.admin.enumeration.SystemYesNo;
+import net.lab1024.sa.admin.enumeration.TransferStatusEnum;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.entity.CommissionRecordEntity;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.service.CommissionRecordService;
 import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.vo.CommissionRuleVO;
@@ -25,6 +27,7 @@ import net.lab1024.sa.base.common.domain.ResponseDTO;
 import net.lab1024.sa.base.common.domain.ValidateList;
 import net.lab1024.sa.base.common.exception.BusinessException;
 import net.lab1024.sa.base.common.util.SmartBeanUtil;
+import net.lab1024.sa.base.common.util.SmartEnumUtil;
 import net.lab1024.sa.base.common.util.SmartPageUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.executor.BatchResult;
@@ -313,14 +316,7 @@ public class SalesOutboundService {
         }
 
         //
-        int inserted = commissionRecordService.batchInsertCommissionRecordAndUpdate(List.copyOf(commissionEntityList));
-
-        String message = getCreatedResult(list, errorList, inserted);
-
-        List<SalesCommissionExportForm> exportFormList = convertListToSalesCommission(List.copyOf(errorList));
-        String failedPath = ExcelUtils.saveFailedDataToExcel(exportFormList, SalesCommissionExportForm.class );
-
-        return ResponseDTO.okMsg(message, failedPath);
+        return getStringResponseDTO(list, errorList, commissionEntityList);
     }
 
     private List<SalesCommissionExportForm> convertListToSalesCommission(List<SalesCommissionDto> salesCommissionDtos) {
@@ -339,8 +335,8 @@ public class SalesOutboundService {
                         .adjustedFirstOrderDate(e.getAdjustedFirstOrderDate())
                         .salespersonName(e.getSalespersonName())
                         .currentParentName(e.getPSalespersonName())
-                        .transferStatus(e.getTransferStatus())
-                        .isDeclared(e.getIsCustomsDeclaration())
+                        .transferStatus(SmartEnumUtil.getEnumDescByValue(e.getTransferStatus(), TransferStatusEnum.class))
+                        .isDeclared(SmartEnumUtil.getEnumDescByValue(e.getIsCustomsDeclaration(), SystemYesNo.class))
                         .errMsg(e.getErrMsg())
                         .build()
                 ).collect(Collectors.toList());
@@ -415,11 +411,18 @@ public class SalesOutboundService {
         threadPoolExecutor.shutdown();
 
         // 转换为不可变列表
+        return getStringResponseDTO(list, errorList, commissionRecordVOList);
+    }
+
+    @NotNull
+    private ResponseDTO<String> getStringResponseDTO(List<SalesCommissionDto> list, ConcurrentLinkedQueue<SalesCommissionDto> errorList, ConcurrentLinkedQueue<CommissionRecordEntity> commissionRecordVOList) {
         int inserted = commissionRecordService.batchInsertCommissionRecordAndUpdate(List.copyOf(commissionRecordVOList));
 
         String message = getCreatedResult(list, errorList, inserted);
 
-        String failedPath = ExcelUtils.saveFailedDataToExcel(List.copyOf(errorList), SalesCommissionExportForm.class );
+        List<SalesCommissionExportForm> salesCommissionDTOs = convertListToSalesCommission(List.copyOf(errorList));
+
+        String failedPath = ExcelUtils.saveFailedDataToExcel(salesCommissionDTOs, SalesCommissionExportForm.class );
 
         return ResponseDTO.okMsg(message, failedPath);
     }
@@ -440,18 +443,25 @@ public class SalesOutboundService {
         entity.setSalesBillNo(dto.getSalesBillNo()); // 2.销售出库-单据编号
         entity.setReceiveBillNo(dto.getReceiveBillNo()); // 3.应收表-单据编号
         entity.setCustomerId(dto.getCustomerId());  // 4.必需：客户id
+
         entity.setSalespersonId(dto.getSalespersonId());  // 5.必需：业务员id
-        entity.setCurrentSalespersonLevelId(dto.getSalespersonLevelId()); // 6.当时业务员级别id
+        entity.setSalespersonName(dto.getSalespersonName());  // 5.必需：业务员id
+        entity.setCurrentSalespersonLevelName(dto.getSalespersonLevelName()); // 6.当时业务员级别
         entity.setCurrentSalespersonLevelRate(dto.getLevelRate()); // 7.当时业务员级别系数
-        entity.setSalesAmount(dto.getSalesAmount()); // 8.销售金额
+
         entity.setCurrentParentId(dto.getPSalespersonId()); // 9.当时上级id
-        entity.setCurrentSalespersonLevelId(dto.getSalespersonLevelId()); // 10.当时上级级别
+        entity.setCurrentParentName(dto.getPSalespersonName()); // 9.当时上级id
+        entity.setCurrentParentLevelName(dto.getPSalespersonLevelName()); // 10.当时上级级别
         entity.setCurrentParentLevelRate(dto.getPLevelRate()); // 11.当时上级级别系数
 
         entity.setIsTransfer(dto.getTransferStatus()); // 12.转交状态
         entity.setIsCustomsDeclaration(dto.getIsCustomsDeclaration()); // 13.是否报关
-        entity.setCurrentParentLevelId(dto.getPSalespersonLevelId()); // 14.上级级别id
+
+        entity.setSalesAmount(dto.getSalesAmount()); // 8.销售金额
         entity.setCurrencyType(dto.getCurrencyType()); // 15.币别
+        entity.setExchangeRate(dto.getExchangeRate()); // 15. 汇率
+        entity.setFallAmount(dto.getFallAmount()); // 15. 税收合计本位币
+
     }
 
     /**
@@ -486,12 +496,6 @@ public class SalesOutboundService {
             errorMsg.append("客户未设置转交状态；");
         }
 
-        // 3.客户币别
-        String currencyType = salesCommission.getCurrencyType();
-        if (currencyType == null || currencyType.isEmpty()){
-            errorMsg.append("客户未设置币别，无法生成提成；");
-        }
-
         // 4.是否报关
         if (salesCommission.getIsCustomsDeclaration() == null){
             errorMsg.append("客户未设置报关信息");
@@ -508,7 +512,7 @@ public class SalesOutboundService {
         }
 
         // 5.是否有业务员级别
-        if (salesCommission.getSalespersonLevelId()==null){
+        if (salesCommission.getSalespersonName() == null){
             errorMsg.append("业务员未设置提成级别");
         }
         return errorMsg.toString();
@@ -560,8 +564,8 @@ public class SalesOutboundService {
         // 计算百分比时使用 hundred 的倒数
         BigDecimal hundredInverse = BigDecimal.ONE.divide(hundred, 4, RoundingMode.HALF_UP);
 
-        BigDecimal amount = Optional.ofNullable(salesCommission.getSalesAmount())
-                .orElse(BigDecimal.ZERO);   // 销售金额
+        BigDecimal amount = Optional.ofNullable(salesCommission.getFallAmount())
+                .orElse(BigDecimal.ZERO);   // 税收合计本位币
         BigDecimal levelRate = salesCommission.getLevelRate();  // 业务员提成级别系数
         BigDecimal pLevelRate = salesCommission.getPLevelRate();    // 上级提成级别
 

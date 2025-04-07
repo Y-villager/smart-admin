@@ -101,7 +101,7 @@
       :loading="tableLoading"
       :pagination="false"
       :row-selection="{ selectedRowKeys: selectedRowKeyList, onChange: onSelectChange }"
-      :scroll="{ x: 'max-content', y: 500 }"
+      :scroll="{x:1500}"
     >
       <template #bodyCell="{ text, record, column }">
 
@@ -198,7 +198,7 @@
       title: '销售出库-单据编号',
       dataIndex: 'salesBillNo',
       ellipsis: true,
-      width: '150px'
+      width: '110px'
     },
     {
       title: '业务日期',
@@ -237,14 +237,26 @@
       width: '100px'
     },
     {
-      title: '销售金额',
+      title: '价税合计',
       dataIndex: 'salesAmount',
       ellipsis: true,
-      width: '100px'
+      width: '80px'
     },
     {
       title: '应收-币别',
       dataIndex: 'currencyType',
+      ellipsis: true,
+      width: '80px'
+    },
+    {
+      title: '汇率',
+      dataIndex: 'exchangeRate',
+      ellipsis: true,
+      width: '80px'
+    },
+    {
+      title: '价税合计本位币',
+      dataIndex: 'fallAmount',
       ellipsis: true,
       width: '80px'
     },
@@ -262,7 +274,7 @@
     },
     {
       title: '上级',
-      dataIndex: 'currentParentId',
+      dataIndex: 'currentParentName',
       ellipsis: true,
       width: '110px'
     },
@@ -270,13 +282,13 @@
       title: '提成比例(%)',
       dataIndex: 'commissionRate',
       ellipsis: true,
-      width: '130px'
+      width: '100px'
     },
     {
-      title: '提成金额',
+      title: '提成金额(人民币)',
       dataIndex: 'commissionAmount',
       ellipsis: true,
-      width: '110px'
+      width: '150px'
     },
     {
       title: '操作',
