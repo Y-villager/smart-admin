@@ -118,9 +118,9 @@
             <if test="queryForm.customerName != null and queryForm.customerName != ''">
                 AND INSTR(v_receivables.customer_id,#{queryForm.customerName})
             </if>
-            <!--销售员名称-->
-            <if test="queryForm.salespersonName != null and queryForm.salespersonName != ''">
-                AND INSTR(v_receivables.salesperson_id,#{queryForm.salespersonName})
+            <!--销售员id-->
+            <if test="queryForm.salespersonId != null">
+                AND v_receivables.salesperson_id = #{queryForm.salespersonId}
             </if>
             <!--币种-->
             <if test="queryForm.currencyType != null">

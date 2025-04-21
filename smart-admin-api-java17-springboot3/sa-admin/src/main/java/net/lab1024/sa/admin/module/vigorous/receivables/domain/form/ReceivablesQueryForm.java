@@ -24,8 +24,8 @@ public class ReceivablesQueryForm extends PageParam {
     @Schema(description = "客户名称")
     private String customerName;
 
-    @Schema(description = "销售员名称")
-    private String salespersonName;
+    @Schema(description = "销售员id")
+    private Integer salespersonId;
 
     @Schema(description = "币种")
     private String currencyType;

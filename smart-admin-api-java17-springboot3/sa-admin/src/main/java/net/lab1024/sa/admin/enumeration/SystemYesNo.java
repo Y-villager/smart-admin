@@ -8,12 +8,14 @@ import net.lab1024.sa.base.common.enumeration.BaseEnum;
 @AllArgsConstructor
 public enum SystemYesNo implements BaseEnum {
     /**
+     * 否
      */
-    CNY(0, "否"),
+    NO(0, "否"),
 
     /**
+     * 是
      */
-    USD(1, "是"),
+    YES(1, "是"),
 
 
     ;

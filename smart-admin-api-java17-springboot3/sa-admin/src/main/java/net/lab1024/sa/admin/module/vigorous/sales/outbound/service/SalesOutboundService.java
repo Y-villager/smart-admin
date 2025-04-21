@@ -358,7 +358,7 @@ public class SalesOutboundService {
         }else {
             commissionEntityList.add(business);
         }
-        if (dto.getPSalespersonId() != null){
+        if (dto.getPSalespersonId() != null && dto.getTransferStatus().equals(0)){
             // 有上级id
             management = convertToCommissionEntity(dto, CommissionTypeEnum.MANAGEMENT);
             commissionEntityList.add(management);
@@ -454,7 +454,8 @@ public class SalesOutboundService {
         entity.setCurrentParentLevelName(dto.getPSalespersonLevelName()); // 10.当时上级级别
         entity.setCurrentParentLevelRate(dto.getPLevelRate()); // 11.当时上级级别系数
 
-        entity.setIsTransfer(dto.getTransferStatus()); // 12.转交状态
+        entity.setIsTransfer(dto.getTransferStatus() == 0 ? 0 : 1); // 12.转交
+
         entity.setIsCustomsDeclaration(dto.getIsCustomsDeclaration()); // 13.是否报关
 
         entity.setSalesAmount(dto.getSalesAmount()); // 8.销售金额
@@ -491,10 +492,22 @@ public class SalesOutboundService {
         }else {
             errorMsg.append("缺少销售出库-业务日期");
         }
+
         // 2.没有设置转交状态
         if (salesCommission.getTransferStatus() == null ){
             errorMsg.append("客户未设置转交状态；");
+        }else {
+            Long customerSalesperson = salesCommission.getCustomerSalespersonId();  // 客户相关负责业务员
+            if (!customerSalesperson.equals(salesCommission.getSalespersonId())){ // 与负责人id不符
+                // 如果客户负责人为上级, 则为转交
+                if (salesCommission.getCustomerSalespersonId().equals(salesCommission.getPSalespersonId())){
+                    salesCommission.setTransferStatus(SystemYesNo.YES.getValue());
+                }else {
+                    errorMsg.append("销售出库中业务员与该公司负责业务员不匹配，且非下级，不允许生成提成，请重新查看销售出库。");
+                }
+            }
         }
+
 
         // 4.是否报关
         if (salesCommission.getIsCustomsDeclaration() == null){
@@ -514,6 +527,10 @@ public class SalesOutboundService {
         // 5.是否有业务员级别
         if (salesCommission.getSalespersonName() == null){
             errorMsg.append("业务员未设置提成级别");
+        }
+
+        if (salesCommission.getCustomerSalespersonId() == null){
+            errorMsg.append("客户数据中缺少业务员信息；");
         }
         return errorMsg.toString();
     }
@@ -537,17 +554,15 @@ public class SalesOutboundService {
         }
         // 设置 需要动态计算的信息
         commission.setCommissionType(commissionTypeEnum.getValue());
+        // 设置
         setCommissionDynamicInfo(commission, salesCommission);
         return commission;
     }
 
     private void setCommissionDynamicInfo(CommissionRecordEntity entity, SalesCommissionDto salesCommission) {
         BigDecimal hundred = BigDecimal.valueOf(100);
-        if (salesCommission.getTransferStatus() != 0 && salesCommission.getTransferStatus() != 1){
 
-        }
-        // 转交
-        salesCommission.setTransferStatus(salesCommission.getTransferStatus() ==0 ? 0 : 1);
+
 
         // 查询提成规则
         CommissionRuleVO commissionRule =

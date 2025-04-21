@@ -37,6 +37,7 @@
         vc.transfer_status,
         vc.is_customs_declaration,
         vc.create_date as customer_create_date,
+        vc.salesperson_id as customer_salesperson_id,
         vs.id AS salesperson_id,
         vs.salesperson_name,
         vsl.salesperson_level_name,
@@ -200,7 +201,7 @@
                 And vs.disabled_flag != #{excludeForm.disabledSalesmanFlag}
             </if>
         </where>
-        order by v_sales_outbound.sales_bound_date desc
+        order by v_sales_outbound.create_time DESC
     </select>
 
     <select id="queryByBillNo"

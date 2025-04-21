@@ -139,8 +139,8 @@
             left join v_sales_outbound vso on v_commission_record.sales_bill_no = vso.bill_no
         <where>
             <!--业务员-->
-            <if test="queryForm.salespersonName != null and queryForm.salespersonName != ''">
-                AND INSTR(v_commission_record.salesperson_id,#{queryForm.salespersonName})
+            <if test="queryForm.salespersonId != null">
+                AND v_commission_record.salesperson_id = #{queryForm.salespersonId}
             </if>
             <!--客户名称-->
             <if test="queryForm.customerName != null and queryForm.customerName != ''">

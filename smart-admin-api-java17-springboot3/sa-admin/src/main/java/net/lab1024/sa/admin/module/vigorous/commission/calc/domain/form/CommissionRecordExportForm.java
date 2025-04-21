@@ -32,24 +32,33 @@ public class CommissionRecordExportForm {
     @ExcelProperty("销售出库-单据编号")
     private String salesBillNo;
 
+    @ExcelProperty("应收单-单据编号")
+    private String receiveBillNo;
+
     @ExcelProperty("销售员id")
+    @ExcelIgnore
     private Long salespersonId;
 
     @ExcelProperty("销售员")
-    @ExcelIgnore
     private String salespersonName;
 
-    @ExcelProperty("销售员级别系数")
+    @ExcelProperty("提成级别")
+    private String salespersonLevelName;
+
+    @ExcelProperty("级别提成系数(%)")
     private BigDecimal salespersonLevelRate;
 
-    @ExcelProperty("销售员上级")
+    @ExcelProperty("销售员上级id")
     @ExcelIgnore
     private Long currentParentId;
 
     @ExcelProperty("销售员上级")
     private String currentParentName;
 
-    @ExcelProperty("上级系数")
+    @ExcelProperty("上级提成级别")
+    private String currentParentLevelName;
+
+    @ExcelProperty("上级级别系数(%)")
     private BigDecimal currentParentLevelRate;
 
     @ExcelProperty("客户编码")

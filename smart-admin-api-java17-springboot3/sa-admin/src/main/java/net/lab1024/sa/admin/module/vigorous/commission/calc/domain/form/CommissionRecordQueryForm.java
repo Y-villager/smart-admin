@@ -22,7 +22,7 @@ import java.util.List;
 public class CommissionRecordQueryForm extends PageParam {
 
     @Schema(description = "业务员")
-    private String salespersonName;
+    private Integer salespersonId;
 
     @Schema(description = "客户名称")
     private String customerName;

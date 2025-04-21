@@ -42,6 +42,7 @@ public class SalesCommissionDto {
     private String customerCode;
     private String customerName;
     private LocalDate customerCreateDate;
+    private Long customerSalespersonId;
 
     @Schema(description = "客户是否转交/转交状态")
     private Integer transferStatus;

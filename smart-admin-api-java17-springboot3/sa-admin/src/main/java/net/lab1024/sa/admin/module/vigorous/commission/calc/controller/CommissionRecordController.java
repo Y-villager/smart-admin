@@ -86,7 +86,7 @@ public class CommissionRecordController {
     public void exportCommissionRecord(HttpServletResponse response, @RequestBody @Valid CommissionRecordQueryForm queryForm) throws IOException {
         Map<String, Collection<?>> resList = commissionRecordService.exportCommissionRecord(queryForm);
 
-        SmartExcelUtil.exportExcel(response,"业务提成记录.xlsx", resList);
+        SmartExcelUtil.exportExcel(response,"业务提成.xlsx", resList);
     }
 
     @Operation(summary = "按业务员导出")
@@ -94,8 +94,7 @@ public class CommissionRecordController {
     @SaCheckPermission("commissionRecord:export")
     public void exportCommissionRecord2(HttpServletResponse response, @RequestBody @Valid CommissionRecordQueryForm queryForm) throws IOException {
         Map<String, Collection<?>> resList = commissionRecordService.exportCommissionRecordBySalesperson(queryForm);
-
-        SmartExcelUtil.exportExcel(response,"业务提成记录.xlsx", resList);
+        SmartExcelUtil.exportExcel(response,"业务提成.xlsx", resList);
     }
 
 }

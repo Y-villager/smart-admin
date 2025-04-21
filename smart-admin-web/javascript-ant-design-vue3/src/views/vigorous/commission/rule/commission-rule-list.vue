@@ -216,7 +216,7 @@
             ellipsis: true,
         },
         {
-            title: '提成系数',
+            title: '提成系数(%)',
             dataIndex: 'commissionRate',
             ellipsis: true,
         },

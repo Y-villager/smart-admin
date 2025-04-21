@@ -1,7 +1,6 @@
 package net.lab1024.sa.admin.module.vigorous.salesperson.service;
 
 import com.alibaba.excel.EasyExcel;
-import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
 import net.lab1024.sa.admin.module.system.department.service.DepartmentService;
@@ -25,6 +24,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.executor.BatchResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +33,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static cn.dev33.satoken.SaManager.log;
@@ -55,7 +55,8 @@ public class SalespersonService {
     @Autowired
     private SalespersonLevelRecordService salespersonLevelRecordService;
 
-    private static final String REDIS_KEY = "salesperson_list";
+//    private static final String REDIS_KEY = "salesperson_list";
+
     @Qualifier("redisTemplate")
     @Autowired
     private RedisTemplate redisTemplate;
@@ -77,6 +78,7 @@ public class SalespersonService {
     /**
      * 添加
      */
+    @CacheEvict(value = "salesperson", key = "'list'")
     public ResponseDTO<String> add(SalespersonAddForm addForm) {
         SalespersonEntity salespersonEntity = SmartBeanUtil.copy(addForm, SalespersonEntity.class);
         salespersonDao.insert(salespersonEntity);
@@ -89,6 +91,7 @@ public class SalespersonService {
      * @param updateForm
      * @return
      */
+    @CacheEvict(value = "salesperson", key = "'list'")
     public ResponseDTO<String> update(SalespersonUpdateForm updateForm) {
         SalespersonEntity salespersonEntity = SmartBeanUtil.copy(updateForm, SalespersonEntity.class);
         salespersonDao.updateById(salespersonEntity);
@@ -101,6 +104,7 @@ public class SalespersonService {
      * @param idList
      * @return
      */
+    @CacheEvict(value = "salesperson", key = "'list'")
     public ResponseDTO<String> batchDelete(List<Long> idList) {
         if (CollectionUtils.isEmpty(idList)){
             return ResponseDTO.ok();
@@ -113,6 +117,7 @@ public class SalespersonService {
     /**
      * 单个删除
      */
+    @CacheEvict(value = "salesperson", key = "'list'")
     public ResponseDTO<String> delete(Long id) {
         if (null == id){
             return ResponseDTO.ok();
@@ -269,30 +274,35 @@ public class SalespersonService {
         return ResponseDTO.ok();
     }
 
-    // 获取所有业务员列表
+    /**
+     * 查询所有业务员（自动缓存）
+     * @return
+     */
+    @Cacheable(value = "salesperson", key = "'list'")
     public List<SalespersonDto> getAllSalesperson() {
-        List<SalespersonDto> salespersonList = getSalespersonFromRedis();
-
-        if (!CollectionUtils.isEmpty(salespersonList)) {
-            // 如果redis有数据，直接返回
-            return salespersonList;
-        }
-
-        salespersonList = salespersonDao.getAllSalesperson();
-
-        if (!CollectionUtils.isEmpty(salespersonList)) {
-            saveToRedis(salespersonList);
-        }
-        return salespersonList;
+        // 直接查询数据库，Spring Cache 会自动缓存结果
+        return salespersonDao.getAllSalesperson();
     }
+//    @Cacheable(value = "salesperson", key = "'list'")
+//    public List<SalespersonDto> getAllSalesperson() {
+//        List<SalespersonDto> salespersonList = getSalespersonFromRedis();
+//
+//        if (!CollectionUtils.isEmpty(salespersonList)) {
+//            // 如果redis有数据，直接返回
+//            return salespersonList;
+//        }
+//
+//        salespersonList = salespersonDao.getAllSalesperson();
+//
+//        if (!CollectionUtils.isEmpty(salespersonList)) {
+//            saveToRedis(salespersonList);
+//        }
+//        return salespersonList;
+//    }
 
+    @Cacheable(value = "salesperson", key = "'map'")
     public Map<Long, String> getSalespersonIdNameMap() {
-        List<SalespersonDto> allSalesperson = getSalespersonFromRedis();
-
-        if (allSalesperson == null || allSalesperson.isEmpty()) {
-            allSalesperson = salespersonDao.getAllSalesperson();
-            saveToRedis(allSalesperson);
-        }
+        List<SalespersonDto> allSalesperson = getAllSalesperson();
 
         // 创建一个 Map，用于存储 id 和 name 的对应关系
         Map<Long, String> idToNameMap = new HashMap<>();
@@ -305,20 +315,24 @@ public class SalespersonService {
     }
 
     // 将数据存入 Redis 中，并设置过期时间（例如 1 天）
-    private void saveToRedis(List<SalespersonDto> salespersonList) {
-        String cacheKey = REDIS_KEY;
-        String redisData = JSON.toJSONString(salespersonList);  // 使用 JSON 序列化
-        redisTemplate.opsForValue().set(cacheKey, redisData, 1, TimeUnit.DAYS);  // 设置缓存过期时间
-    }
+//    private void saveToRedis(List<SalespersonDto> salespersonList) {
+//        String cacheKey = REDIS_KEY;
+//        String redisData = JSON.toJSONString(salespersonList);  // 使用 JSON 序列化
+//        redisTemplate.opsForValue().set(cacheKey, redisData, 1, TimeUnit.DAYS);  // 设置缓存过期时间
+//    }
 
-    private List<SalespersonDto> getSalespersonFromRedis() {
-        String cacheKey = REDIS_KEY;
-        String redisData = (String) redisTemplate.opsForValue().get(cacheKey);
-        if (redisData != null){
-            return JSON.parseArray(redisData, SalespersonDto.class);
-        }
-        return null;
-    }
+    /**
+     * 获取业务员缓存列表
+     * @return
+     */
+//    private List<SalespersonDto> getSalespersonFromRedis() {
+//        String cacheKey = REDIS_KEY;
+//        String redisData = (String) redisTemplate.opsForValue().get(cacheKey);
+//        if (redisData != null){
+//            return JSON.parseArray(redisData, SalespersonDto.class);
+//        }
+//        return null;
+//    }
 
     public ResponseDTO<String> updateDisabledFlag(Long id) {
         if (null == id){

@@ -72,11 +72,7 @@ public class CommissionRecordService {
      */
     public PageResult<CommissionRecordVO> queryPage(CommissionRecordQueryForm queryForm) {
         Page<?> page = SmartPageUtil.convert2PageQuery(queryForm);
-        Map<Long, String> salespersonIdNameMap = salespersonService.getSalespersonIdNameMap();
         List<CommissionRecordVO> list = commissionRecordDao.queryPage(page, queryForm);
-        for (CommissionRecordVO record : list) {
-            record.setSalespersonName(salespersonIdNameMap.get(record.getSalespersonId()));
-        }
         PageResult<CommissionRecordVO> pageResult = SmartPageUtil.convert2PageResult(page, list);
         return pageResult;
     }
@@ -219,18 +215,20 @@ public class CommissionRecordService {
      */
     private Stream<CommissionRecordExportForm> convertAndPrepareExport(CommissionRecordQueryForm queryForm) {
         // 获取公共映射和查询结果
-        Map<Long, String> salespersonIdNameMap = salespersonService.getSalespersonIdNameMap();
         List<CommissionRecordVO> commissionList = commissionRecordDao.queryPage(null, queryForm);
 
         return commissionList.stream()
                 .map(e -> CommissionRecordExportForm.builder()
                         .orderDate(e.getOrderDate())
                         .salesBillNo(e.getSalesBillNo())
+                        .receiveBillNo(e.getReceiveBillNo())
                         .customerName(e.getCustomerName())
                         .customerCode(e.getCustomerCode())
-                        .salespersonName(salespersonIdNameMap.get(e.getSalespersonId()))
+                        .salespersonName(e.getSalespersonName())
+                        .salespersonLevelName(e.getCurrentSalespersonLevelName())
                         .salespersonLevelRate(e.getCurrentSalespersonLevelRate())
-                        .currentParentName(salespersonIdNameMap.get(e.getCurrentParentId()))
+                        .currentParentName(e.getCurrentParentName())
+                        .currentParentLevelName(e.getCurrentParentLevelName())
                         .currentParentLevelRate(e.getCurrentParentLevelRate())
                         .firstOrderDate(e.getFirstOrderDate())
                         .adjustedFirstOrderDate(e.getAdjustedFirstOrderDate())
@@ -293,9 +291,9 @@ public class CommissionRecordService {
                 e -> {
                     String type = e.getCommissionType();
                     if (CommissionTypeEnum.BUSINESS.getDesc().equals(type)) {
-                        return "业务提成";
+                        return CommissionTypeEnum.BUSINESS.getDesc();
                     } else if (CommissionTypeEnum.MANAGEMENT.getDesc().equals(type)) {
-                        return "管理提成";
+                        return CommissionTypeEnum.MANAGEMENT.getDesc();
                     }
                     return "其他、未知";
                 }

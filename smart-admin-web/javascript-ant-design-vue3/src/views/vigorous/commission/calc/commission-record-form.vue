@@ -21,10 +21,10 @@
         <a-form-item label="客户id"  name="customerId">
           <a-input style="width: 100%" v-model:value="form.customerId" placeholder="客户id" />
         </a-form-item>
-        <a-form-item label="提成类型(0业务1管理）"  name="commissionType">
+        <a-form-item label="提成类型"  name="commissionType">
           <SmartEnumSelect width="100%" v-model:value="form.commissionType" enumName="" placeholder="提成类型(0业务1管理）"/>
         </a-form-item>
-        <a-form-item label="提成金额"  name="amout">
+        <a-form-item label="提成金额"  name="amount">
           <a-input-number style="width: 100%" v-model:value="form.amout" placeholder="提成金额" />
         </a-form-item>
         <a-form-item label="销售出库id"  name="salesOutboundId">
@@ -34,8 +34,7 @@
 
     <template #footer>
       <a-space>
-        <a-button @click="onClose">取消</a-button>
-        <a-button type="primary" @click="onSubmit">保存</a-button>
+        <a-button @click="onClose">关闭</a-button>
       </a-space>
     </template>
   </a-drawer>

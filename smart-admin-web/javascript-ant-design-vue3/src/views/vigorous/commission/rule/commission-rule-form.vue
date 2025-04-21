@@ -16,13 +16,13 @@
   >
     <a-form ref="formRef" :model="form" :rules="rules" :label-col="{ span: 5 }" >
 
-      <a-form-item label="是否需要报关" class="smart-query-form-item">
+      <a-form-item label="是否需要报关" class="smart-query-form-item" name="isCustomsDeclaration">
         <SmartEnumSelect width="100%" v-model:value="form.isCustomsDeclaration" enumName="SYSTEM_YES_NO" placeholder="是否需要报关"/>
       </a-form-item>
-      <a-form-item label="转交状态" class="smart-query-form-item">
+      <a-form-item label="转交状态" class="smart-query-form-item" name="transferStatus">
         <SmartEnumSelect width="100%" v-model:value="form.transferStatus" enumName="IS_TRANSFERRED_ENUM" placeholder="转交状态（0自主开发，非0转交）"/>
       </a-form-item>
-      <a-form-item label="提成类型" class="smart-query-form-item">
+      <a-form-item label="提成类型" class="smart-query-form-item" name="commissionType">
         <SmartEnumSelect width="100%" v-model:value="form.commissionType" enumName="COMMISSION_TYPE_ENUM" placeholder="提成类型（1业务 2管理）"/>
       </a-form-item>
       <a-form-item label="是否计算公式"  name="useDynamicFormula">

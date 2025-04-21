@@ -13,7 +13,7 @@
         <a-input style="width: 200px" v-model:value="queryForm.salesBillNo" placeholder="销售出库-单据编号" />
       </a-form-item>
       <a-form-item label="业务员" class="smart-query-form-item">
-        <salesperson-select width="200px" v-model:value="queryForm.parentId" placeholder="业务员"/>
+        <salesperson-select width="200px" v-model:value="queryForm.salespersonId" placeholder="业务员"/>
       </a-form-item>
       <a-form-item label="客户名称" class="smart-query-form-item">
         <a-input style="width: 200px" v-model:value="queryForm.customerName" placeholder="客户名称" />
@@ -130,8 +130,24 @@
             </a-tag>
           </div>
         </template>
+        <template v-if="column.dataIndex === 'isTransfer'">
+          <div class="smart-table-operate">
+            <a-tag :color="getTagClass(text)">
+              {{$smartEnumPlugin.getDescByValue('SYSTEM_YES_NO', text)}}
+            </a-tag>
+          </div>
+        </template>
+        <template v-if="column.dataIndex === 'currentParentName'">
+          <div class="smart-table-operate">
+            <a-tag :color="text ? 'green' : 'default'" >
+              {{ text || '无' }}
+            </a-tag>
+          </div>
+        </template>
+
         <template v-if="column.dataIndex === 'action'">
           <div class="smart-table-operate">
+            <a-button @click="showForm(record)"  type="link" v-privilege="'commissionRecord:query'">查看</a-button>
             <a-button @click="onDelete(record)" danger type="link" v-privilege="'commissionRecord:delete'">删除</a-button>
           </div>
         </template>
@@ -276,10 +292,10 @@
       title: '价税合计本位币',
       dataIndex: 'fallAmount',
       ellipsis: true,
-      width: '80px'
+      width: '120px'
     },
     {
-      title: '客户合作年数',
+      title: '客户年数',
       dataIndex: 'customerYear',
       ellipsis: true,
       width: '100px'
@@ -289,6 +305,12 @@
       dataIndex: 'customerYearRate',
       ellipsis: true,
       width: '100px'
+    },
+    {
+      title: '是否转交',
+      dataIndex: 'isTransfer',
+      ellipsis: true,
+      width: '90px'
     },
     {
       title: '上级',
@@ -585,7 +607,7 @@
   function getTagClass(text){
     if (text === 1) {
       return 'success';  // 使用绿色标签
-    } else if (text === 2) {
+    } else if (text === 2 || text === 0) {
       return 'processing';   // 使用蓝色标签
     }
     return '';  // 默认不使用样式
