@@ -4,6 +4,7 @@ import com.alibaba.excel.annotation.ExcelIgnore;
 import com.alibaba.excel.annotation.ExcelProperty;
 import lombok.Data;
 import net.lab1024.sa.admin.convert.CustomerGroupEnumConverter;
+import net.lab1024.sa.admin.convert.CustomsDeclarationEnumConverter;
 import net.lab1024.sa.admin.convert.FlexibleDateConverter;
 import net.lab1024.sa.admin.convert.TransferStatusEnumConverter;
 
@@ -46,6 +47,9 @@ public class CustomerImportForm {
 
     @ExcelProperty(value = "转交状态", converter = TransferStatusEnumConverter.class)
     private Integer transferStatus;
+
+    @ExcelProperty(value = "是否报关",  converter = CustomsDeclarationEnumConverter.class)
+    private Integer isCustomsDeclaration;
 
     @ExcelProperty(value = "创建日期",  converter = FlexibleDateConverter.class)
     private LocalDate createDate;

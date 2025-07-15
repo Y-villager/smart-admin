@@ -45,9 +45,9 @@ public class CustomerExportForm {
     private String transferStatus;
 
     @ExcelProperty("是否报关")
-    private Integer isCustomsDeclaration;
+    private String isCustomsDeclaration;
 
-    @ExcelProperty("创建日期")
+    @ExcelProperty("金蝶-创建日期")
     private LocalDate createDate;
 
     @ExcelProperty(value = "错误信息")

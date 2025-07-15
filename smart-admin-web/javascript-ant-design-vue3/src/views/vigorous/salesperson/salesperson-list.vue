@@ -243,7 +243,7 @@ import {ExclamationCircleOutlined} from "@ant-design/icons-vue";
         salespersonCode: undefined, //业务员编码
         salespersonName: undefined, //业务员名称
         salespersonLevelId: undefined, //业务员级别
-        departmentName: undefined, //业务员级别
+        departmentName: "外贸部", //部门名称
         pageNum: 1,
         pageSize: 10,
     };

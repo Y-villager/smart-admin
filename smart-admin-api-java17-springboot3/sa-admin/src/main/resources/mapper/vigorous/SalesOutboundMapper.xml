@@ -201,7 +201,7 @@
                 And vs.disabled_flag != #{excludeForm.disabledSalesmanFlag}
             </if>
         </where>
-        order by v_sales_outbound.create_time DESC
+        order by v_sales_outbound.sales_bound_date DESC
     </select>
 
     <select id="queryByBillNo"
