@@ -188,9 +188,11 @@ public class SalesOutboundService {
 
         List<SalesOutboundEntity> entityList = new ArrayList<>();
         for (SalesOutboundImportForm form : dataList) {
-            SalesOutboundEntity salesOutboundEntity = convertToEntity(form, salesOutboundMap, salespersonMap, customerMap, failedDataList, mode);
+            SalesOutboundEntity salesOutboundEntity = convertToEntity(form, salesOutboundMap, salespersonMap, customerMap, mode);
             if (salesOutboundEntity != null) {
                 entityList.add(salesOutboundEntity);
+            }else {
+                failedDataList.add(form);
             }
         }
 
@@ -221,7 +223,6 @@ public class SalesOutboundService {
                                                 Map<String, Long> salesOutboundMap,
                                                 Map<String, Long> salespersonMap,
                                                 Map<String, Long> customerMap,
-                                                List<SalesOutboundImportForm> failedDataList,
                                                 Boolean mode) {
         SalesOutboundEntity entity = new SalesOutboundEntity();
 
@@ -230,13 +231,11 @@ public class SalesOutboundService {
         if (mode) {
             if (salesOutboundMap.containsKey(form.getBillNo())) {
                 form.setErrorMsg("追加模式: 系统已存在该单据编号的记录");
-                failedDataList.add(form);
                 return null;
             }
         } else {
             if (!salesOutboundMap.containsKey(form.getBillNo())) {
                 form.setErrorMsg("覆盖模式：系统中不存在该单据编号的记录");
-                failedDataList.add(form);
                 return null;
             }
         }
@@ -245,7 +244,6 @@ public class SalesOutboundService {
         Long salespersonId = salespersonMap.get(form.getSalespersonName());
         if (salespersonId == null) {
             form.setErrorMsg("找不到业务员，不允许导入");
-            failedDataList.add(form);  // 保存失败的数据
             return null;
         }
 
@@ -253,7 +251,6 @@ public class SalesOutboundService {
         Long customerId = customerMap.get(form.getCustomerName());
         if (customerId == null) {
             form.setErrorMsg("找不到客户信息，不允许导入");
-            failedDataList.add(form);  // 保存失败的数据
             return null;
         }
 
@@ -351,13 +348,15 @@ public class SalesOutboundService {
     private void classifyCommission(SalesCommissionDto dto, ConcurrentLinkedQueue<CommissionRecordEntity> commissionEntityList, ConcurrentLinkedQueue<SalesCommissionDto> errorList) {
         CommissionRecordEntity business = convertToCommissionEntity(dto, CommissionTypeEnum.BUSINESS);
         CommissionRecordEntity management ;
-        if (business.getRemark() != null){
+        if (business.getRemark() != null){  // 如果有错误信息
             dto.setErrMsg(business.getRemark());
             errorList.add(dto);
             return;
         }else {
+            // 没有错误信息，就加入插入列表中
             commissionEntityList.add(business);
         }
+        // 如果有上级，还需要生成管理提成记录
         if (dto.getPSalespersonId() != null && dto.getTransferStatus().equals(0)){
             // 有上级id
             management = convertToCommissionEntity(dto, CommissionTypeEnum.MANAGEMENT);
@@ -503,7 +502,9 @@ public class SalesOutboundService {
                 if (salesCommission.getCustomerSalespersonId().equals(salesCommission.getPSalespersonId())){
                     salesCommission.setTransferStatus(SystemYesNo.YES.getValue());
                 }else {
-                    errorMsg.append("销售出库中业务员与该公司负责业务员不匹配，且非下级，不允许生成提成，请重新查看销售出库。");
+                    // 客户负责人
+                    String customerSalespersonName = salespersonService.getSalespersonNameById(salesCommission.getCustomerSalespersonId());
+                    errorMsg.append(String.format("该客户的负责人为%s，该条销售出库的业务员是%s，暂不允许生成提成。", customerSalespersonName, salesCommission.getSalespersonName()));
                 }
             }
         }

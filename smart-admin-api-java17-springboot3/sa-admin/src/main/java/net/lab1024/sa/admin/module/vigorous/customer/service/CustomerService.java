@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
 import net.lab1024.sa.admin.convert.FlexibleDateConverter;
 import net.lab1024.sa.admin.enumeration.CustomerGroupEnum;
+import net.lab1024.sa.admin.enumeration.CustomesDeclarationEnum;
 import net.lab1024.sa.admin.enumeration.TransferStatusEnum;
 import net.lab1024.sa.admin.module.vigorous.customer.dao.CustomerDao;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.entity.CustomerEntity;
@@ -152,14 +153,19 @@ public class CustomerService {
             successTotal = batchUtils.doThreadInsertOrUpdate(entityList, customerDao, "batchUpdate");
         }
 
-        String failed_data_path=null;
+        String failedPath=null;
         if (!failedDataList.isEmpty()) {
             // 创建并保存失败的数据文件
-            failed_data_path = ExcelUtils.saveFailedDataToExcel(failedDataList, CustomerExportForm.class );
+            failedPath = ExcelUtils.saveFailedDataToExcel(failedDataList, CustomerExportForm.class );
         }
 
+        String action = mode ? "追加" : "覆盖";
+
         // 如果有失败的数据，导出失败记录到 Excel
-        return ResponseDTO.okMsg("总共"+dataList.size()+"条数据，成功导入" + successTotal + "条，导入失败记录有："+failedDataList.size()+"条", failed_data_path );
+        return ResponseDTO.okMsg( String.format(
+                "总共%d条数据，成功%s%d条，%s失败记录有：%d条。失败数据路径：%s",
+                dataList.size(), action, successTotal, action, failedDataList.size(), failedPath
+        ));
 
     }
 
@@ -252,8 +258,13 @@ public class CustomerService {
         entity.setCustomerCode(form.getCustomerCode()); // 客户编码
         entity.setCustomerGroup(form.getCustomerGroup());   // 客户分组
         entity.setCurrencyType(currencyType); // 结算币别
-        entity.setTransferStatus(form.getTransferStatus()); // 转交状态
         entity.setSalespersonId(salespersonMap.get(form.getSalespersonName())); // 业务员id
+        // 新增转交状态 默认 自主开发
+        if (form.getTransferStatus() != null){
+            entity.setTransferStatus(form.getTransferStatus()); // 转交状态
+        }else {
+            entity.setTransferStatus(TransferStatusEnum.INDEPENDENTLY.getValue());
+        }
 
         return entity;
     }
@@ -286,6 +297,8 @@ public class CustomerService {
                                 .currencyType(e.getCurrencyType())
                                 .transferStatus(SmartEnumUtil.getEnumDescByValue(e.getTransferStatus(), TransferStatusEnum.class))
                                 .salespersonName(salespersonMap.get(e.getSalespersonId()))
+                                .isCustomsDeclaration(SmartEnumUtil.getEnumDescByValue(e.getIsCustomsDeclaration(), CustomesDeclarationEnum.class))
+                                .createDate(e.getCreateDate())
                                 .build()
                 )
                 .collect(Collectors.toList());

@@ -114,6 +114,10 @@
             <if test="queryForm.billNo != null and queryForm.billNo != '' ">
                 AND INSTR(v_receivables.bill_no, #{queryForm.billNo})
             </if>
+            <!--源单编号-->
+            <if test="queryForm.originBillNo != null and queryForm.originBillNo != '' ">
+                AND INSTR(v_receivables.origin_bill_no, #{queryForm.originBillNo})
+            </if>
             <!--客户名称-->
             <if test="queryForm.customerName != null and queryForm.customerName != ''">
                 AND INSTR(v_receivables.customer_id,#{queryForm.customerName})
@@ -142,7 +146,7 @@
         select <include refid="base_columns"/>
             from v_receivables
         where
-            bill_no IN
+            bill_no  IN
         <foreach collection="billNos" index="index" item="item" open="(" close=")" separator=",">
             #{item}
         </foreach>

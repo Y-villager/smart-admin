@@ -50,6 +50,9 @@ public class CommissionRuleCacheService {
         if (isDeclared == null) {
             throw new RuntimeException("isDeclared is null");
         }
+        if (transferStatus > 0){ // 0为自主开发，其他都为转交
+            transferStatus = 1;
+        }
         // 唯一键
         String cacheKey = generateCacheKey(commissionType, transferStatus, isDeclared);
         // 从redis获取数据

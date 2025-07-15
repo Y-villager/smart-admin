@@ -12,6 +12,9 @@
       <a-form-item label="单据编号" class="smart-query-form-item">
         <a-input style="width: 200px" v-model:value="queryForm.billNo" placeholder="单据编号" />
       </a-form-item>
+      <a-form-item label="源单编号" class="smart-query-form-item">
+        <a-input style="width: 200px" v-model:value="queryForm.originBillNo" placeholder="源单编号" />
+      </a-form-item>
       <a-form-item label="客户名称" class="smart-query-form-item">
         <a-input style="width: 200px" v-model:value="queryForm.customerName" placeholder="客户名称" />
       </a-form-item>
