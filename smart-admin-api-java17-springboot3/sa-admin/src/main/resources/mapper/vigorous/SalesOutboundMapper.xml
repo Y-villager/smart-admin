@@ -379,5 +379,20 @@
         </where>
     </select>
 
+    <select id="queryFirstOrdersByCustomerId"
+            resultType="net.lab1024.sa.admin.module.vigorous.customer.domain.entity.CustomerEntity">
+        SELECT so1.customer_id, so1.sales_bound_date as first_order_date
+        FROM v_sales_outbound so1
+        WHERE so1.customer_id IN
+            <foreach collection="list" item="customerId" open="(" close=")" separator=",">
+                #{customerId}
+            </foreach>
+        AND so1.sales_bound_date = (
+            SELECT MIN(so2.sales_bound_date)
+            FROM v_sales_outbound so2
+            WHERE so2.customer_id = so1.customer_id
+        )
+    </select>
+
 
 </mapper>

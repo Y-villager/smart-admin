@@ -43,7 +43,16 @@
           </template>
           重置
         </a-button>
+        <a-button class="smart-margin-left20" @click="moreCondition = !moreCondition">
+          <template #icon>
+            <MoreOutlined />
+          </template>
+          {{ moreCondition ? '收起' : '展开' }}
+        </a-button>
       </a-form-item>
+    </a-row>
+    <a-row class="smart-query-form-row" v-show="moreCondition">
+      <a-button class="" @click="initFirstOrderDate">生成客户首单日期</a-button>
     </a-row>
   </a-form>
   <!---------- 查询表单form end ----------->
@@ -293,6 +302,9 @@
   // 总数
   const total = ref(0);
 
+  // 更多情况
+  const moreCondition = ref(false)
+
   // 重置查询条件
   function resetQuery() {
     let pageSize = queryForm.pageSize;
@@ -470,5 +482,20 @@
     }else {
       message.error("当前没有导入失败数据")
     }
+  }
+
+  // 生成客户首单日期
+  function initFirstOrderDate(){
+    Modal.confirm({
+      title: '提示',
+      content: '确定生成首单日期吗?只能生成2025年后新客户的首单日期，已存在首单的客户不能重复生成',
+      okText: '确定',
+      okType: 'danger',
+      onOk() {
+        customerApi.initFirstOrder(selectedRowKeyList.value);
+      },
+      cancelText: '取消',
+      onCancel() {},
+    });
   }
 </script>

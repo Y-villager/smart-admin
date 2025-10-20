@@ -10,8 +10,9 @@ import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.entity.Commis
 import net.lab1024.sa.admin.module.vigorous.commission.calc.service.CommissionRecordService;
 import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.vo.CommissionRuleVO;
 import net.lab1024.sa.admin.module.vigorous.commission.rule.service.CommissionRuleCacheService;
-import net.lab1024.sa.admin.module.vigorous.commission.rule.service.CommissionRuleService;
+import net.lab1024.sa.admin.module.vigorous.customer.domain.entity.CustomerEntity;
 import net.lab1024.sa.admin.module.vigorous.customer.service.CustomerService;
+import net.lab1024.sa.admin.module.vigorous.res.ValidationResult;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.dao.SalesOutboundDao;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.dto.SalesCommissionDto;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.entity.SalesOutboundEntity;
@@ -22,6 +23,7 @@ import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonServi
 import net.lab1024.sa.admin.util.BatchUtils;
 import net.lab1024.sa.admin.util.ExcelUtils;
 import net.lab1024.sa.admin.util.ThreadPoolUtils;
+import net.lab1024.sa.base.common.code.UserErrorCode;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
 import net.lab1024.sa.base.common.domain.ValidateList;
@@ -68,8 +70,6 @@ public class SalesOutboundService {
     @Autowired
     private CustomerService customerService;
 
-    @Autowired
-    private CommissionRuleService commissionRuleService;
     @Autowired
     private CommissionRecordService commissionRecordService;
     @Autowired
@@ -311,7 +311,6 @@ public class SalesOutboundService {
         for (SalesCommissionDto dto : list) {
             classifyCommission(dto, commissionEntityList, errorList);
         }
-
         //
         return getStringResponseDTO(list, errorList, commissionEntityList);
     }
@@ -348,16 +347,22 @@ public class SalesOutboundService {
     private void classifyCommission(SalesCommissionDto dto, ConcurrentLinkedQueue<CommissionRecordEntity> commissionEntityList, ConcurrentLinkedQueue<SalesCommissionDto> errorList) {
         CommissionRecordEntity business = convertToCommissionEntity(dto, CommissionTypeEnum.BUSINESS);
         CommissionRecordEntity management ;
-        if (business.getRemark() != null){  // 如果有错误信息
-            dto.setErrMsg(business.getRemark());
-            errorList.add(dto);
-            return;
-        }else {
-            // 没有错误信息，就加入插入列表中
-            commissionEntityList.add(business);
+        ValidationResult remark = business.getRemark();
+        if (remark != null){  // 如果备注不为空
+            if (remark.hasErrors()){
+                dto.setErrMsg(remark.getErrorMsg());
+                errorList.add(dto);
+                return;
+            }
+            if (remark.hasReminds()){
+                dto.setRemindMsg(remark.getRemindMsg());
+                errorList.add(dto);
+            }
         }
-        // 如果有上级，还需要生成管理提成记录
-        if (dto.getPSalespersonId() != null && dto.getTransferStatus().equals(0)){
+        // 没有错误信息，就加入插入列表中
+        commissionEntityList.add(business);
+        // 如果存在上级，且转交状态为自主开发，则生成上级的管理提成
+        if (dto.getPSalespersonId() != null && dto.getTransferStatus().equals(TransferStatusEnum.INDEPENDENTLY.getValue())){
             // 有上级id
             management = convertToCommissionEntity(dto, CommissionTypeEnum.MANAGEMENT);
             commissionEntityList.add(management);
@@ -466,75 +471,147 @@ public class SalesOutboundService {
 
     /**
      * 检查必须填写值，数据库保存不能为null的值
-     * @param salesCommission
      * @return
      */
-    private String checkCommission(SalesCommissionDto salesCommission){
-        StringBuilder errorMsg = new StringBuilder();
+    private ValidationResult checkCommission(CommissionRecordEntity entity, SalesCommissionDto dto) {
+        ValidationResult result = new ValidationResult();
 
-        // 1.是否有业务日期
-        if (salesCommission.getOrderDate() != null){
-            if (salesCommission.getOrderDate().isBefore(LocalDate.of(2025, 1, 1))){
-                // 2025年前销售单
-                // 1.1 没有调整首单日期
-                LocalDate firstOrderDate = salesCommission.getAdjustedFirstOrderDate();
-                if (firstOrderDate == null){
-                    errorMsg.append("2025前业务，但未调整业务首单日期；");
-                }
-            }else {
-                // 2025年及以后
-                // 1.2 没有首单日期
-                if (salesCommission.getFirstOrderDate() == null){
-                    errorMsg.append("客户未设置首单日期；");
-                }
-            }
-        }else {
-            errorMsg.append("缺少销售出库-业务日期");
-        }
+        // 1. 业务日期检查
+        checkOrderDate(dto, result);
+        entity.setOrderDate(dto.getOrderDate()); // 1.销售出库日期 / 业务日期
 
-        // 2.没有设置转交状态
-        if (salesCommission.getTransferStatus() == null ){
-            errorMsg.append("客户未设置转交状态；");
-        }else {
-            Long customerSalesperson = salesCommission.getCustomerSalespersonId();  // 客户相关负责业务员
-            if (!customerSalesperson.equals(salesCommission.getSalespersonId())){ // 与负责人id不符
-                // 如果客户负责人为上级, 则为转交
-                if (salesCommission.getCustomerSalespersonId().equals(salesCommission.getPSalespersonId())){
-                    salesCommission.setTransferStatus(SystemYesNo.YES.getValue());
-                }else {
-                    // 客户负责人
-                    String customerSalespersonName = salespersonService.getSalespersonNameById(salesCommission.getCustomerSalespersonId());
-                    errorMsg.append(String.format("该客户的负责人为%s，该条销售出库的业务员是%s，暂不允许生成提成。", customerSalespersonName, salesCommission.getSalespersonName()));
-                }
-            }
+        // 2. 转交状态检查
+        checkTransferStatus(dto, result);
+        if (dto.getTransferStatus() != null){
+            entity.setIsTransfer(dto.getTransferStatus() == 0 ? 0 : 1); // 12.转交
         }
 
 
-        // 4.是否报关
-        if (salesCommission.getIsCustomsDeclaration() == null){
-            errorMsg.append("客户未设置报关信息");
-        }
+        // 3. 报关信息检查
+        checkCustomsDeclaration(dto, result);
+        entity.setIsCustomsDeclaration(dto.getIsCustomsDeclaration()); // 13.是否报关
 
-        // 是否已生成提成
-        Integer commissionFlag = salesCommission.getCommissionFlag();
-        if (commissionFlag == 1) {
-            errorMsg.append("已生成提成记录，请勿重复生成；");
-        }
-        // 4.是否有应收单-单据编号
-        if (salesCommission.getReceiveBillNo() == null) {
-            errorMsg.append("缺少应收单-单据编号；");
-        }
+        // 4. 提成记录检查
+        checkCommissionFlag(dto, result);
 
-        // 5.是否有业务员级别
-        if (salesCommission.getSalespersonName() == null){
-            errorMsg.append("业务员未设置提成级别");
-        }
+        // 5. 应收单编号检查
+        checkReceiveBillNo(dto, result);
+        entity.setReceiveBillNo(dto.getReceiveBillNo()); // 3.应收表-单据编号
 
-        if (salesCommission.getCustomerSalespersonId() == null){
-            errorMsg.append("客户数据中缺少业务员信息；");
-        }
-        return errorMsg.toString();
+        // 6. 业务员级别检查
+        checkSalespersonLevel(dto, result);
+        entity.setSalespersonId(dto.getSalespersonId());  // 5.必需：业务员id
+        entity.setSalespersonName(dto.getSalespersonName());  // 5.必需：业务员名称
+        entity.setCurrentSalespersonLevelRate(dto.getLevelRate()); // 7.当时业务员级别系数
+        entity.setCurrentSalespersonLevelName(dto.getSalespersonLevelName()); // 6.当时业务员级别
+
+        entity.setCurrentParentId(dto.getPSalespersonId()); // 9.当时上级id
+        entity.setCurrentParentName(dto.getPSalespersonName()); // 9.当时上级id
+        entity.setCurrentParentLevelName(dto.getPSalespersonLevelName()); // 10.当时上级级别
+        entity.setCurrentParentLevelRate(dto.getPLevelRate()); // 11.当时上级级别系数
+
+        // 7. 客户业务员信息检查
+        checkCustomerSalesperson(dto, result);
+
+        // 8. 其他
+        entity.setSalesBillNo(dto.getSalesBillNo()); // 2.销售出库-单据编号
+        entity.setCustomerId(dto.getCustomerId());  // 4.必需：客户id
+
+        entity.setSalesAmount(dto.getSalesAmount()); // 8.销售金额
+        entity.setCurrencyType(dto.getCurrencyType()); // 15.币别
+        entity.setExchangeRate(dto.getExchangeRate()); // 15. 汇率
+        entity.setFallAmount(dto.getFallAmount()); // 15. 税收合计本位币
+
+        return result;
     }
+
+    // 业务日期检查
+    private void checkOrderDate(SalesCommissionDto dto, ValidationResult result) {
+        if (dto.getOrderDate() == null) {
+            result.addError("缺少销售出库-业务日期");
+            return;
+        }
+
+        if (dto.getOrderDate().isBefore(LocalDate.of(2025, 1, 1))) {
+            // 2025年前销售单
+            if (dto.getAdjustedFirstOrderDate() == null) {
+                result.addError("2025前业务，但未调整业务首单日期");
+            }
+        } else {
+            // 2025年及以后
+            if (dto.getFirstOrderDate() == null) {
+                result.addError("客户未设置首单日期");
+            }
+        }
+    }
+
+    // 转交状态检查
+    private void checkTransferStatus(SalesCommissionDto dto, ValidationResult result) {
+        if (dto.getTransferStatus() == null) {
+            result.addError("客户未设置转交状态");
+            return;
+        }
+
+        Long customerSalesperson = dto.getCustomerSalespersonId();
+        if (customerSalesperson == null || !customerSalesperson.equals(dto.getSalespersonId())) {
+            // 与负责人ID不符，提成设置为转交
+            dto.setTransferStatus(SystemYesNo.YES.getValue());
+
+            // 检查是否上下级关系
+            boolean isSuperior = customerSalesperson != null &&
+                    customerSalesperson.equals(dto.getPSalespersonId());
+            boolean isSubordinate = isSubordinate(customerSalesperson, dto.getSalespersonId());
+
+            if (!isSuperior && !isSubordinate) {
+                result.addRemind("客户负责人与出库业务员不同，且非上下级关系，"
+                        + "客户可能已转交，需联系管理员修改客户信息");
+            }
+        }
+    }
+
+    private boolean isSubordinate(Long customerSalespersonId, Long targetId) {
+        if (customerSalespersonId == null || targetId == null) {
+            return false;
+        }
+        // 实际实现需要根据业务逻辑补充
+        return salespersonService.isSubordinate(customerSalespersonId, targetId);
+    }
+
+    // 报关信息检查
+    private void checkCustomsDeclaration(SalesCommissionDto dto, ValidationResult result) {
+        if (dto.getIsCustomsDeclaration() == null) {
+            result.addError("客户未设置报关信息");
+        }
+    }
+
+    // 提成记录检查
+    private void checkCommissionFlag(SalesCommissionDto dto, ValidationResult result) {
+        if (dto.getCommissionFlag() != null && dto.getCommissionFlag() == 1) {
+            result.addError("已生成提成记录，请勿重复生成");
+        }
+    }
+
+    // 应收单编号检查
+    private void checkReceiveBillNo(SalesCommissionDto dto, ValidationResult result) {
+        if (dto.getReceiveBillNo() == null) {
+            result.addError("缺少应收单-单据编号");
+        }
+    }
+
+    // 业务员级别检查
+    private void checkSalespersonLevel(SalesCommissionDto dto, ValidationResult result) {
+        if (dto.getSalespersonName() == null) {
+            result.addError("业务员未设置提成级别");
+        }
+    }
+
+    // 客户业务员信息检查
+    private void checkCustomerSalesperson(SalesCommissionDto dto, ValidationResult result) {
+        if (dto.getCustomerSalespersonId() == null) {
+            result.addError("客户数据中缺少业务员信息");
+        }
+    }
+
 
     /**
      * 划分数据记录
@@ -546,13 +623,19 @@ public class SalesOutboundService {
         CommissionRecordEntity commission = new CommissionRecordEntity();
 
         // 检查错误信息
-        String errorMsg = checkCommission(salesCommission);
-        setCommissionBaseInfo(commission, salesCommission);
-        // 有错误信息
-        if (!errorMsg.isEmpty()){
-            commission.setRemark(errorMsg);
+        ValidationResult result = checkCommission(commission, salesCommission);
+
+        // 设置基本信息
+//        setCommissionBaseInfo(commission, salesCommission);
+
+        if (result.hasErrors()){ // 如果有错误信息
+            commission.setRemark(result);
             return commission;
         }
+        if (result.hasReminds()){
+            commission.setRemark(result);
+        }
+
         // 设置 需要动态计算的信息
         commission.setCommissionType(commissionTypeEnum.getValue());
         // 设置
@@ -562,8 +645,6 @@ public class SalesOutboundService {
 
     private void setCommissionDynamicInfo(CommissionRecordEntity entity, SalesCommissionDto salesCommission) {
         BigDecimal hundred = BigDecimal.valueOf(100);
-
-
 
         // 查询提成规则
         CommissionRuleVO commissionRule =
@@ -673,4 +754,42 @@ public class SalesOutboundService {
     }
 
 
+    public ResponseDTO<String> initCustomerFirstOrderDate(ValidateList<Long> customerIds) {
+        // 查询存在首单的客户
+        List<CustomerEntity> existingFirstOrderCustomers = customerService.getCustomersWithFirstOrder(customerIds);
+
+        Set<Long> existingCustomerIds = existingFirstOrderCustomers.stream()
+                .map(CustomerEntity::getCustomerId)
+                .collect(Collectors.toSet());
+
+        List<Long> allowedCustomerIds = customerIds.stream()
+                .filter(customerId -> !existingCustomerIds.contains(customerId))
+                .toList();
+
+        if (allowedCustomerIds.isEmpty()) {
+            return ResponseDTO.error(UserErrorCode.ALREADY_EXIST,"所有选中的客户均已存在首单数据，无法重复生成");
+        }
+
+        // 1. 查询有首单记录的客户
+        Set<CustomerEntity> customerEntities = salesOutboundDao.queryFirstOrdersByCustomerId(allowedCustomerIds);
+
+        // 2. 提取已找到首单的客户ID
+        Set<Long> foundCustomerIds = customerEntities.stream()
+                .map(CustomerEntity::getCustomerId)
+                .collect(Collectors.toSet());
+
+        // 3. 找出没有首单记录的客户ID
+        List<Long> notFoundCustomerIds = customerIds.stream()
+                .filter(customerId -> !foundCustomerIds.contains(customerId))
+                .toList();
+        // 4. 构建返回信息
+        StringBuilder message = new StringBuilder();
+
+
+        int i = customerService.batchUpdate(customerEntities);
+
+        message.append("成功为 ").append(i).append(" 个客户生成首单数据");
+
+        return ResponseDTO.ok(message.toString());
+    }
 }

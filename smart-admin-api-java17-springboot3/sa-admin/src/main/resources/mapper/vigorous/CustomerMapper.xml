@@ -27,43 +27,74 @@
         v_salesperson.salesperson_name
     </sql>
 
+    <sql id="batch_update_colums">
+        <trim prefix="" suffix="" suffixOverrides=",">
+            <!-- 客户id -->
+            <if test="item.customerId != null">
+                customer_id = #{item.customerId},
+            </if>
+            <!-- 客户编码 -->
+            <if test="item.customerCode != null">
+                customer_code = #{item.customerCode},
+            </if>
+            <!-- 客户名称 -->
+            <if test="item.customerName != null">
+                customer_name = #{item.customerName},
+            </if>
+            <!-- 客户简称 -->
+            <if test="item.customerName != null and item.customerName != '' ">
+                short_name = #{item.shortName},
+            </if>
+            <!-- 国家 -->
+            <if test="item.country != null and item.country != '' ">
+                country = #{item.country},
+            </if>
+            <!-- 客户分组 -->
+            <if test="item.customerGroup != null">
+                customer_group = #{item.customerGroup},
+            </if>
+            <!-- 币别 -->
+            <if test="item.currencyType != null">
+                currency_type = #{item.currencyType},
+            </if>
+            <!-- 负责人id -->
+            <if test="item.salespersonId != null">
+                salesperson_id = #{item.salespersonId},
+            </if>
+            <!-- 首单日期 -->
+            <if test="item.firstOrderDate != null ">
+                first_order_date = #{item.firstOrderDate},
+            </if>
+            <!-- 转交状态 -->
+            <if test="item.transferStatus != null">
+                transfer_status = #{item.transferStatus},
+            </if>
+            <!-- 创建日期 -->
+            <if test="item.createDate != null">
+                create_date = #{item.createDate},
+            </if>
+            <!-- 是否报关 -->
+            <if test="item.isCustomsDeclaration != null">
+                is_customs_declaration = #{item.isCustomsDeclaration}
+            </if>
+        </trim>
+    </sql>
+
     <update id="batchUpdate">
         <foreach collection="list" item="item" separator=";">
             UPDATE v_customer
             SET
-            <trim prefix="" suffix="" suffixOverrides=",">
-                <if test="item.customerCode != null">
-                    customer_code = #{item.customerCode},
-                </if>
-                <if test="item.customerName != null">
-                    customer_name = #{item.customerName},
-                </if>
-                <if test="item.customerName != null and item.customerName != '' ">
-                    short_name = #{item.shortName},
-                </if>
-                <if test="item.country != null and item.country != '' ">
-                    country = #{item.country},
-                </if>
-                <if test="item.customerGroup != null">
-                    customer_group = #{item.customerGroup},
-                </if>
-                <if test="item.currencyType != null">
-                    currency_type = #{item.currencyType},
-                </if>
-                <if test="item.salespersonId != null">
-                    salesperson_id = #{item.salespersonId},
-                </if>
-                <if test="item.firstOrderDate != null ">
-                    first_order_date = #{item.firstOrderDate},
-                </if>
-                <if test="item.transferStatus != null">
-                    transfer_status = #{item.transferStatus},
-                </if>
-                <if test="item.createDate != null">
-                    create_date = #{item.createDate}
-                </if>
-            </trim>
+                <include refid="batch_update_colums"/>
             WHERE customer_code = #{item.customerCode}
+        </foreach>
+    </update>
+
+    <update id="batchUpdateById" parameterType="java.util.List">
+        <foreach collection="list" item="item"  index="index" separator=";">
+            UPDATE v_customer
+            SET
+                <include refid="batch_update_colums"/>
+            WHERE customer_id = #{item.customerId}
         </foreach>
     </update>
 
@@ -190,7 +221,27 @@
         </foreach>
     </select>
 
+    <select id="queryByidList"
+            resultType="net.lab1024.sa.admin.module.vigorous.customer.domain.entity.CustomerEntity">
+        select <include refid="base_columns"/>
+            from v_customer
+        where customer_id in
+        <foreach collection="idList" index="index" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
 
+    <select id="getCustomersWithFirstOrder"
+            resultType="net.lab1024.sa.admin.module.vigorous.customer.domain.entity.CustomerEntity">
+        select <include refid="base_columns"/>
+            from
+                v_customer
+        where customer_id in
+        <foreach collection="list" index="index" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+        and first_order_date is not null;
+    </select>
 
 
 </mapper>

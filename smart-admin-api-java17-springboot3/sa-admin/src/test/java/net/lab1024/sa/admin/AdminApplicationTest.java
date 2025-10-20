@@ -36,6 +36,9 @@ public class AdminApplicationTest {
     }
 
 
+    /**
+     * 2025年前的客户，生成新的首单日期保存到字段调整后-首单日期中
+     */
     @Test
     public void adjustFirstOrderDate(){
         QueryWrapper<CustomerEntity> queryWrapper = new QueryWrapper<>();

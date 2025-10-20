@@ -56,7 +56,7 @@
                 AND INSTR(v_salesperson.deleted_flag,#{queryForm.deletedFlag})
             </if>
         </where>
-        order by d.department_id
+        order by d.department_id, v_salesperson.salesperson_code
     </select>
 
     <update id="batchUpdateDeleted">
@@ -80,6 +80,13 @@
     <update id="updateDisabledFlag">
         update v_salesperson set disabled_flag = #{flag}
         where id = #{id}
+    </update>
+
+    <update id="isSubordinate">
+        select count(*) > 0
+        From v_salesperson s
+        where s.id = #{salespersonId}
+        And (s.parent_id = #{targetId})
     </update>
 
 

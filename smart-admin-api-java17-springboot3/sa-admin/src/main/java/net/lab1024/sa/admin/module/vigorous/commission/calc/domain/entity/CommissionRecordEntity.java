@@ -2,6 +2,7 @@ package net.lab1024.sa.admin.module.vigorous.commission.calc.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
+import net.lab1024.sa.admin.module.vigorous.res.ValidationResult;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -143,7 +144,7 @@ public class CommissionRecordEntity {
     /**
      * 备注
      */
-    private String remark;
+    private ValidationResult remark;
 
     /**
      * 创建时间
@@ -156,4 +157,5 @@ public class CommissionRecordEntity {
      */
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime updateTime;
+
 }

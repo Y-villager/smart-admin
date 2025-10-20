@@ -67,4 +67,6 @@ public interface SalespersonDao extends BaseMapper<SalespersonEntity> {
     List<SalespersonDto> getAllSalesperson();
 
     void updateDisabledFlag(@Param("id") Long id,@Param("flag") boolean flag);
+
+    boolean isSubordinate(Long salespersonId, Long targetId);
 }

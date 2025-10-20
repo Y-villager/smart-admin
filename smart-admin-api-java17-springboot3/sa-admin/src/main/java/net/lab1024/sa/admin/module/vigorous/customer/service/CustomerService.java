@@ -17,6 +17,7 @@ import net.lab1024.sa.admin.util.BatchUtils;
 import net.lab1024.sa.admin.util.ExcelUtils;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
+import net.lab1024.sa.base.common.domain.ValidateList;
 import net.lab1024.sa.base.common.exception.BusinessException;
 import net.lab1024.sa.base.common.util.SmartBeanUtil;
 import net.lab1024.sa.base.common.util.SmartEnumUtil;
@@ -52,6 +53,7 @@ public class CustomerService {
     @Autowired
     private DictService dictService;
 
+
     /**
      * 分页查询
      *
@@ -85,6 +87,14 @@ public class CustomerService {
         CustomerEntity customerEntity = SmartBeanUtil.copy(updateForm, CustomerEntity.class);
         customerDao.updateById(customerEntity);
         return ResponseDTO.ok();
+    }
+
+    public int batchUpdate(Set<CustomerEntity> entityList){
+        return batchUtils.doThreadInsertOrUpdate(entityList.stream().toList(), customerDao, "batchUpdateById");
+    }
+
+    public int batchUpdate(List<CustomerEntity> entityList){
+        return batchUtils.doThreadInsertOrUpdate(entityList, customerDao, "batchUpdateById");
     }
 
     /**
@@ -150,7 +160,7 @@ public class CustomerService {
             }
         } else {  // 覆盖
             // 执行批量更新操作
-            successTotal = batchUtils.doThreadInsertOrUpdate(entityList, customerDao, "batchUpdate");
+            successTotal = batchUpdate(entityList);
         }
 
         String failedPath=null;
@@ -163,9 +173,9 @@ public class CustomerService {
 
         // 如果有失败的数据，导出失败记录到 Excel
         return ResponseDTO.okMsg( String.format(
-                "总共%d条数据，成功%s%d条，%s失败记录有：%d条。失败数据路径：%s",
-                dataList.size(), action, successTotal, action, failedDataList.size(), failedPath
-        ));
+                "总共%d条数据，成功%s%d条，%s失败记录有：%d条。",
+                dataList.size(), action, successTotal, action, failedDataList.size()
+        ),  failedPath);
 
     }
 
@@ -259,6 +269,7 @@ public class CustomerService {
         entity.setCustomerGroup(form.getCustomerGroup());   // 客户分组
         entity.setCurrencyType(currencyType); // 结算币别
         entity.setSalespersonId(salespersonMap.get(form.getSalespersonName())); // 业务员id
+        entity.setIsCustomsDeclaration(form.getIsCustomsDeclaration()); // 是否报关
         // 新增转交状态 默认 自主开发
         if (form.getTransferStatus() != null){
             entity.setTransferStatus(form.getTransferStatus()); // 转交状态
@@ -364,4 +375,8 @@ public class CustomerService {
                 .collect(Collectors.toMap(CustomerVO::getCustomerId, CustomerVO::getCustomerName));
     }
 
+
+    public List<CustomerEntity> getCustomersWithFirstOrder(ValidateList<Long> customerIds) {
+        return customerDao.getCustomersWithFirstOrder(customerIds);
+    }
 }

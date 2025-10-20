@@ -53,6 +53,11 @@ export const customerApi = {
     // 导出
     exportCustomer : (data) =>{
         return postDownload('/customer/export', data);
+    },
+
+    // 生成首单数据
+    initFirstOrder:(idList) => {
+      return postRequest('/customer/initFirstOrderDate', idList)
     }
 
 };

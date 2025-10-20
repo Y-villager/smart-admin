@@ -72,5 +72,6 @@ public class SalesCommissionDto {
     private Integer commissionFlag;
 
     private String errMsg;
+    private String remindMsg;
 
 }

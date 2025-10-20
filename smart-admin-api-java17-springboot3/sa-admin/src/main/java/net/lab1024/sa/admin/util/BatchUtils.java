@@ -34,7 +34,7 @@ public class BatchUtils {
 
     /**
      * 批量更新
-     * @param entityList 数据
+     * @param entityList 数据列表
      * @param dao   dao层 Class类
      * @param methodName  方法名
      */

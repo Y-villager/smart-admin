@@ -8,15 +8,18 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.form.CustomerAddForm;
+import net.lab1024.sa.admin.module.vigorous.customer.domain.form.CustomerExportForm;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.form.CustomerQueryForm;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.form.CustomerUpdateForm;
-import net.lab1024.sa.admin.module.vigorous.customer.domain.form.CustomerExportForm;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.vo.CustomerVO;
 import net.lab1024.sa.admin.module.vigorous.customer.service.CustomerService;
+import net.lab1024.sa.admin.module.vigorous.sales.outbound.service.SalesOutboundService;
+import net.lab1024.sa.base.common.code.UserErrorCode;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
 import net.lab1024.sa.base.common.domain.ValidateList;
 import net.lab1024.sa.base.common.util.SmartExcelUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,6 +41,8 @@ public class CustomerController {
 
     @Resource
     private CustomerService customerService;
+    @Autowired
+    private SalesOutboundService salesOutboundService;
 
     @Operation(summary = "分页查询 @author yxz")
     @PostMapping("/customer/queryPage")
@@ -91,5 +96,14 @@ public class CustomerController {
         SmartExcelUtil.exportExcel(response,"顾客.xlsx","顾客", CustomerExportForm.class, goodsList);
     }
 
+    @Operation(summary = "生成客户首单日期")
+    @PostMapping("/customer/initFirstOrderDate")
+    @SaCheckPermission("customer:init")
+    public ResponseDTO<String> initFirstOrderDate(HttpServletResponse response, @RequestBody ValidateList<Long> idList) throws IOException {
+        if (idList.isEmpty()){
+            return ResponseDTO.error(UserErrorCode.PARAM_ERROR, "未选择客户");
+        }
+        return salesOutboundService.initCustomerFirstOrderDate(idList);
+    }
 
 }
