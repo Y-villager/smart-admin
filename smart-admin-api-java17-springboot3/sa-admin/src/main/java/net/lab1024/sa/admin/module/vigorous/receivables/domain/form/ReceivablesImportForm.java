@@ -37,6 +37,7 @@ public class ReceivablesImportForm {
     private String customerName;
 
     @ExcelProperty("价税合计")
+    @NotBlank(message = "价税合计不能为空")
     private BigDecimal amount;
 
     @ExcelProperty("币别")
@@ -44,6 +45,7 @@ public class ReceivablesImportForm {
     private String currencyType;
 
     @ExcelProperty("汇率")
+    @NotBlank(message = "汇率不能为空")
     private BigDecimal exchangeRate;
 
     @ExcelProperty("价税合计本位币")

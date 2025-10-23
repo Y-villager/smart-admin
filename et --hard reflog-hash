@@ -1,0 +1,66 @@
+[33mc69502f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{0}: commit: 新增客户首单功能
+[33m19024fd[m HEAD@{1}: commit: 提成模块-修复bug
+[33m30441ae[m HEAD@{2}: commit: 客户模块-新增导入报关
+[33mdba5f79[m HEAD@{3}: commit: 更新业务提成模块
+[33md0e86db[m HEAD@{4}: commit: Update CommissionRecordExportForm.java
+[33mbee1a0e[m HEAD@{5}: commit: 业务员分类导出
+[33me9e6a1c[m HEAD@{6}: commit: Create smart_admin_v3_20250407.sql
+[33ma57c826[m HEAD@{7}: commit: 修改提成快照表，修改提成功能模块
+[33mef0a565[m HEAD@{8}: commit: LocalDate日期转换器
+[33mfb8c46a[m HEAD@{9}: commit: 应收表扩展
+[33mc4bac72[m HEAD@{10}: commit: 客户表添加创建日期
+[33m2f55756[m HEAD@{11}: commit: 使用触发器
+[33m635a1ae[m HEAD@{12}: commit: 完善销售出库导入代码
+[33m9809489[m HEAD@{13}: commit: 销售出库-添加排除条件
+[33m8e8a381[m HEAD@{14}: commit: 修补权限漏洞
+[33m9b36e60[m HEAD@{15}: commit: 修改生成代码模板
+[33m70ed49d[m HEAD@{16}: commit: 20250305
+[33m8ba20b8[m HEAD@{17}: commit: 环境配置
+[33m44cf8a8[m HEAD@{18}: commit: 修改提成生成条件
+[33m269ecbd[m HEAD@{19}: commit: 20250227
+[33m4b2bd35[m HEAD@{20}: commit: 提成记录-导出
+[33mb0706dd[m HEAD@{21}: commit: 提成记录-导出模块
+[33mba77722[m HEAD@{22}: commit: 提成记录-日期筛选
+[33m8780a09[m HEAD@{23}: commit: 提成记录
+[33ma7c0c27[m HEAD@{24}: commit: 修改客户批量更新
+[33m4b57a5e[m HEAD@{25}: commit: 生成提成模块
+[33ma33e523[m HEAD@{26}: commit: 修改BatchUtils
+[33m46d7bad[m HEAD@{27}: commit: 生成提成
+[33mb9c3199[m HEAD@{28}: commit: 销售出库
+[33mcc7ce6c[m HEAD@{29}: commit: 批量更新模块
+[33m4e5eacb[m HEAD@{30}: commit: 销售出库记录-添加提成标识
+[33m4138539[m HEAD@{31}: commit: 导出加载
+[33m178661b[m HEAD@{32}: commit: 销售出库-生成提成
+[33m5405bf0[m HEAD@{33}: commit: 20250213
+[33mfe8a243[m HEAD@{34}: commit: 完成提成算法
+[33m5eb339e[m HEAD@{35}: commit: 20250206
+[33mf6e52cf[m HEAD@{36}: commit: 修改模板
+[33mf7759f8[m HEAD@{37}: commit: 20250112
+[33m27d8372[m HEAD@{38}: commit: 20250108
+[33maf46041[m HEAD@{39}: commit: 销售出库修改成连接查询
+[33m3be825b[m HEAD@{40}: commit: 新增导入失败文件下载
+[33ma9ec579[m HEAD@{41}: commit: 数据库更新
+[33m7c5de0e[m HEAD@{42}: commit: 导入功能修改
+[33m4ad6726[m HEAD@{43}: commit: 销售出库模块
+[33mc563287[m HEAD@{44}: commit: 导出首单信息
+[33m8248253[m[33m ([m[1;31morigin/feature-branch[m[33m, [m[1;32mfeature-branch[m[33m)[m HEAD@{45}: merge feature-branch: Fast-forward
+[33mcfb8fa9[m HEAD@{46}: checkout: moving from feature-branch to master
+[33m8248253[m[33m ([m[1;31morigin/feature-branch[m[33m, [m[1;32mfeature-branch[m[33m)[m HEAD@{47}: commit: 20241220
+[33m3b32b1c[m HEAD@{48}: commit: 销售出库模块
+[33m84225e6[m HEAD@{49}: commit: 修改模板
+[33mf1082ee[m HEAD@{50}: commit: 业务员-导入导出模块修改
+[33mfc1bfad[m HEAD@{51}: commit: 新增业务员模块
+[33mcfb8fa9[m HEAD@{52}: checkout: moving from master to feature-branch
+[33mcfb8fa9[m HEAD@{53}: checkout: moving from feature-branch to master
+[33mcfb8fa9[m HEAD@{54}: checkout: moving from master to feature-branch
+[33mcfb8fa9[m HEAD@{55}: merge feature-branch: Fast-forward
+[33m7df43d8[m HEAD@{56}: checkout: moving from feature-branch to master
+[33mcfb8fa9[m HEAD@{57}: commit: 导入导出
+[33md8c4764[m HEAD@{58}: checkout: moving from master to feature-branch
+[33m7df43d8[m HEAD@{59}: checkout: moving from feature-branch to master
+[33md8c4764[m HEAD@{60}: commit: test branch
+[33m7df43d8[m HEAD@{61}: checkout: moving from master to feature-branch
+[33m7df43d8[m HEAD@{62}: commit: 业绩提成模块
+[33md4dbe7a[m HEAD@{63}: commit: 20241106
+[33m937cda9[m HEAD@{64}: commit: 20241102
+[33mc3d267e[m HEAD@{65}: clone: from https://github.com/1024-lab/smart-admin.git
