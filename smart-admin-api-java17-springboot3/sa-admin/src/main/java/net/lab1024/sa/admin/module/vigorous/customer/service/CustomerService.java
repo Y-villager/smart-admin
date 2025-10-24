@@ -367,6 +367,12 @@ public class CustomerService {
                 .collect(Collectors.toMap(CustomerVO::getCustomerName, CustomerVO::getCustomerId));
     }
 
+    public Map<String, String>  queryCustomerCodeByCustomerNames(Set<String> customerNames) {
+        return customerDao.queryByCustomerNames(customerNames)
+                .stream().filter(Objects::nonNull)
+                .collect(Collectors.toMap(CustomerVO::getCustomerName, CustomerVO::getCustomerCode));
+    }
+
     public Map<Long, String> getCustomerNamesByIds(Set<Long> customerIds) {
         if (customerIds==null || customerIds.isEmpty()) {
             return Collections.emptyMap();

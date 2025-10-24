@@ -256,6 +256,12 @@ public class SalespersonService {
                 .collect(Collectors.toMap(SalespersonVO::getSalespersonName, SalespersonVO::getId));
     }
 
+    public Map<String, String> getSalespersonCodeByNames(Set<String> salespersonNames) {
+        return salespersonDao.getSalespersonsByNames(salespersonNames)
+                .stream().filter(Objects::nonNull)
+                .collect(Collectors.toMap(SalespersonVO::getSalespersonName, SalespersonVO::getSalespersonCode));
+    }
+
 
 
     public Map<Long, String> getSalespersonNamesByIds(Set<Long> salespersonIds) {

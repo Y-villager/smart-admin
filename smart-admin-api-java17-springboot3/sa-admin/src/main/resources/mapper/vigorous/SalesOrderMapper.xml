@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.lab1024.sa.admin.module.vigorous.sales.order.dao.SalesOrderDao">
+
+    <!-- 查询结果列 -->
+    <sql id="base_columns">
+        v_sales_order.sales_order_id,
+        v_sales_order.bill_no,
+        v_sales_order.order_date,
+        v_sales_order.customer_code,
+        v_sales_order.salesperson_code,
+        v_sales_order.order_type,
+        v_sales_order.amount,
+        v_sales_order.exchange_rate,
+        v_sales_order.fall_amount,
+        v_sales_order.create_time,
+        v_sales_order.update_time
+    </sql>
+
+    <update id="batchUpdate">
+        <foreach collection="list" item="item" separator=";">
+            UPDATE v_receivables
+            SET
+            <trim prefix="" suffix="" suffixOverrides=",">
+                <if test="item.billNo != null">
+                    bill_no = #{item.billNo},
+                </if>
+                <if test="item.orderDate != null">
+                    order_date = #{item.orderDate},
+                </if>
+                <if test="item.customerCode != null and customerCode != ''">
+                    customer_code = #{item.customerCode},
+                </if>
+                <if test="item.salespersonCode != null and item.salespersonCode != ''">
+                    salesperson_code = #{item.salespersonCode},
+                </if>
+                <if test="item.amount != null">
+                    amount = #{item.amount},
+                </if>
+                <if test="item.exchangeRate != null">
+                    exchange_rate = #{item.exchangeRate},
+                </if>
+                <if test="item.orderType != null and item.orderType != ''">
+                    order_type = #{item.orderType},
+                </if>
+                <if test="item.fallAmount != null">
+                    fall_amount = #{item.fallAmount},
+                </if>
+            </trim>
+            WHERE bill_no = #{item.billNo}
+        </foreach>
+    </update>
+
+    <!-- 分页查询 -->
+    <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.sales.order.domain.vo.SalesOrderVO">
+        SELECT
+        <include refid="base_columns"/>
+        FROM v_sales_order
+        <where>
+            <!--单据日期-->
+            <if test="queryForm.orderDate != null">
+                AND v_sales_order.order_date = #{queryForm.orderDate}
+            </if>
+            <!--客户编码-->
+            <if test="queryForm.customerCode != null and queryForm.customerCode != ''">
+                        AND INSTR(v_sales_order.customer_code,#{queryForm.customerCode})
+            </if>
+            <!--业务员-->
+            <if test="queryForm.salespersonCode != null and queryForm.salespersonCode != ''">
+                        AND INSTR(v_sales_order.salesperson_code,#{queryForm.salespersonCode})
+            </if>
+        </where>
+    </select>
+
+
+</mapper>

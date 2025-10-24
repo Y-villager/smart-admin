@@ -108,7 +108,7 @@
     </select>
 
     <select id="getSalespersonsByNames" resultType="net.lab1024.sa.admin.module.vigorous.salesperson.domain.vo.SalespersonVO">
-        select id, salesperson_name
+        select id, salesperson_name, salesperson_code
         from v_salesperson
         where salesperson_name in
         <foreach collection="salespersonNames" item="name" open="(" close=")" separator=",">
