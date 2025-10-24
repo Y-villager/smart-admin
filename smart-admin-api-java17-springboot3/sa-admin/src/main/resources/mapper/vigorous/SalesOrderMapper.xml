@@ -19,7 +19,7 @@
 
     <update id="batchUpdate">
         <foreach collection="list" item="item" separator=";">
-            UPDATE v_receivables
+            UPDATE v_sales_order
             SET
             <trim prefix="" suffix="" suffixOverrides=",">
                 <if test="item.billNo != null">
@@ -28,7 +28,7 @@
                 <if test="item.orderDate != null">
                     order_date = #{item.orderDate},
                 </if>
-                <if test="item.customerCode != null and customerCode != ''">
+                <if test="item.customerCode != null and item.customerCode != ''">
                     customer_code = #{item.customerCode},
                 </if>
                 <if test="item.salespersonCode != null and item.salespersonCode != ''">

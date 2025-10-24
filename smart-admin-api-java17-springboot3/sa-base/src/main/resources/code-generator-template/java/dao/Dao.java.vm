@@ -50,4 +50,9 @@ public interface ${name.upperCamel}Dao extends BaseMapper<${name.upperCamel}Enti
 #end
 #end
 
+    /**
+   * 批量更新
+   */
+    int batchUpdate(@Param("list") List<?> entityList);
+
 }

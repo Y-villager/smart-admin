@@ -14,6 +14,7 @@ import net.lab1024.sa.admin.module.vigorous.sales.order.domain.form.SalesOrderQu
 import net.lab1024.sa.admin.module.vigorous.sales.order.domain.form.SalesOrderUpdateForm;
 import net.lab1024.sa.admin.module.vigorous.sales.order.domain.vo.SalesOrderVO;
 import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
+import net.lab1024.sa.admin.util.BatchUtils;
 import net.lab1024.sa.admin.util.ExcelUtils;
 import net.lab1024.sa.admin.util.SplitListUtils;
 import net.lab1024.sa.base.common.code.SystemErrorCode;
@@ -57,6 +58,9 @@ public class SalesOrderService {
     private CustomerService customerService;
     @Autowired
     private SalespersonService salespersonService;
+
+    @Autowired
+    private BatchUtils batchUtils;
 
     /**
      * 分页查询
@@ -157,7 +161,10 @@ public class SalesOrderService {
                 }
             } else {  // 覆盖
                 // 执行批量更新操作
-                successTotal = doThreadUpdate(entityList);
+                successTotal = batchUtils.doThreadInsertOrUpdate(entityList, salesOrderDao, "batchUpdate");
+                if (successTotal != entityList.size()) {
+                    return ResponseDTO.error(SystemErrorCode.SYSTEM_ERROR, "系统出错，请联系管理员。");
+                }
             }
         }
         catch (DataAccessException e) {
