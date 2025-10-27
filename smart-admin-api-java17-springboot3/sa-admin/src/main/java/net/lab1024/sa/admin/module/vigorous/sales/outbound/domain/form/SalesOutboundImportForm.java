@@ -19,6 +19,9 @@ public class SalesOutboundImportForm {
     @ExcelProperty("单据编号")
     private String billNo;
 
+    @ExcelProperty("源单编号")
+    private String originBillNo;
+
     @ExcelProperty(value = "日期")
     private String salesBoundDate;
 

@@ -53,6 +53,12 @@ public class SalesOutboundEntity {
 
 
     /**
+     * 源单编号
+     */
+    private String originBillNo;
+
+
+    /**
      * 提成标识
      */
     private Integer commissionFlag;

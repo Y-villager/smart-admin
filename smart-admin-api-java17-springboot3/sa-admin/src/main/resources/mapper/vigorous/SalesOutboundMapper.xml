@@ -6,6 +6,7 @@
     <sql id="base_columns">
         v_sales_outbound.sales_bound_id,
         v_sales_outbound.bill_no,
+        v_sales_outbound.origin_bill_no,
         v_sales_outbound.sales_bound_date,
         v_sales_outbound.customer_id,
         v_sales_outbound.salesperson_id,
@@ -75,8 +76,11 @@
             UPDATE v_sales_outbound
             SET
             <trim prefix="" suffix="" suffixOverrides=",">
-                <if test="item.billNo != null">
+                <if test="item.billNo != null and item.billNo != ''">
                     bill_no = #{item.billNo},
+                </if>
+                <if test="item.originBillNo != null and item.originBillNo != ''">
+                    origin_bill_no = #{item.originBillNo},
                 </if>
                 <if test="item.salesBoundDate != null">
                     sales_bound_date = #{item.salesBoundDate},

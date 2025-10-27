@@ -270,6 +270,7 @@ public class SalesOutboundService {
         entity.setAmount(form.getAmount());
         entity.setBillNo(form.getBillNo());
         entity.setAmount(form.getAmount());
+        entity.setOriginBillNo(form.getOriginBillNo());
 
         // 如果所有字段都已正确设置，则返回转换后的实体
         return entity;
