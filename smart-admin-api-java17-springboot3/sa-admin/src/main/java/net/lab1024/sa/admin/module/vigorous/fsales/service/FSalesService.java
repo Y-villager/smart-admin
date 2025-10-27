@@ -1,4 +1,4 @@
-package net.lab1024.sa.admin.module.vigorous.sales.order.service;
+package net.lab1024.sa.admin.module.vigorous.fsales.service;
 
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.util.StringUtils;
@@ -6,13 +6,13 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
 import net.lab1024.sa.admin.convert.LocalDateConverter;
 import net.lab1024.sa.admin.module.vigorous.customer.service.CustomerService;
-import net.lab1024.sa.admin.module.vigorous.sales.order.dao.SalesOrderDao;
-import net.lab1024.sa.admin.module.vigorous.sales.order.domain.entity.SalesOrderEntity;
-import net.lab1024.sa.admin.module.vigorous.sales.order.domain.form.SalesOrderAddForm;
-import net.lab1024.sa.admin.module.vigorous.sales.order.domain.form.SalesOrderImportForm;
-import net.lab1024.sa.admin.module.vigorous.sales.order.domain.form.SalesOrderQueryForm;
-import net.lab1024.sa.admin.module.vigorous.sales.order.domain.form.SalesOrderUpdateForm;
-import net.lab1024.sa.admin.module.vigorous.sales.order.domain.vo.SalesOrderVO;
+import net.lab1024.sa.admin.module.vigorous.fsales.dao.FSalesDao;
+import net.lab1024.sa.admin.module.vigorous.fsales.domain.entity.FSalesEntity;
+import net.lab1024.sa.admin.module.vigorous.fsales.domain.form.FSalesAddForm;
+import net.lab1024.sa.admin.module.vigorous.fsales.domain.form.FSalesImportForm;
+import net.lab1024.sa.admin.module.vigorous.fsales.domain.form.FSalesQueryForm;
+import net.lab1024.sa.admin.module.vigorous.fsales.domain.form.FSalesUpdateForm;
+import net.lab1024.sa.admin.module.vigorous.fsales.domain.vo.FSalesVO;
 import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
 import net.lab1024.sa.admin.util.BatchUtils;
 import net.lab1024.sa.admin.util.ExcelUtils;
@@ -42,25 +42,25 @@ import static cn.dev33.satoken.SaManager.log;
 
 
 /**
- * 销售订单表 Service
+ * 发货通知单 Service
  *
  * @Author yxz
- * @Date 2025-10-23 14:10:32
+ * @Date 2025-10-23 14:11:35
  * @Copyright (c)2024 yxz
  */
 
 @Service
-public class SalesOrderService {
+public class FSalesService {
 
     @Resource
-    private SalesOrderDao salesOrderDao;
+    private FSalesDao fSalesDao;
+
+    @Autowired
+    private BatchUtils batchUtils;
     @Autowired
     private CustomerService customerService;
     @Autowired
     private SalespersonService salespersonService;
-
-    @Autowired
-    private BatchUtils batchUtils;
 
     /**
      * 分页查询
@@ -68,19 +68,19 @@ public class SalesOrderService {
      * @param queryForm
      * @return
      */
-    public PageResult<SalesOrderVO> queryPage(SalesOrderQueryForm queryForm) {
+    public PageResult<FSalesVO> queryPage(FSalesQueryForm queryForm) {
         Page<?> page = SmartPageUtil.convert2PageQuery(queryForm);
-        List<SalesOrderVO> list = salesOrderDao.queryPage(page, queryForm);
-        PageResult<SalesOrderVO> pageResult = SmartPageUtil.convert2PageResult(page, list);
+        List<FSalesVO> list = fSalesDao.queryPage(page, queryForm);
+        PageResult<FSalesVO> pageResult = SmartPageUtil.convert2PageResult(page, list);
         return pageResult;
     }
 
     /**
      * 添加
      */
-    public ResponseDTO<String> add(SalesOrderAddForm addForm) {
-        SalesOrderEntity salesOrderEntity = SmartBeanUtil.copy(addForm, SalesOrderEntity.class);
-        salesOrderDao.insert(salesOrderEntity);
+    public ResponseDTO<String> add(FSalesAddForm addForm) {
+        FSalesEntity fSalesEntity = SmartBeanUtil.copy(addForm, FSalesEntity.class);
+        fSalesDao.insert(fSalesEntity);
         return ResponseDTO.ok();
     }
 
@@ -90,9 +90,9 @@ public class SalesOrderService {
      * @param updateForm
      * @return
      */
-    public ResponseDTO<String> update(SalesOrderUpdateForm updateForm) {
-        SalesOrderEntity salesOrderEntity = SmartBeanUtil.copy(updateForm, SalesOrderEntity.class);
-        salesOrderDao.updateById(salesOrderEntity);
+    public ResponseDTO<String> update(FSalesUpdateForm updateForm) {
+        FSalesEntity fSalesEntity = SmartBeanUtil.copy(updateForm, FSalesEntity.class);
+        fSalesDao.updateById(fSalesEntity);
         return ResponseDTO.ok();
     }
 
@@ -107,19 +107,19 @@ public class SalesOrderService {
             return ResponseDTO.ok();
         }
 
-        salesOrderDao.deleteBatchIds(idList);
+        fSalesDao.deleteBatchIds(idList);
         return ResponseDTO.ok();
     }
 
     /**
      * 单个删除
      */
-    public ResponseDTO<String> delete(Long salesOrderId) {
-        if (null == salesOrderId){
+    public ResponseDTO<String> delete(Long fSalesId) {
+        if (null == fSalesId){
             return ResponseDTO.ok();
         }
 
-        salesOrderDao.deleteById(salesOrderId);
+        fSalesDao.deleteById(fSalesId);
         return ResponseDTO.ok();
     }
 
@@ -129,12 +129,12 @@ public class SalesOrderService {
      * @param file 上传文件
      * @return 结果
      */
-    public ResponseDTO<String> importSalesOrder(MultipartFile file, Boolean mode) {
-        List<SalesOrderImportForm> dataList;
-        List<SalesOrderImportForm> failedDataList = new ArrayList<>();
+    public ResponseDTO<String> importFSales(MultipartFile file, Boolean mode) {
+        List<FSalesImportForm> dataList;
+        List<FSalesImportForm> failedDataList = new ArrayList<>();
 
         try {
-            dataList = EasyExcel.read(file.getInputStream()).head(SalesOrderImportForm.class)
+            dataList = EasyExcel.read(file.getInputStream()).head(FSalesImportForm.class)
                     .registerConverter(new LocalDateConverter())
                     .sheet()
                     .doReadSync();
@@ -147,21 +147,21 @@ public class SalesOrderService {
             return ResponseDTO.userErrorParam("数据为空");
         }
 
-        // 将 SalesOrderImportForm 转换为 SalesOrderEntity，同时记录失败的数据
-        List<SalesOrderEntity> entityList = createImportList(dataList, failedDataList, mode);
+        // 将 FSalesImportForm 转换为 FSalesEntity，同时记录失败的数据
+        List<FSalesEntity> entityList = createImportList(dataList, failedDataList, mode);
 
         // true 为追加模式，false为按单据编号覆盖
         int successTotal = 0;
         try {
             if (mode) {  // 追加
                 // 批量插入操作
-                List<BatchResult> insert = salesOrderDao.insert(entityList);
+                List<BatchResult> insert = fSalesDao.insert(entityList);
                 for (BatchResult batchResult : insert) {
                     successTotal += batchResult.getParameterObjects().size();
                 }
             } else {  // 覆盖
                 // 执行批量更新操作
-                successTotal = batchUtils.doThreadInsertOrUpdate(entityList, salesOrderDao, "batchUpdate");
+                successTotal = batchUtils.doThreadInsertOrUpdate(entityList, fSalesDao, "batchUpdate");
                 if (successTotal != entityList.size()) {
                     return ResponseDTO.error(SystemErrorCode.SYSTEM_ERROR, "系统出错，请联系管理员。");
                 }
@@ -178,7 +178,7 @@ public class SalesOrderService {
         String failed_data_path=null;
         if (!failedDataList.isEmpty()) {
             // 创建并保存失败的数据文件
-            failed_data_path = ExcelUtils.saveFailedDataToExcel(failedDataList, SalesOrderImportForm.class);
+            failed_data_path = ExcelUtils.saveFailedDataToExcel(failedDataList, FSalesImportForm.class);
         }
 
         // 如果有失败的数据，导出失败记录到 Excel
@@ -187,31 +187,31 @@ public class SalesOrderService {
     }
 
     // 生成导入列表
-    private List<SalesOrderEntity> createImportList(List<SalesOrderImportForm> dataList,
-                                                     List<SalesOrderImportForm> failedDataList,
+    private List<FSalesEntity> createImportList(List<FSalesImportForm> dataList,
+                                                     List<FSalesImportForm> failedDataList,
                                                      boolean mode) {
 
-        List<SalesOrderEntity> entityList = new ArrayList<>();
+        List<FSalesEntity> entityList = new ArrayList<>();
         Set<String> billNos = new HashSet<>();
-//        Set<String> originBillNos = new HashSet<>();
         Set<String> salespersonNames = new HashSet<>();
         Set<String> customerNames = new HashSet<>();
 
-        for (SalesOrderImportForm form : dataList) {
+        for (FSalesImportForm form : dataList) {
             billNos.add(form.getBillNo());
             customerNames.add(form.getCustomerName());
             salespersonNames.add(form.getSalespersonName());
         }
 
+        // 单据编号 map
+        Set<String> existingBillNos = fSalesDao.getExistingBillNo(billNos);
+
+
         // 客户映射
         Map<String, String> customerMap = customerService.queryCustomerCodeByCustomerNames(customerNames);
-        // 业务员映射
         Map<String, String> salespesonMap = salespersonService.getSalespersonCodeByNames(salespersonNames);
-        // 存在的billNo
-        Set<String> existingBillNos = salesOrderDao.getExistingBillNo(billNos);
 
-        for (SalesOrderImportForm importForm : dataList) {
-            SalesOrderEntity entity = convertAndValidate(importForm, existingBillNos, customerMap, salespesonMap, failedDataList, mode);
+        for (FSalesImportForm importForm : dataList) {
+            FSalesEntity entity = convertAndValidate(importForm, existingBillNos, customerMap, salespesonMap, failedDataList, mode);
             if (entity != null){
                 entityList.add(entity);
             }
@@ -221,32 +221,32 @@ public class SalesOrderService {
         return entityList;
     }
 
-    // 将 SalesOrderImportForm 转换为 SalesOrderEntity
-    private SalesOrderEntity convertAndValidate(SalesOrderImportForm form,
-                                                     Set<String> billNos,
-                                                     Map<String, String> customerMap,
-                                                     Map<String, String> salespersonMap,
-                                                     List<SalesOrderImportForm> failedDataList,
-                                                     boolean mode) {
+    // 将 FSalesImportForm 转换为 SalesOrderEntity
+    private FSalesEntity convertAndValidate(FSalesImportForm form,
+                                                Set<String> billNos,
+                                                Map<String, String> customerMap,
+                                                Map<String, String> salespersonMap,
+                                                List<FSalesImportForm> failedDataList,
+                                                boolean mode) {
         List<String> errorMessages = new ArrayList<>();
 
         // 1. 验证单据编号
         if (!validateBillNo(form.getBillNo(), billNos, mode, errorMessages)) {
-            form.setErrMsg(errorMessages.toString());
+            form.setErrorMsg(errorMessages.toString());
             failedDataList.add(form);
             return null;
         }
 
         // 2. 验证客户
         if (!validateCustomer(form.getCustomerName(), customerMap, errorMessages)) {
-            form.setErrMsg(errorMessages.toString());
+            form.setErrorMsg(errorMessages.toString());
             failedDataList.add(form);
             return null;
         }
 
         // 3. 验证销售员
         if (!validateSalesperson(form.getSalespersonName(), salespersonMap, errorMessages)) {
-            form.setErrMsg(errorMessages.toString());
+            form.setErrorMsg(errorMessages.toString());
             failedDataList.add(form);
             return null;
         }
@@ -255,38 +255,10 @@ public class SalesOrderService {
             // 转换为实体
             return convertToEntity(form, customerMap, salespersonMap);
         } catch (Exception e) {
-            form.setErrMsg("数据转换失败，"+e.getMessage());
+            form.setErrorMsg("数据转换失败，"+e.getMessage());
             failedDataList.add(form);
             return null;
         }
-    }
-
-    /**
-     * 转换为实体
-     */
-    private SalesOrderEntity convertToEntity(SalesOrderImportForm form,
-                                             Map<String, String> customerMap,
-                                             Map<String, String> salespersonMap) {
-
-        SalesOrderEntity entity = new SalesOrderEntity();
-
-
-        entity.setBillNo(form.getBillNo().trim()); // 单据编号
-        entity.setOrderDate(form.getOrderDate());  // 日期
-        entity.setAmount(form.getAmount());        // 价税合计
-        entity.setFallAmount(form.getFallAmount()); // 价税合计本位币
-        entity.setExchangeRate(form.getExchangeRate()); // 汇率
-        entity.setOrderType(form.getOrderType()); // 单据类型
-
-        // 关联信息
-        entity.setCustomerCode(customerMap.get(form.getCustomerName().trim()));  // 客户编码
-        entity.setSalespersonCode(salespersonMap.get(form.getSalespersonName().trim())); // 业务员编码
-
-        // 系统字段
-        entity.setCreateTime(LocalDateTime.now());
-        entity.setUpdateTime(LocalDateTime.now());
-
-        return entity;
     }
 
 
@@ -356,16 +328,38 @@ public class SalesOrderService {
         return true;
     }
 
+
+    // 将 FSalesImportForm 转换为 FSalesEntity
+    private FSalesEntity convertToEntity(FSalesImportForm form,
+                                                     Map<String, String> customerMap,
+                                                     Map<String, String> salespersonMap) {
+        FSalesEntity entity = new FSalesEntity();
+
+        entity.setBillNo(form.getBillNo().trim()); // 单据编号
+        entity.setBillDate(form.getBillDate());  // 日期
+        entity.setOriginBillNo(form.getOriginBillNo()); // 源单编号
+
+        // 关联信息
+        entity.setCustomerCode(customerMap.get(form.getCustomerName().trim()));  // 客户编码
+        entity.setSalespersonCode(salespersonMap.get(form.getSalespersonName().trim())); // 业务员编码
+
+        // 系统字段
+        entity.setCreateTime(LocalDateTime.now());
+        entity.setUpdateTime(LocalDateTime.now());
+
+        return entity;
+    }
+
     /**
      * 导出
      * 需要修改
      */
-    public List<SalesOrderVO> exportSalesOrder(SalesOrderQueryForm queryForm) {
-        //List<SalesOrderVO> entityList = salesOrderDao.selectList(null);
-        List<SalesOrderVO> entityList = salesOrderDao.queryPage(null,queryForm);
+    public List<FSalesVO> exportFSales(FSalesQueryForm queryForm) {
+        //List<FSalesVO> entityList = fSalesDao.selectList(null);
+        List<FSalesVO> entityList = fSalesDao.queryPage(null,queryForm);
 //        return entityList.stream()
 //                .map(e ->
-//                        SalesOrderVO.builder()
+//                        FSalesVO.builder()
 //                                .build()
 //                )
 //                .collect(Collectors.toList());
@@ -373,21 +367,22 @@ public class SalesOrderService {
 
     }
 
-    private int doThreadUpdate(List<SalesOrderEntity> entityList) {
-        List<SalesOrderEntity> updateList = new ArrayList<>();
+    private int doThreadUpdate(List<FSalesEntity> entityList) {
+        List<FSalesEntity> updateList = new ArrayList<>();
         // 初始化线程池
         ThreadPoolExecutor threadPool = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), 50,
                 4, TimeUnit.SECONDS, new ArrayBlockingQueue<>(10),
                 new ThreadPoolExecutor.CallerRunsPolicy());
         // 将大集合拆分成N个小集合，使用多线程操作数据
-        List<List<SalesOrderEntity>> splitList = SplitListUtils.splitList(entityList, 1000);
+        List<List<FSalesEntity>> splitList = SplitListUtils.splitList(entityList, 1000);
         // 记录单个任务的执行次数
         CountDownLatch countDownLatch = new CountDownLatch(splitList.size());
-        for (List<SalesOrderEntity> subList : splitList) {
+        for (List<FSalesEntity> subList : splitList) {
             threadPool.execute(new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    //salesOrderDao.updateSalesOrderByBillNo(subList);
+                    System.out.println("当前线程："+ Thread.currentThread().getName());
+                    //fSalesDao.updateFSalesByBillNo(subList);
                     countDownLatch.countDown();
                 }
             }));

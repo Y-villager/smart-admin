@@ -72,4 +72,13 @@
 #end
 #end
 #end
+
+    <select id="getExistingBillNo" resultType="java.lang.String">
+        select bill_no
+        from ${tableName}
+        where bill_no IN
+        <foreach collection="billNos" item="billNo" open="(" close=")" separator=",">
+            #{billNo}
+        </foreach>
+    </select>
 </mapper>

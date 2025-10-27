@@ -55,4 +55,5 @@ public interface ${name.upperCamel}Dao extends BaseMapper<${name.upperCamel}Enti
    */
     int batchUpdate(@Param("list") List<?> entityList);
 
+    Set<String> getExistingBillNo(@Param("billNos") Set<String> billNos);
 }

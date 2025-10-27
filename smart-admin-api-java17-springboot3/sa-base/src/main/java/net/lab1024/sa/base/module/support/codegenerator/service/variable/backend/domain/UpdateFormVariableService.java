@@ -115,7 +115,6 @@ public class UpdateFormVariableService extends CodeGenerateBaseVariableService {
                 }
             }
 
-
             //字典
             if (SmartStringUtil.isNotEmpty(codeField.getDict())) {
                 finalFieldMap.put("dict", "\n    @JsonDeserialize(using = DictValueVoDeserializer.class)");

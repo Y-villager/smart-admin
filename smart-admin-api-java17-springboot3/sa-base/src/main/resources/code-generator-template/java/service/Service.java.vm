@@ -185,7 +185,7 @@ public class ${name.upperCamel}Service {
                                                      List<${name.upperCamel}ImportForm> failedDataList,
                                                      boolean mode) {
     ##    Set<String> billNos = new HashSet<>();
-    
+
         for (${name.upperCamel}ImportForm form : dataList) {
     ##        billNos.add(form.getBillNo());
         }
@@ -194,15 +194,19 @@ public class ${name.upperCamel}Service {
 ##        Map<String, Integer> receivablesMap = receivablesVOList
 ##                .stream().filter(Objects::nonNull)
 ##                .collect(Collectors.toMap(${name.upperCamel}VO::getBillNo, ${name.upperCamel}VO::get${name.upperCamel}Id));
-    
+
         // 需要的映射数据
     ##    Map<String, Long> customerMap = customerService.queryByCustomerNames(customerNames);
-    
-        return dataList.parallelStream()
-                .map(form -> convertToEntity(form, failedDataList, mode))
-                .filter(Objects::nonNull)
-                .toList();
-    
+
+        for (${name.upperCamel}ImportForm} importForm : dataList) {
+            ${name.upperCamel}Entity entity = convertAndValidate(importForm, , failedDataList, mode);
+            if (entity != null){
+                entityList.add(entity);
+            }
+        }
+
+        // 需要的映射数据
+        return entityList;
     }
 
     // 将 ${name.upperCamel}ImportForm 转换为 ${name.upperCamel}Entity

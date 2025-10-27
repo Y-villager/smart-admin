@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.lab1024.sa.admin.module.vigorous.fsales.dao.FSalesDao">
+
+    <!-- 查询结果列 -->
+    <sql id="base_columns">
+        v_f_sales.f_sales_id,
+        v_f_sales.bill_no,
+        v_f_sales.bill_date,
+        v_f_sales.salesperson_code,
+        v_f_sales.customer_code,
+        v_f_sales.origin_bill_no,
+        v_f_sales.create_time,
+        v_f_sales.update_time
+    </sql>
+
+    <update id="batchUpdate">
+        <foreach collection="list" item="item" separator=";">
+            UPDATE v_f_sales
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                SET
+            <trim prefix="" suffix="" suffixOverrides=",">
+                <if test="item.billNo != null">
+                    bill_no = #{item.billNo},
+                </if>
+                <if test="item.billDate != null">
+                    bill_date = #{item.billDate},
+                </if>
+                <if test="item.customerCode != null and item.customerCode != ''">
+                    customer_code = #{item.customerCode},
+                </if>
+                <if test="item.salespersonCode != null and item.salespersonCode != ''">
+                    salesperson_code = #{item.salespersonCode},
+                </if>
+                <if test="item.originBillNo != null and item.originBillNo != ''">
+                    origin_bill_no = #{item.originBillNo},
+                </if>
+            </trim>
+            WHERE bill_no = #{item.billNo}
+        </foreach>
+    </update>
+
+    <!-- 分页查询 -->
+    <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.fsales.domain.vo.FSalesVO">
+        SELECT
+        <include refid="base_columns"/>
+        FROM v_f_sales
+        <where>
+            <!--单据日期-->
+            <if test="queryForm.billDate != null">
+                AND v_f_sales.bill_date = #{queryForm.billDate}
+            </if>
+            <!--单据日期-->
+            <if test="queryForm.billNo != null and queryForm.billNo != ''">
+                        AND INSTR(v_f_sales.bill_no,#{queryForm.billNo})
+            </if>
+            <!--业务员编码-->
+            <if test="queryForm.salespersonCode != null and queryForm.salespersonCode != ''">
+                        AND INSTR(v_f_sales.salesperson_code,#{queryForm.salespersonCode})
+            </if>
+            <!--客户编码-->
+            <if test="queryForm.customerCode != null and queryForm.customerCode != ''">
+                        AND INSTR(v_f_sales.customer_code,#{queryForm.customerCode})
+            </if>
+        </where>
+    </select>
+
+    <select id="getExistingBillNo" resultType="java.lang.String">
+        select bill_no
+        from v_f_sales
+        where bill_no IN
+        <foreach collection="billNos" item="billNo" open="(" close=")" separator=",">
+            #{billNo}
+        </foreach>
+    </select>
+
+</mapper>

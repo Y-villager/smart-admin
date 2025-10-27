@@ -72,5 +72,14 @@
         </where>
     </select>
 
+    <select id="getExistingBillNo" resultType="java.lang.String">
+        select bill_no
+        from v_sales_order
+        where bill_no IN
+        <foreach collection="billNos" item="billNo" open="(" close=")" separator=",">
+            #{billNo}
+        </foreach>
+    </select>
+
 
 </mapper>
