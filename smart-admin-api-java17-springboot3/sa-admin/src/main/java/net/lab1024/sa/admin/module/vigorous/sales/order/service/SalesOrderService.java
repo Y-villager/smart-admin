@@ -1,7 +1,6 @@
 package net.lab1024.sa.admin.module.vigorous.sales.order.service;
 
 import com.alibaba.excel.EasyExcel;
-import com.alibaba.excel.util.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
 import net.lab1024.sa.admin.convert.LocalDateConverter;
@@ -17,6 +16,7 @@ import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonServi
 import net.lab1024.sa.admin.util.BatchUtils;
 import net.lab1024.sa.admin.util.ExcelUtils;
 import net.lab1024.sa.admin.util.SplitListUtils;
+import net.lab1024.sa.admin.util.ValidationUtils;
 import net.lab1024.sa.base.common.code.SystemErrorCode;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
@@ -61,6 +61,8 @@ public class SalesOrderService {
 
     @Autowired
     private BatchUtils batchUtils;
+    @Autowired
+    private ValidationUtils validationUtils;
 
     /**
      * 分页查询
@@ -231,21 +233,21 @@ public class SalesOrderService {
         List<String> errorMessages = new ArrayList<>();
 
         // 1. 验证单据编号
-        if (!validateBillNo(form.getBillNo(), billNos, mode, errorMessages)) {
+        if (!validationUtils.validateBillNo(form.getBillNo(), billNos, mode, errorMessages)) {
             form.setErrMsg(errorMessages.toString());
             failedDataList.add(form);
             return null;
         }
 
         // 2. 验证客户
-        if (!validateCustomer(form.getCustomerName(), customerMap, errorMessages)) {
+        if (!validationUtils.validateCustomer(form.getCustomerName(), customerMap, errorMessages)) {
             form.setErrMsg(errorMessages.toString());
             failedDataList.add(form);
             return null;
         }
 
         // 3. 验证销售员
-        if (!validateSalesperson(form.getSalespersonName(), salespersonMap, errorMessages)) {
+        if (!validationUtils.validateSalesperson(form.getSalespersonName(), salespersonMap, errorMessages)) {
             form.setErrMsg(errorMessages.toString());
             failedDataList.add(form);
             return null;
@@ -289,72 +291,6 @@ public class SalesOrderService {
         return entity;
     }
 
-
-    /**
-     * 验证单据编号
-     */
-    private boolean validateBillNo(String billNo, Set<String> existingBillNos,
-                                   boolean updateMode, List<String> errorMessages) {
-        // 1. 不能为空
-        if (StringUtils.isBlank(billNo)) {
-            errorMessages.add("单据编号不能为空");
-            return false;
-        }
-
-        // 2. 不能重复（新增模式下）
-        if (updateMode && existingBillNos.contains(billNo)) {
-            errorMessages.add("单据编号已存在: " + billNo);
-            return false;
-        }
-
-        // 3. 格式验证（可根据需要添加）
-        if (billNo.length() > 50) {
-            errorMessages.add("单据编号长度不能超过50个字符");
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * 验证客户
-     */
-    private boolean validateCustomer(String customerName, Map<String, String> customerMap,
-                                     List<String> errorMessages) {
-        // 1. 不能为空
-        if (StringUtils.isBlank(customerName)) {
-            errorMessages.add("客户名称不能为空");
-            return false;
-        }
-
-        // 2. 必须存在
-        if (!customerMap.containsKey(customerName)) {
-            errorMessages.add("客户不存在: " + customerName);
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * 验证销售员
-     */
-    private boolean validateSalesperson(String salespersonName, Map<String, String> salespersonMap,
-                                        List<String> errorMessages) {
-        // 1. 不能为空
-        if (StringUtils.isBlank(salespersonName)) {
-            errorMessages.add("销售员名称不能为空");
-            return false;
-        }
-
-        // 2. 必须存在
-        if (!salespersonMap.containsKey(salespersonName)) {
-            errorMessages.add("销售员不存在: " + salespersonName);
-            return false;
-        }
-
-        return true;
-    }
 
     /**
      * 导出

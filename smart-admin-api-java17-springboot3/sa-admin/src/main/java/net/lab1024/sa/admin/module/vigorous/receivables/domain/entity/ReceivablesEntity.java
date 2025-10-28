@@ -9,6 +9,8 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * 应收单 实体类
@@ -87,5 +89,19 @@ public class ReceivablesEntity {
      * 应收比例(%)
      */
     private Integer rate;
+
+    private List<ReceivablesMaterialEntity> materials;
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(billNo); // 基于属性生成哈希值
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ReceivablesEntity)) return false;
+        return Objects.equals(billNo, ((ReceivablesEntity) o).getBillNo());
+    }
 
 }

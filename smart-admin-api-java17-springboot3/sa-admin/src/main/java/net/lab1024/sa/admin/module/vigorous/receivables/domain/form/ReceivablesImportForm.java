@@ -1,6 +1,7 @@
 package net.lab1024.sa.admin.module.vigorous.receivables.domain.form;
 
 import com.alibaba.excel.annotation.ExcelProperty;
+import com.alibaba.excel.annotation.format.DateTimeFormat;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -26,6 +27,7 @@ public class ReceivablesImportForm {
 
     @ExcelProperty("业务日期")
     @NotBlank(message = "业务日期不能为空")
+    @DateTimeFormat("yyyy-mm-dd")
     private String receivablesDate;
 
     @ExcelProperty("销售员")
@@ -56,6 +58,18 @@ public class ReceivablesImportForm {
 
     @ExcelProperty("应收比例(%)")
     private Integer rate;
+
+    @ExcelProperty("物料编码")
+    private String materialCode;
+
+    @ExcelProperty("物料名称")
+    private String materialName;
+
+    @ExcelProperty("销售单位")
+    private String saleUnit;
+
+    @ExcelProperty("销售数量")
+    private Integer saleQuantity;
 
     @ExcelProperty("错误信息")
     private String errorMsg;
