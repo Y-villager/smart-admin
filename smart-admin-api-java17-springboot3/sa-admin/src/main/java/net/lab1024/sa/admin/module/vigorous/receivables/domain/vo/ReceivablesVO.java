@@ -1,6 +1,4 @@
-package
-
-        net.lab1024.sa.admin.module.vigorous.receivables.domain.vo;
+package net.lab1024.sa.admin.module.vigorous.receivables.domain.vo;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.v3.oas.annotations.media.Schema;

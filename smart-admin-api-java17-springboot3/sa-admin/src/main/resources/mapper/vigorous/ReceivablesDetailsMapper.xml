@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.lab1024.sa.admin.module.vigorous.receivables.dao.ReceivablesDetailsDao">
+
+    <!-- 查询结果列 -->
+    <sql id="base_columns">
+        v_receivables_details.id,
+        v_receivables_details.material_code,
+        v_receivables_details.material_name,
+        v_receivables_details.sale_unit,
+        v_receivables_details.sale_quantity,
+        v_receivables_details.origin_bill_no,
+        v_receivables_details.create_time,
+        v_receivables_details.update_time
+    </sql>
+
+    <insert id="batchInsertOrUpdate">
+        INSERT INTO v_receivables_details
+        (
+        material_code,
+        material_name,
+        origin_bill_no,
+        sale_unit,
+        sale_quantity
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.materialCode},
+            #{item.materialName},
+            #{item.originBillNo},
+            #{item.saleUnit},
+            #{item.saleQuantity}
+            )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        material_name = VALUES(material_name),
+        sale_unit = VALUES(sale_unit),
+        sale_quantity = VALUES(sale_quantity)
+    </insert>
+
+    <!-- 分页查询 -->
+    <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.receivables.domain.vo.ReceivablesDetailsVO">
+        SELECT
+        <include refid="base_columns"/>
+        FROM v_receivables_details
+        <where>
+            <!--应收单-->
+            <if test="queryForm.receivablesId != null and queryForm.receivablesId != ''">
+                        AND INSTR(v_receivables_details.origin_bill_no,#{queryForm.receivablesId})
+            </if>
+        </where>
+    </select>
+
+
+    <select id="getExistingBillNo" resultType="java.lang.String">
+        select bill_no
+        from v_receivables_details
+        where bill_no IN
+        <foreach collection="billNos" item="billNo" open="(" close=")" separator=",">
+            #{billNo}
+        </foreach>
+    </select>
+</mapper>

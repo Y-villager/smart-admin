@@ -4,8 +4,8 @@ import com.alibaba.excel.util.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import lombok.extern.slf4j.Slf4j;
 import net.lab1024.sa.admin.module.vigorous.receivables.dao.ReceivablesDao;
+import net.lab1024.sa.admin.module.vigorous.receivables.domain.entity.ReceivablesDetailsEntity;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.entity.ReceivablesEntity;
-import net.lab1024.sa.admin.module.vigorous.receivables.domain.entity.ReceivablesMaterialEntity;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.form.ReceivablesImportForm;
 import net.lab1024.sa.admin.module.vigorous.receivables.res.ClassificationResult;
 import net.lab1024.sa.admin.module.vigorous.receivables.res.FailedData;
@@ -319,7 +319,7 @@ public class ReceivablesDataClassifier {
                 ReceivablesEntity receivablesEntity = convertToReceivablesEntity(billItems);
 
                 // 创建物料明细实体
-                List<ReceivablesMaterialEntity> materialEntities = convertToMaterialEntities(billItems, receivablesEntity);
+                List<ReceivablesDetailsEntity> materialEntities = convertToMaterialEntities(billItems, receivablesEntity);
                 receivablesEntity.setMaterials(materialEntities);
 
                 result.addReceivablesEntity(receivablesEntity);
@@ -366,11 +366,11 @@ public class ReceivablesDataClassifier {
     /**
      * 转换为物料明细实体
      */
-    private List<ReceivablesMaterialEntity> convertToMaterialEntities(
+    private List<ReceivablesDetailsEntity> convertToMaterialEntities(
             List<ReceivablesImportForm> billItems,
             ReceivablesEntity receivablesEntity) {
 
-        List<ReceivablesMaterialEntity> materials = new ArrayList<>();
+        List<ReceivablesDetailsEntity> materials = new ArrayList<>();
         int sortOrder = 0;
 
         for (ReceivablesImportForm item : billItems) {
@@ -379,13 +379,12 @@ public class ReceivablesDataClassifier {
                 continue;
             }
 
-            ReceivablesMaterialEntity material = new ReceivablesMaterialEntity();
+            ReceivablesDetailsEntity material = new ReceivablesDetailsEntity();
 //            material.setOriginBillNo(bi);
             material.setMaterialCode(item.getMaterialCode());
             material.setMaterialName(item.getMaterialName());
             material.setSaleQuantity(item.getSaleQuantity());
             material.setSaleUnit(item.getSaleUnit());
-            material.setSortOrder(sortOrder++);
 
             material.setCreateTime(LocalDateTime.now());
             material.setUpdateTime(LocalDateTime.now());

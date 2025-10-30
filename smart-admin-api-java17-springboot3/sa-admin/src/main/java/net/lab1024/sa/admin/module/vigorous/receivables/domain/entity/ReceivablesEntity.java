@@ -90,7 +90,7 @@ public class ReceivablesEntity {
      */
     private Integer rate;
 
-    private List<ReceivablesMaterialEntity> materials;
+    private List<ReceivablesDetailsEntity> materials;
 
     @Override
     public int hashCode() {

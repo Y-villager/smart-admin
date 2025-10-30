@@ -7,8 +7,9 @@ import jakarta.annotation.Resource;
 import net.lab1024.sa.admin.convert.LocalDateConverter;
 import net.lab1024.sa.admin.module.vigorous.customer.service.CustomerService;
 import net.lab1024.sa.admin.module.vigorous.receivables.dao.ReceivablesDao;
+import net.lab1024.sa.admin.module.vigorous.receivables.dao.ReceivablesDetailsDao;
+import net.lab1024.sa.admin.module.vigorous.receivables.domain.entity.ReceivablesDetailsEntity;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.entity.ReceivablesEntity;
-import net.lab1024.sa.admin.module.vigorous.receivables.domain.entity.ReceivablesMaterialEntity;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.form.ReceivablesAddForm;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.form.ReceivablesImportForm;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.form.ReceivablesQueryForm;
@@ -18,7 +19,6 @@ import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonServi
 import net.lab1024.sa.admin.util.BatchUtils;
 import net.lab1024.sa.admin.util.ExcelUtils;
 import net.lab1024.sa.admin.util.ValidationUtils;
-import net.lab1024.sa.base.common.code.SystemErrorCode;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
 import net.lab1024.sa.base.common.exception.BusinessException;
@@ -28,6 +28,7 @@ import net.lab1024.sa.base.module.support.dict.service.DictService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.ibatis.executor.BatchResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -64,8 +65,9 @@ public class ReceivablesService {
     @Autowired
     private ValidationUtils validationUtils;
 
-
-
+    @Qualifier("receivablesDetailsDao")
+    @Autowired
+    private ReceivablesDetailsDao receivablesDetailsDao;
 
     /**
      * 分页查询
@@ -133,8 +135,6 @@ public class ReceivablesService {
         return ResponseDTO.ok();
     }
 
-
-
     /**
      * 导入
      *
@@ -164,42 +164,51 @@ public class ReceivablesService {
         Map<String, List<ReceivablesImportForm>> groupMap = dataList.stream()
                 .collect(Collectors.groupingBy(ReceivablesImportForm::getBillNo));
 
-        // 批量插入
-        List<ReceivablesEntity> billList = new ArrayList<>();
-        List<ReceivablesMaterialEntity> detailList = new ArrayList<>();
-
 
         // 数据分类转换
         Set<ReceivablesEntity> entityList = createImportList(dataList, failedDataList, mode);
 
 
-        // true 为追加模式，false为按单据编号覆盖
-        int successTotal = 0;
+        // 应收表记录数
+        int receivablesTotal = 0;
+        // 物料记录数
+        int detailsTotal = 0;
 
         // 提取所有物料明细并插入
-//        List<ReceivablesMaterialEntity> allMaterials = extractAllMaterials(entityList);
+        List<ReceivablesDetailsEntity> allMaterials = extractAllMaterials(entityList);
 
         if(entityList != null && !entityList.isEmpty()){
             if (mode) {  // 追加
                 // 批量插入操作
+                List<BatchResult> materialInsert = null;
                 List<BatchResult> insert = receivablesDao.insert(entityList);
 
-//                if (!allMaterials.isEmpty()) {
-//                    List<BatchResult> materialInsert = receivablesMaterialDao.insert(allMaterials);
-//                }
-
+                //
                 for (BatchResult batchResult : insert) {
-                    successTotal += batchResult.getParameterObjects().size();
+                    receivablesTotal += batchResult.getParameterObjects().size();
                 }
+                if (!allMaterials.isEmpty()) {
+                    materialInsert = receivablesDetailsDao.insert(allMaterials);
+                    for (BatchResult batchResult : materialInsert) {
+                        receivablesTotal += batchResult.getParameterObjects().size();
+                    }
+                }
+
             } else {  // 覆盖
                 // 执行批量更新操作
-                successTotal = batchUtils.doThreadInsertOrUpdate(entityList.stream().toList(), receivablesDao, "batchUpdate");
-//                if (!allMaterials.isEmpty()) {
-//                    List<BatchResult> materialInsert = receivablesMaterialDao.doT(allMaterials);
-//                }
-                if (successTotal != entityList.size()) {
-                    return ResponseDTO.error(SystemErrorCode.SYSTEM_ERROR, "系统出错，请联系管理员。");
+                receivablesTotal = batchUtils.doThreadInsertOrUpdate(entityList.stream().toList(), receivablesDao, "batchUpdate");
+                if (!allMaterials.isEmpty()) {
+                    detailsTotal = batchUtils.doThreadInsertOrUpdate(allMaterials, receivablesDetailsDao, "batchInsertOrUpdate");
                 }
+//                try {
+//                    if (receivablesTotal != entityList.size()) {
+//                        throw new RuntimeException("应收数据错误，期望导入 " + entityList.size() + " 条，实际导入 " + receivablesTotal + " 条");
+//                    } else if (detailsTotal != allMaterials.size()) {
+//                        throw new RuntimeException("应收物料数据错误，期望导入 " + allMaterials.size() + " 条，实际导入 " + detailsTotal + " 条");
+//                    }
+//                }catch (Exception e){
+//                    return ResponseDTO.error(SystemErrorCode.SYSTEM_ERROR, "系统错误，不允许导入");
+//                }
             }
         }
 
@@ -209,9 +218,22 @@ public class ReceivablesService {
             failed_data_path = ExcelUtils.saveFailedDataToExcel(failedDataList, ReceivablesImportForm.class );
         }
 
-        // 如果有失败的数据，导出失败记录到 Excel
-        return ResponseDTO.okMsg("总共"+dataList.size()+"条数据，成功导入" + successTotal + "条，导入失败记录有："+failedDataList.size()+"条", failed_data_path );
+        String message = new StringBuilder()
+                .append("总共").append(dataList.size()).append("条数据，")
+                .append("成功导入").append(receivablesTotal).append("条应收记录、")
+                .append(detailsTotal).append("条物料明细记录，")
+                .append("导入失败").append(failedDataList.size()).append("条")
+                .toString();
 
+        return ResponseDTO.okMsg(message, failed_data_path);
+    }
+
+    // 提取明细中所有材料
+    private List<ReceivablesDetailsEntity> extractAllMaterials(Set<ReceivablesEntity> entityList) {
+        return entityList.stream().map(ReceivablesEntity::getMaterials)
+                .filter(Objects::nonNull)
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
     }
 
     // 生成导入列表
@@ -221,13 +243,13 @@ public class ReceivablesService {
         // 应收表
         Set<ReceivablesEntity> receivablesList = new HashSet<>();
         // 应收物料表
-        Set<ReceivablesMaterialEntity> materialList = new HashSet<>();
+        Set<ReceivablesDetailsEntity> materialList = new HashSet<>();
 
         Set<String> billNos = new HashSet<>();
         Set<String> salespersonNames = new HashSet<>();
         Set<String> customerNames = new HashSet<>();
         // 物料
-        List<ReceivablesMaterialEntity> allMaterials  = new ArrayList<>();
+        List<ReceivablesDetailsEntity> allMaterials  = new ArrayList<>();
 
         for (ReceivablesImportForm form : dataList) {
             billNos.add(form.getBillNo());
@@ -259,7 +281,7 @@ public class ReceivablesService {
                 ReceivablesEntity receivablesEntity = convertAndValidate(mainForm, existingBillNo, salespersonMap, customerMap, currencyMap, failedDataList, mode);
 
                 // 处理物料明细数据
-                List<ReceivablesMaterialEntity> billItems = convertToItemEntities(billData, billNo, failedDataList);
+                List<ReceivablesDetailsEntity> billItems = convertToItemEntities(billData, billNo, failedDataList);
 
                 // 设置关联关系
                 if (receivablesEntity != null) {
@@ -280,10 +302,9 @@ public class ReceivablesService {
     /**
      * 转换物料明细实体列表
      */
-    private List<ReceivablesMaterialEntity> convertToItemEntities(List<ReceivablesImportForm> billData, String billNo,
+    private List<ReceivablesDetailsEntity> convertToItemEntities(List<ReceivablesImportForm> billData, String billNo,
                                                                   List<ReceivablesImportForm> failedDataList) {
-        List<ReceivablesMaterialEntity> items = new ArrayList<>();
-        int sortOrder = 0;
+        List<ReceivablesDetailsEntity> items = new ArrayList<>();
         for (ReceivablesImportForm form : billData) {
             // 跳过没有物料信息的数据（理论上不应该有）
             if (StringUtils.isBlank(form.getMaterialCode()) && StringUtils.isBlank(form.getMaterialName())) {
@@ -305,13 +326,12 @@ public class ReceivablesService {
                 continue;
             }
 
-            ReceivablesMaterialEntity item = new ReceivablesMaterialEntity();
+            ReceivablesDetailsEntity item = new ReceivablesDetailsEntity();
             item.setOriginBillNo(billNo);   // 源单
             item.setMaterialCode(form.getMaterialCode());   // 物料编码
             item.setMaterialName(form.getMaterialName());   // 物料名称
             item.setSaleQuantity(form.getSaleQuantity());   // 销售数量
             item.setSaleUnit(form.getSaleUnit());           // 销售单位
-            item.setSortOrder(sortOrder++);
 
             items.add(item);
         }
@@ -324,7 +344,7 @@ public class ReceivablesService {
      * @param form
      * @param salespersonMap
      * @param customerMap
-     * @param currncyMap
+     * @param currencyMap
      * @param failedDataList
      * @param mode true覆盖，false追加
      * @return
@@ -333,7 +353,7 @@ public class ReceivablesService {
                                           Set<String> existingBillNo,
                                           Map<String, Long> salespersonMap,
                                           Map<String, Long> customerMap,
-                                          Map<String, String> currncyMap,
+                                          Map<String, String> currencyMap,
                                           List<ReceivablesImportForm> failedDataList,
                                               boolean mode) {
         List<String> errorMessages = new ArrayList<>();
@@ -368,18 +388,16 @@ public class ReceivablesService {
         }
 
         // 5.币别
-        String currencyType = currncyMap.get(form.getCurrencyType());
+        String currencyType = currencyMap.get(form.getCurrencyType());
         if (currencyType == null){
             form.setErrorMsg("币别系统不存在："+form.getCurrencyType());
             failedDataList.add(form);
             return null;
         }
 
-
-
         try {
             // 转换为实体
-            return convertToEntity(form, customerMap, salespersonMap);
+            return convertToEntity(form, customerMap, salespersonMap, currencyMap);
         } catch (Exception e) {
             form.setErrorMsg("数据转换失败，"+e.getMessage());
             failedDataList.add(form);
@@ -387,14 +405,17 @@ public class ReceivablesService {
         }
     }
 
-    private ReceivablesEntity convertToEntity(ReceivablesImportForm form, Map<String, Long> customerMap, Map<String, Long> salespersonMap) {
+    private ReceivablesEntity convertToEntity(ReceivablesImportForm form,
+                                              Map<String, Long> customerMap,
+                                              Map<String, Long> salespersonMap,
+                                              Map<String, String> currencyMap) {
         ReceivablesEntity entity = new ReceivablesEntity();
 
         entity.setBillNo(form.getBillNo()); // 单据编号
         entity.setOriginBillNo(form.getOriginBillNo()); // 源单编号
         entity.setCustomerId( customerMap.get(form.getCustomerName())); // 客户编号
         entity.setSalespersonId(salespersonMap.get(form.getSalespersonName())); // 业务员编号
-        entity.setCurrencyType(form.getCurrencyType()); // 币别
+        entity.setCurrencyType(currencyMap.get(form.getCurrencyType())); // 币别
         entity.setAmount(form.getAmount()); // 金额
         entity.setExchangeRate(form.getExchangeRate()); // 汇率
         entity.setFallAmount(form.getFallAmount()); // 本位币
