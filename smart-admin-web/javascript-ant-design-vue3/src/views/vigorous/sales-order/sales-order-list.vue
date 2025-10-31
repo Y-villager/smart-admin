@@ -9,6 +9,9 @@
     <!---------- 查询表单form begin ----------->
     <a-form class="smart-query-form">
         <a-row class="smart-query-form-row">
+          <a-form-item label="单据编号" class="smart-query-form-item">
+            <a-input style="width: 200px" v-model:value="queryForm.billNo" placeholder="业务员" />
+          </a-form-item>
             <a-form-item label="单据日期" class="smart-query-form-item">
               <a-range-picker v-model:value="queryForm.orderDate" :presets="defaultTimeRanges" style="width: 220px" @change="onChangeOrderDate" />
             </a-form-item>
@@ -246,6 +249,7 @@
     // ---------------------------- 查询数据表单和方法 ----------------------------
 
     const queryFormState = {
+        billNo: undefined,
         orderDate: undefined,
         orderDateBegin: undefined, //单据日期-开始
         orderDateEnd: undefined, //单据日期-结束

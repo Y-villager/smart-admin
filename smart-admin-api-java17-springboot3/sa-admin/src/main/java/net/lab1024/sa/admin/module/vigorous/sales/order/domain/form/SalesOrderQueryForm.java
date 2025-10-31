@@ -19,6 +19,9 @@ import java.time.LocalDate;
 @EqualsAndHashCode(callSuper = false)
 public class SalesOrderQueryForm extends PageParam {
 
+    @Schema(description = "销售订单")
+    private String billNo;
+
     @Schema(description = "单据日期开始")
     private LocalDate orderDateBegin;
 

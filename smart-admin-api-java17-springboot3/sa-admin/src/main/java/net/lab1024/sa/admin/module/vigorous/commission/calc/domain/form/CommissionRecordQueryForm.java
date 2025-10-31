@@ -30,8 +30,17 @@ public class CommissionRecordQueryForm extends PageParam {
     @Schema(description = "销售出库-单据编号")
     private String salesBillNo;
 
-    @Schema(description = "销售出库日期")
+    @Schema(description = "销售开始日期")
     private LocalDate orderDateBegin;
+
+    @Schema(description = "销售结束日期")
+    private LocalDate orderDateEnd;
+
+    @Schema(description = "出库开始日期")
+    private LocalDate outboundDateBegin;
+
+    @Schema(description = "出库结束日期")
+    private LocalDate outboundDateEnd;
 
     @Schema(description = "提成类别")
     private Integer commissionType;
@@ -39,8 +48,8 @@ public class CommissionRecordQueryForm extends PageParam {
     @Schema(description = "是否报关")
     private Integer isCustomsDeclaration;
 
-    @Schema(description = "销售出库日期")
-    private LocalDate orderDateEnd;
+    @Schema(description = "是否包含物料明细")
+    private Boolean isContainsMaterial;
 
     @Schema(description = "筛选日期列表")
     private List<DateVO> filterDateList;

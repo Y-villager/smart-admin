@@ -37,4 +37,5 @@ public interface CommissionRecordDao extends BaseMapper<CommissionRecordEntity> 
 
     int batchInsertOrUpdate(@Param("list") List<?> list);
 
+    List<CommissionRecordVO> queryPageWithMaterial(@Param("queryForm")CommissionRecordQueryForm queryForm);
 }

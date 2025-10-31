@@ -85,7 +85,6 @@ public class CommissionRecordController {
     @SaCheckPermission("commissionRecord:export")
     public void exportCommissionRecord(HttpServletResponse response, @RequestBody @Valid CommissionRecordQueryForm queryForm) throws IOException {
         Map<String, Collection<?>> resList = commissionRecordService.exportCommissionRecord(queryForm);
-
         SmartExcelUtil.exportExcel(response,"业务提成.xlsx", resList);
     }
 

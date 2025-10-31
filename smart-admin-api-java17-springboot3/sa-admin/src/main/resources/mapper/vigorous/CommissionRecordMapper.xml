@@ -178,4 +178,108 @@
     </select>
 
 
+    <!-- 结果映射，包含物料明细列表 -->
+    <resultMap id="CommissionRecordWithMaterialMap" type="net.lab1024.sa.admin.module.vigorous.commission.calc.domain.vo.CommissionRecordVO">
+        <!-- 基础字段映射 -->
+        <result column="sales_order_bill_no" property="salesOrderBillNo"/>
+        <result column="order_date" property="orderDate"/>
+        <result column="order_type" property="orderType"/>
+
+<!--        <result column="receive_bill_no" property="receiveBillNo"/>-->
+        <result column="sales_bill_no" property="salesBillNo"/>
+        <result column="currency_type" property="currencyType"/>
+
+        <result column="customer_code" property="customerCode"/>
+        <result column="customer_name" property="customerName"/>
+        <result column="first_order_date" property="firstOrderDate"/>
+        <result column="adjusted_first_order_date" property="adjustedFirstOrderDate"/>
+        <result column="is_customs_declaration" property="isCustomsDeclaration"/>
+        <result column="is_transfer" property="isTransfer"/>
+
+        <result column="salesperson_id" property="salespersonId"/>
+        <result column="salesperson_name" property="salespersonName"/>
+        <result column="current_salesperson_level_name" property="currentSalespersonLevelName"/>
+        <result column="current_salesperson_level_rate" property="currentSalespersonLevelRate"/>
+        <result column="current_parent_level_name" property="currentParentLevelName"/>
+        <result column="current_parent_level_rate" property="currentParentLevelRate"/>
+
+        <result column="amount" property="salesAmount"/>
+        <result column="exchange_rate" property="exchangeRate"/>
+        <result column="fall_amount" property="fallAmount"/>
+
+        <result column="commission_type" property="commissionType"/>
+        <result column="fall_amount" property="fallAmount"/>
+        <result column="commission_rate" property="commissionRate"/>
+        <result column="commission_amount" property="commissionAmount"/>
+
+        <!-- 物料明细集合 -->
+        <collection property="materialItems" ofType="net.lab1024.sa.admin.module.vigorous.receivables.domain.entity.ReceivablesDetailsEntity" javaType="java.util.ArrayList">
+            <result column="material_name" property="materialName"/>
+            <result column="sale_unit" property="saleUnit"/>
+            <result column="sale_quantity" property="saleQuantity"/>
+        </collection>
+    </resultMap>
+
+    <select id="queryPageWithMaterial" resultMap="CommissionRecordWithMaterialMap">
+        SELECT
+        <include refid="base_columns"/>,
+        vc.customer_name,
+        vc.customer_code,
+        vc.first_order_date,
+        vc.adjusted_first_order_date,
+        vc.transfer_status as is_transfer,
+        vso.amount,
+        vso_order.order_type,
+        vrd.material_name,
+        vrd.sale_unit,
+        vrd.sale_quantity
+        FROM v_commission_record
+        left join v_customer vc on v_commission_record.customer_id = vc.customer_id
+        left join v_sales_outbound vso on v_commission_record.sales_bill_no = vso.bill_no
+        left join v_sales_order vso_order on vso_order.bill_no = v_commission_record.sales_order_bill_no
+        LEFT JOIN v_receivables_details vrd ON v_commission_record.receive_bill_no = vrd.origin_bill_no
+        <where>
+            <if test="queryForm != null and queryForm.isContainsMaterial != null and queryForm.isContainsMaterial">
+                AND (
+                (vso_order.order_type != '整车订单')
+                OR (vso_order.order_type = '整车订单' AND vrd.sale_unit = '辆')
+                )
+            </if>
+            <!--业务员-->
+            <if test="queryForm.salespersonId != null">
+                AND v_commission_record.salesperson_id = #{queryForm.salespersonId}
+            </if>
+            <!--客户名称-->
+            <if test="queryForm.customerName != null and queryForm.customerName != ''">
+                AND INSTR(vc.customer_name,#{queryForm.customerName})
+            </if>
+            <if test="queryForm.isCustomsDeclaration != null and queryForm.isCustomsDeclaration != ''">
+                AND v_commission_record.is_customs_declaration = #{queryForm.isCustomsDeclaration}
+            </if>
+            <!--销售出库日期-->
+            <if test="queryForm.orderDateBegin != null">
+                AND v_commission_record.order_date &gt;= #{queryForm.orderDateBegin}
+            </if>
+            <if test="queryForm.orderDateEnd != null">
+                AND v_commission_record.order_date &lt;= #{queryForm.orderDateEnd}
+            </if>
+            <if test="queryForm.commissionType != null">
+                AND v_commission_record.commission_type = #{queryForm.commissionType}
+            </if>
+            <if test="queryForm.salesBillNo != null">
+                AND INSTR(v_commission_record.sales_bill_no,#{queryForm.salesBillNo})
+            </if>
+            <if test="queryForm.filterDateList != null and queryForm.filterDateList.size() > 0">
+                And
+                <foreach collection="queryForm.filterDateList" item="dateVO" index="index" open="(" close=")" separator="OR">
+                    <if test="dateVO.startDate != null and dateVO.endDate != null">
+                        order_date BETWEEN #{dateVO.startDate} AND #{dateVO.endDate}
+                    </if>
+                </foreach>
+            </if>
+        </where>
+        order by v_commission_record.order_date desc, v_commission_record.sales_bill_no
+    </select>
+
+
 </mapper>

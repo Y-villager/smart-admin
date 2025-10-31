@@ -24,8 +24,11 @@
       <a-form-item label="是否报关" class="smart-query-form-item">
         <SmartEnumSelect enum-name="SYSTEM_YES_NO" placeholder="是否报关" v-model:value="queryForm.isCustomsDeclaration" width="160px" />
       </a-form-item>
-      <a-form-item label="销售出库日期" class="smart-query-form-item">
+      <a-form-item label="订单日期" class="smart-query-form-item">
         <a-range-picker v-model:value="queryForm.orderDate" :presets="defaultTimeRanges" style="width: 260px" @change="onChangeOrderDate" />
+      </a-form-item>
+      <a-form-item label="出库日期" class="smart-query-form-item">
+        <a-range-picker v-model:value="queryForm.outboundDate" :presets="defaultTimeRanges" style="width: 260px" @change="onChangeOutboundDate" />
       </a-form-item>
 
       <a-form-item class="smart-query-form-item">
@@ -99,7 +102,7 @@
         @ok="handleExport"
         @cancel="cancelExport"
         :width="400">
-      <a-radio-group v-model:value="exportType" style="display: flex; flex-direction: column; gap: 12px">
+      <a-radio-group v-model:value="exportType" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px">
         <a-radio value="type">
           <span style="font-weight: 500">按提成类别导出</span>
         </a-radio>
@@ -107,6 +110,18 @@
           <span style="font-weight: 500">按业务员导出</span>
         </a-radio>
       </a-radio-group>
+      <!-- 物料明细选择 -->
+      <div>
+        <div style="margin-bottom: 8px; font-weight: 600; font-size: 14px;">导出内容</div>
+        <a-radio-group v-model:value="queryForm.isContainsMaterial" style="display: flex; flex-direction: column; gap: 12px">
+          <a-radio value="true">
+            <span>包含物料明细</span>
+          </a-radio>
+          <a-radio value="false">
+            <span>不包含物料明细</span>
+          </a-radio>
+        </a-radio-group>
+      </div>
     </a-modal>
 
     <!---------- 表格 begin ----------->
@@ -229,19 +244,19 @@
 
   const columns = ref([
     {
-      title: '销售订单-单据编号',
+      title: '销售订单',
       dataIndex: 'salesOrderBillNo',
       ellipsis: true,
       width: '110px'
     },
     {
-      title: '销售日期',
+      title: '订单日期',
       dataIndex: 'orderDate',
       ellipsis: true,
       width: '110px'
     },
     {
-      title: '销售出库-单据编号',
+      title: '销售出库',
       dataIndex: 'salesBillNo',
       ellipsis: true,
       width: '110px'
@@ -358,10 +373,14 @@
     customerName: undefined, //客户名称
     isCustomsDeclaration: undefined, //客户名称
     commissionType: undefined, //提成类别
-    orderDate: [], //销售出库日期
-    orderDateBegin: undefined, //销售出库日期 开始
-    orderDateEnd: undefined, //销售出库日期 结束
+    orderDate: [], //销售日期
+    orderDateBegin: undefined, //销售日期 开始
+    orderDateEnd: undefined, //销售日期 结束
+    outboundDate: [], // 出库日期
+    outboundDateBegin: undefined, // 出库日期 开始
+    outboundDateEnd: undefined, // 出库日期 结束
     filterDateList: [],
+    isContainsMaterial: false, // 是否包含物料明细
     pageNum: 1,
     pageSize: 10,
   };
@@ -461,6 +480,12 @@
     queryForm.orderDateBegin = dateStrings[0];
     queryForm.orderDateEnd = dateStrings[1];
   }
+
+  function onChangeOutboundDate(dates, dateStrings) {
+    queryForm.outboundDateBegin = dateStrings[0];
+    queryForm.outboundDateEnd = dateStrings[1];
+  }
+
 
 
   onMounted(queryData);

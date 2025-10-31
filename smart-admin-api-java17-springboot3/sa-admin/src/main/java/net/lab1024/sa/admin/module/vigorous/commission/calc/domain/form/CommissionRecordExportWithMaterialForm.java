@@ -2,6 +2,7 @@ package net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form;
 
 import com.alibaba.excel.annotation.ExcelIgnore;
 import com.alibaba.excel.annotation.ExcelProperty;
+import com.alibaba.excel.annotation.write.style.ColumnWidth;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,22 +24,38 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 @Builder
-public class CommissionRecordExportForm {
+public class CommissionRecordExportWithMaterialForm {
 
     @ExcelProperty("提成类别")
     private String commissionType;
 
-    @ExcelProperty("业务日期")
-    private LocalDate orderDate;
-
     @ExcelProperty("销售订单")
+    @ColumnWidth(12)
     private String salesOrderBillNo;
 
+    @ExcelProperty("订单日期")
+    @ColumnWidth(12)
+    private LocalDate orderDate;
+
+    @ExcelProperty("订单类型")
+    @ColumnWidth(18)
+    private String orderType;
+
     @ExcelProperty("销售出库-单据编号")
+    @ColumnWidth(12)
+    @ExcelIgnore
     private String salesBillNo;
 
     @ExcelProperty("应收单-单据编号")
-    private String receiveBillNo;
+    @ColumnWidth(12)
+    private String receivablesNo;
+
+    @ExcelProperty("物料名称")
+    private String materialName;
+    @ExcelProperty("销售单位")
+    private String saleUnit;
+    @ExcelProperty("销售数量")
+    private Integer salesQuantity;
 
     @ExcelProperty("销售员id")
     @ExcelIgnore
@@ -78,9 +95,6 @@ public class CommissionRecordExportForm {
     @ExcelProperty("调整后-首单日期")
     private LocalDate adjustedFirstOrderDate;
 
-    @ExcelProperty("客户合作年份")
-    private Integer customerYear ;
-
     @ExcelProperty("客户年份系数")
     private BigDecimal customerYearRate ;
 
@@ -108,11 +122,9 @@ public class CommissionRecordExportForm {
     @ExcelProperty("提成金额(人民币)")
     private BigDecimal commissionAmount;
 
-    @ExcelProperty
-    @ExcelIgnore
-    private String orderType;
 
-//    @ExcelIgnore
+
+    @ExcelIgnore
     private List<ReceivablesDetailsEntity> materialItems;
 
 }

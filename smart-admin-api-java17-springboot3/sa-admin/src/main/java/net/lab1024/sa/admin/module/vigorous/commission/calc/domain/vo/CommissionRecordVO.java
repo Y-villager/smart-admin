@@ -7,10 +7,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import net.lab1024.sa.admin.module.vigorous.receivables.domain.entity.ReceivablesDetailsEntity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 业务提成记录 列表VO
@@ -33,6 +35,9 @@ public class CommissionRecordVO {
 
     @Schema(description = "销售订单-单据编号")
     private String salesOrderBillNo;
+
+    @Schema(description = "订单-单据类型")
+    private String orderType;
 
     @Schema(description = "销售日期")
     private LocalDate orderDate;
@@ -133,5 +138,7 @@ public class CommissionRecordVO {
 
     @Schema(description = "备注")
     private String remark;
+
+    private List<ReceivablesDetailsEntity> materialItems;
 
 }

@@ -32,4 +32,19 @@ public enum CommissionTypeEnum implements BaseEnum {
         }
         return null; // 如果没有找到对应的 value，返回 null 或者可以抛出异常
     }
+
+    /**
+     * 根据 desc 获取对应的 value
+     */
+    public static Integer getValueByDesc(String desc) {
+        for (CommissionTypeEnum type : values()) {
+            if (type.getDesc().equals(desc)) {
+                return type.getValue();
+            }
+        }
+        return null;
+    }
+
+
+
 }
