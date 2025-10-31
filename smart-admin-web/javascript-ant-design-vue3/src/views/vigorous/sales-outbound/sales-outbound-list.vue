@@ -276,6 +276,11 @@
       dataIndex: 'salesBoundDate',
     },
     {
+      title: '源单编号',
+      dataIndex: 'originBillNo',
+      width: '150px'
+    },
+    {
       title: '客户名称',
       dataIndex: 'customerName',
       width: '200px',

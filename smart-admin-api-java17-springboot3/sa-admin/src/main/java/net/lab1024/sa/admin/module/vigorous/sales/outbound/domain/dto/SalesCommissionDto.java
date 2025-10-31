@@ -18,6 +18,12 @@ public class SalesCommissionDto {
 
     private Long salesOutboundId;
 
+    @Schema(description = "销售订单-单据编号")
+    private String salesOrderBillNo;
+
+    @Schema(description = "发货通知单-单据编号")
+    private String fSalesBillNo;
+
     @Schema(description = "销售出库-单据编号")
     private String salesBillNo;
 
@@ -30,7 +36,7 @@ public class SalesCommissionDto {
     @Schema(description = "应收币别")
     private String currencyType;
 
-    @Schema(description = "销售出库-单据编号")
+    @Schema(description = "应收单-单据编号")
     private String receiveBillNo;
 
     private String receiveRate;

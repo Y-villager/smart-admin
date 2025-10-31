@@ -29,6 +29,9 @@ public class SalesOutboundVO {
     @Schema(description = "单据编号")
     private String billNo;
 
+    @Schema(description = "单据编号")
+    private String originBillNo;
+
     @Schema(description = "出库日期")
     private LocalDate salesBoundDate;
 
@@ -57,7 +60,6 @@ public class SalesOutboundVO {
     private Integer salespersonLevelId;
     @Schema(description = "级别提成基准")
     private BigDecimal commissionRate;
-
 
     @Schema(description = "金额")
     private BigDecimal amount;

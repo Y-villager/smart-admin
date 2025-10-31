@@ -31,14 +31,23 @@ public class CommissionRecordVO {
     // 销售出库id
     private Long salesOutboundId;
 
+    @Schema(description = "销售订单-单据编号")
+    private String salesOrderBillNo;
+
+    @Schema(description = "销售日期")
+    private LocalDate orderDate;
+
+    @Schema(description = "发货通知单-单据编号")
+    private String fSalesBillNo;
+
     @Schema(description = "销售出库-单据编号")
     private String salesBillNo;
 
+    @Schema(description = "出库日期")
+    private LocalDate outboundDate;
+
     @Schema(description = "应收单-单据编号")
     private String receiveBillNo;
-
-    @Schema(description = "销售出库日期/业务日期")
-    private LocalDate orderDate;
 
     @Schema(description = "业务员id")
     private Long salespersonId;

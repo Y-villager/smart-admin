@@ -206,7 +206,7 @@ public class SalesOutboundService {
             }
         } else {  // 覆盖
             // 执行批量更新操作
-            successTotal = batchUtils.doThreadInsertOrUpdate(entityList, salesOutboundDao, "batchUpdate");
+            successTotal = batchUtils.doThreadInsertOrUpdate(entityList, salesOutboundDao, "batchUpdate", true);
         }
 
         String failedDataPath = null;
@@ -321,6 +321,8 @@ public class SalesOutboundService {
         return salesCommissionDtos.parallelStream()
                 .map(e -> SalesCommissionExportForm.builder()
                         .orderDate(e.getOrderDate())
+                        .salesOrderBillNo(e.getSalesOrderBillNo())
+                        .fSalesBillNo(e.getFSalesBillNo())
                         .salesBillNo(e.getSalesBillNo())
                         .receiveBillNo(e.getReceiveBillNo())
                         .salesAmount(e.getSalesAmount())

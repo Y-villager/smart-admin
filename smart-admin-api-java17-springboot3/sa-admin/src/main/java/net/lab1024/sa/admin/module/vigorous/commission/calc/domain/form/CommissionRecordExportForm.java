@@ -29,6 +29,9 @@ public class CommissionRecordExportForm {
     @ExcelProperty("业务日期")
     private LocalDate orderDate;
 
+    @ExcelProperty("销售订单")
+    private String salesOrderBillNo;
+
     @ExcelProperty("销售出库-单据编号")
     private String salesBillNo;
 

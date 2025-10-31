@@ -5,9 +5,12 @@
     <!-- 查询结果列 -->
     <sql id="base_columns">
         v_commission_record.commission_id,
+        v_commission_record.sales_order_bill_no,
         v_commission_record.order_date,
-        v_commission_record.receive_bill_no,
+        v_commission_record.f_sales_bill_no,
         v_commission_record.sales_bill_no,
+        v_commission_record.outbound_date,
+        v_commission_record.receive_bill_no,
         v_commission_record.customer_id,
         v_commission_record.salesperson_id,
         v_commission_record.salesperson_name,

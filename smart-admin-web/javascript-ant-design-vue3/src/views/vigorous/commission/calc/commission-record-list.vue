@@ -229,14 +229,26 @@
 
   const columns = ref([
     {
+      title: '销售订单-单据编号',
+      dataIndex: 'salesOrderBillNo',
+      ellipsis: true,
+      width: '110px'
+    },
+    {
+      title: '销售日期',
+      dataIndex: 'orderDate',
+      ellipsis: true,
+      width: '110px'
+    },
+    {
       title: '销售出库-单据编号',
       dataIndex: 'salesBillNo',
       ellipsis: true,
       width: '110px'
     },
     {
-      title: '业务日期',
-      dataIndex: 'orderDate',
+      title: '出库日期',
+      dataIndex: 'outboundDate',
       ellipsis: true,
       width: '100px'
     },

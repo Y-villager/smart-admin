@@ -32,6 +32,17 @@ public class CommissionRecordEntity {
     private LocalDate orderDate;
 
     /**
+     * 销售订单
+     */
+    private String salesOrderBillNo;
+
+    /**
+     * 发货通知单
+     */
+    private String fSalesBillNo;
+
+
+    /**
      * 销售出库-单据编号
      */
     private String salesBillNo;

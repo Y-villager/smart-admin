@@ -14,6 +14,12 @@ public class SalesCommissionExportForm {
     @ExcelProperty("出库单日期")
     private LocalDate orderDate;
 
+    @ExcelProperty("销售订单-单据编号")
+    private String salesOrderBillNo;
+
+    @ExcelProperty("发货通知单-单据编号")
+    private String fSalesBillNo;
+
     @ExcelProperty("销售出库-单据编号")
     private String salesBillNo;
 
