@@ -58,8 +58,11 @@
         FROM v_sales_order
         <where>
             <!--单据日期-->
-            <if test="queryForm.orderDate != null">
-                AND v_sales_order.order_date = #{queryForm.orderDate}
+            <if test="queryForm.orderDateBegin != null">
+                AND v_sales_order.order_date &gt;= #{queryForm.orderDateBegin}
+            </if>
+            <if test="queryForm.orderDateEnd != null">
+                AND v_sales_order.order_date &lt;= #{queryForm.orderDateEnd}
             </if>
             <!--客户编码-->
             <if test="queryForm.customerCode != null and queryForm.customerCode != ''">

@@ -1,10 +1,11 @@
 package net.lab1024.sa.admin.module.vigorous.sales.order.domain.form;
 
-import net.lab1024.sa.base.common.domain.PageParam;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.time.LocalDate;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import net.lab1024.sa.base.common.domain.PageParam;
+
+import java.time.LocalDate;
 
 /**
  * 销售订单表 分页查询表单
@@ -18,8 +19,11 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 public class SalesOrderQueryForm extends PageParam {
 
-    @Schema(description = "单据日期")
-    private LocalDate orderDate;
+    @Schema(description = "单据日期开始")
+    private LocalDate orderDateBegin;
+
+    @Schema(description = "单据日期结束")
+    private LocalDate orderDateEnd;
 
     @Schema(description = "客户编码")
     private String customerCode;

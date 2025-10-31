@@ -10,7 +10,7 @@
     <a-form class="smart-query-form">
         <a-row class="smart-query-form-row">
             <a-form-item label="单据日期" class="smart-query-form-item">
-                <a-date-picker valueFormat="YYYY-MM-DD" v-model:value="queryForm.orderDate" style="width: 200px" />
+              <a-range-picker v-model:value="queryForm.orderDate" :presets="defaultTimeRanges" style="width: 220px" @change="onChangeOrderDate" />
             </a-form-item>
             <a-form-item label="客户编码" class="smart-query-form-item">
                 <a-input style="width: 200px" v-model:value="queryForm.customerCode" placeholder="客户编码" />
@@ -179,6 +179,7 @@
     import {excelApi} from "/@/api/vigorous/excel-api.js";
 
     import SalesOrderForm from './sales-order-form.vue';
+    import { defaultTimeRanges } from '/@/lib/default-time-ranges';
     //import FilePreview from '/@/components/support/file-preview/index.vue'; // 图片预览组件
 
     // ---------------------------- 表格列 ----------------------------
@@ -245,7 +246,9 @@
     // ---------------------------- 查询数据表单和方法 ----------------------------
 
     const queryFormState = {
-        orderDate: undefined, //单据日期
+        orderDate: undefined,
+        orderDateBegin: undefined, //单据日期-开始
+        orderDateEnd: undefined, //单据日期-结束
         customerCode: undefined, //客户编码
         salespersonCode: undefined, //业务员
         pageNum: 1,
@@ -443,4 +446,11 @@ function downloadFailedData(){
     message.error("当前没有导入失败数据")
   }
 }
+
+// 日期范围修改
+    // ---------------------出库日期选择 事件--------------------------
+    function onChangeOrderDate(dates, dateStrings) {
+      queryForm.orderDateBegin = dateStrings[0];
+      queryForm.orderDateEnd = dateStrings[1];
+    }
 </script>

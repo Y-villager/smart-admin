@@ -22,7 +22,7 @@ public class FSalesQueryForm extends PageParam {
     @Schema(description = "单据日期")
     private LocalDate billDate;
 
-    @Schema(description = "单据日期")
+    @Schema(description = "单据编号")
     private String billNo;
 
     @Schema(description = "业务员编码")
