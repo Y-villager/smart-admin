@@ -142,8 +142,26 @@
             left join v_sales_outbound vso on v_commission_record.sales_bill_no = vso.bill_no
         <where>
             <!--业务员-->
-            <if test="queryForm.salespersonId != null">
+            <if test="queryForm.salespersonId != null and queryForm.commissionType == null">
+                AND (
+                -- 条件1：业务员自身记录（所有提成类型）
+                v_commission_record.salesperson_id = #{queryForm.salespersonId}
+
+                OR
+
+                -- 条件2：管理提成记录（上级为当前业务员）
+                (
+                v_commission_record.current_parent_id = #{queryForm.salespersonId}
+                AND
+                v_commission_record.commission_type = 2  <!-- 2代表管理提成 -->
+                )
+                )
+            </if>
+            <if test="queryForm.commissionType == 1">
                 AND v_commission_record.salesperson_id = #{queryForm.salespersonId}
+            </if>
+            <if test="queryForm.commissionType == 2">
+                AND v_commission_record.current_parent_id = #{queryForm.salespersonId}
             </if>
             <!--客户名称-->
             <if test="queryForm.customerName != null and queryForm.customerName != ''">
@@ -152,7 +170,7 @@
             <if test="queryForm.isCustomsDeclaration != null and queryForm.isCustomsDeclaration != ''">
                 AND v_commission_record.is_customs_declaration = #{queryForm.isCustomsDeclaration}
             </if>
-            <!--销售出库日期-->
+            <!--销售订单日期-->
             <if test="queryForm.orderDateBegin != null">
                 AND v_commission_record.order_date &gt;= #{queryForm.orderDateBegin}
             </if>
@@ -163,7 +181,7 @@
                 AND v_commission_record.commission_type = #{queryForm.commissionType}
             </if>
             <if test="queryForm.salesBillNo != null">
-                AND INSTR(v_commission_record.sales_bill_no,#{queryForm.salesBillNo})
+                AND INSTR(v_commission_record.sales_order_bill_no,#{queryForm.salesBillNo})
             </if>
             <if test="queryForm.filterDateList != null and queryForm.filterDateList.size() > 0">
                 And
@@ -185,7 +203,7 @@
         <result column="order_date" property="orderDate"/>
         <result column="order_type" property="orderType"/>
 
-<!--        <result column="receive_bill_no" property="receiveBillNo"/>-->
+        <result column="receive_bill_no" property="receiveBillNo"/>
         <result column="sales_bill_no" property="salesBillNo"/>
         <result column="currency_type" property="currencyType"/>
 
@@ -200,6 +218,9 @@
         <result column="salesperson_name" property="salespersonName"/>
         <result column="current_salesperson_level_name" property="currentSalespersonLevelName"/>
         <result column="current_salesperson_level_rate" property="currentSalespersonLevelRate"/>
+        <result column="current_parent_id" property="currentParentId"/>
+        <result column="current_parent_name" property="currentParentName"/>
+        <result column="current_parent_level_name" property="currentParentLevelName"/>
         <result column="current_parent_level_name" property="currentParentLevelName"/>
         <result column="current_parent_level_rate" property="currentParentLevelRate"/>
 
@@ -239,12 +260,6 @@
         left join v_sales_order vso_order on vso_order.bill_no = v_commission_record.sales_order_bill_no
         LEFT JOIN v_receivables_details vrd ON v_commission_record.receive_bill_no = vrd.origin_bill_no
         <where>
-            <if test="queryForm != null and queryForm.isContainsMaterial != null and queryForm.isContainsMaterial">
-                AND (
-                (vso_order.order_type != '整车订单')
-                OR (vso_order.order_type = '整车订单' AND vrd.sale_unit = '辆')
-                )
-            </if>
             <!--业务员-->
             <if test="queryForm.salespersonId != null">
                 AND v_commission_record.salesperson_id = #{queryForm.salespersonId}

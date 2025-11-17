@@ -21,6 +21,9 @@
             <a-form-item label="客户编码" class="smart-query-form-item">
                 <a-input style="width: 200px" v-model:value="queryForm.customerCode" placeholder="客户编码" />
             </a-form-item>
+          <a-form-item label="源单编号" class="smart-query-form-item">
+            <a-input style="width: 200px" v-model:value="queryForm.originBillNo" placeholder="客户编码" />
+          </a-form-item>
             <a-form-item class="smart-query-form-item">
                 <a-button type="primary" @click="onSearch" v-privilege="'fSales:query'">
                     <template #icon>
@@ -237,6 +240,7 @@
         billNo: undefined, //单据日期
         salespersonCode: undefined, //业务员编码
         customerCode: undefined, //客户编码
+        originBillNo:  undefined,
         pageNum: 1,
         pageSize: 10,
     };

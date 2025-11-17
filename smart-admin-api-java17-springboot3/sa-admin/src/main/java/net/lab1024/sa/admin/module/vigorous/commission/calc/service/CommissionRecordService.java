@@ -4,6 +4,7 @@ import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
 import net.lab1024.sa.admin.enumeration.CommissionTypeEnum;
+import net.lab1024.sa.admin.enumeration.OrderTypeEnum;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.dao.CommissionRecordDao;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.entity.CommissionRecordEntity;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form.*;
@@ -402,11 +403,27 @@ public class CommissionRecordService {
                 CommissionRecordExportWithMaterialForm vo = convertToMaterialVO(record, null, true);
                 resultList.add(vo);
             } else {
-                for (int i = 0; i < materialDetails.size(); i++) {
-                    boolean showBaseData = (i == 0);
-                    ReceivablesDetailsEntity material = materialDetails.get(i);
-                    CommissionRecordExportWithMaterialForm vo = convertToMaterialVO(record, material, showBaseData);
+                if (record.getOrderType().equals(OrderTypeEnum.ACCESSORY_SALE.getDisplayName())){ // 配件订单
+                    ReceivablesDetailsEntity material = new ReceivablesDetailsEntity();
+                    material.setMaterialName("配件总数");
+                    // 统计总数量
+                    int totalQuantity = materialDetails.stream()
+                            .mapToInt(ReceivablesDetailsEntity::getSaleQuantity)
+                            .sum();
+
+                    material.setSaleQuantity(totalQuantity);
+
+                    CommissionRecordExportWithMaterialForm vo = convertToMaterialVO(record, material, true);
+
                     resultList.add(vo);
+                }
+                else { // 整车订单 和 其他
+                    for (int i = 0; i < materialDetails.size(); i++) {
+                        boolean showBaseData = (i == 0);
+                        ReceivablesDetailsEntity material = materialDetails.get(i);
+                        CommissionRecordExportWithMaterialForm vo = convertToMaterialVO(record, material, showBaseData);
+                        resultList.add(vo);
+                    }
                 }
             }
         }
@@ -426,6 +443,10 @@ public class CommissionRecordService {
         vo.setSalespersonId(record.getSalespersonId());
         vo.setSalespersonName(record.getSalespersonName());
 
+        vo.setCurrentParentId(record.getCurrentParentId());
+        vo.setCurrentParentName(record.getCurrentParentName());
+
+
         if (showBaseData) {// 设置基础数据
             // 单据
             vo.setSalesOrderBillNo(record.getSalesOrderBillNo());
@@ -433,11 +454,11 @@ public class CommissionRecordService {
             vo.setOrderType(record.getOrderType());
 
             vo.setSalesBillNo(record.getSalesBillNo());
+            vo.setReceivablesNo(record.getReceiveBillNo());
 
             // 业务员
             vo.setSalespersonLevelName(record.getSalespersonLevelName());
             vo.setSalespersonLevelRate(record.getSalespersonLevelRate());
-            vo.setCurrentParentName(record.getCurrentParentName());
             vo.setCurrentParentLevelName(record.getCurrentParentLevelName());
             vo.setCurrentParentLevelRate(record.getCurrentParentLevelRate());
 

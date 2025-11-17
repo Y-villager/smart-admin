@@ -12,7 +12,7 @@
       <a-form-item label="单据编号" class="smart-query-form-item">
         <a-input style="width: 200px" v-model:value="queryForm.salesBillNo" placeholder="销售出库-单据编号" />
       </a-form-item>
-      <a-form-item label="业务员" class="smart-query-form-item">
+      <a-form-item label="相关业务员" class="smart-query-form-item">
         <salesperson-select width="200px" v-model:value="queryForm.salespersonId" placeholder="业务员"/>
       </a-form-item>
       <a-form-item label="客户名称" class="smart-query-form-item">

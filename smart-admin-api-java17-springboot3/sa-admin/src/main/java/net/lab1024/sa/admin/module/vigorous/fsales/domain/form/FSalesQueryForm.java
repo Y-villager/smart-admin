@@ -31,4 +31,7 @@ public class FSalesQueryForm extends PageParam {
     @Schema(description = "客户编码")
     private String customerCode;
 
+    @Schema(description = "源单编号")
+    private String originBillNo;
+
 }

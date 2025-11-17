@@ -43,7 +43,6 @@ public class CommissionRecordExportWithMaterialForm {
 
     @ExcelProperty("销售出库-单据编号")
     @ColumnWidth(12)
-    @ExcelIgnore
     private String salesBillNo;
 
     @ExcelProperty("应收单-单据编号")
@@ -121,8 +120,6 @@ public class CommissionRecordExportWithMaterialForm {
 
     @ExcelProperty("提成金额(人民币)")
     private BigDecimal commissionAmount;
-
-
 
     @ExcelIgnore
     private List<ReceivablesDetailsEntity> materialItems;

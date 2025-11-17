@@ -20,3 +20,6 @@ server:
 spring:
   profiles:
     active: '@profiles.active@'
+  # 显示SQL语句
+  jpa:
+    show-sql: true

@@ -26,6 +26,9 @@ public class SalesOutboundQueryForm extends PageParam {
     @Schema(description = "单据编号")
     private String billNo;
 
+    @Schema(description = "源单编号")
+    private String originBillNo;
+
     @Schema(description = "客户名称")
     private String customerName;
 

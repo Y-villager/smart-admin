@@ -61,6 +61,10 @@
             <if test="queryForm.customerCode != null and queryForm.customerCode != ''">
                         AND INSTR(v_f_sales.customer_code,#{queryForm.customerCode})
             </if>
+            <!--源单编号-->
+            <if test="queryForm.originBillNo != null and queryForm.originBillNo != ''">
+                AND INSTR(v_f_sales.origin_bill_no,#{queryForm.originBillNo})
+            </if>
         </where>
     </select>
 
