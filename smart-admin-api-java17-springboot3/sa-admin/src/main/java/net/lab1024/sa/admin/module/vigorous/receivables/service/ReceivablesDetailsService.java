@@ -1,23 +1,37 @@
 package net.lab1024.sa.admin.module.vigorous.receivables.service;
 
+import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
 import net.lab1024.sa.admin.module.vigorous.receivables.dao.ReceivablesDetailsDao;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.entity.ReceivablesDetailsEntity;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.form.ReceivablesDetailsAddForm;
+import net.lab1024.sa.admin.module.vigorous.receivables.domain.form.ReceivablesDetailsImportForm;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.form.ReceivablesDetailsQueryForm;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.form.ReceivablesDetailsUpdateForm;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.vo.ReceivablesDetailsVO;
 import net.lab1024.sa.admin.util.BatchUtils;
+import net.lab1024.sa.admin.util.ExcelUtils;
+import net.lab1024.sa.base.common.code.SystemErrorCode;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
+import net.lab1024.sa.base.common.exception.BusinessException;
 import net.lab1024.sa.base.common.util.SmartBeanUtil;
 import net.lab1024.sa.base.common.util.SmartPageUtil;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.ibatis.executor.BatchResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static cn.dev33.satoken.SaManager.log;
 
 
 /**
@@ -102,17 +116,103 @@ public class ReceivablesDetailsService {
      * 需要修改
      */
     public List<ReceivablesDetailsVO> exportReceivablesDetails(ReceivablesDetailsQueryForm queryForm) {
-        //List<ReceivablesDetailsVO> entityList = receivablesDetailsDao.selectList(null);
         List<ReceivablesDetailsVO> entityList = receivablesDetailsDao.queryPage(null,queryForm);
-//        return entityList.stream()
-//                .map(e ->
-//                        ReceivablesDetailsVO.builder()
-//                                .build()
-//                )
-//                .collect(Collectors.toList());
-        return null;
-
+        return entityList.stream()
+                .map(e ->
+                        ReceivablesDetailsVO.builder()
+                                .originBillNo(e.getOriginBillNo())
+                                .materialCode(e.getMaterialCode())
+                                .materialName(e.getMaterialName())
+                                .serialBatch(e.getSerialBatch())
+                                .saleUnit(e.getSaleUnit())
+                                .saleQuantity(e.getSaleQuantity())
+                                .build()
+                )
+                .collect(Collectors.toList());
     }
 
 
+    public ResponseDTO<String> importReceivablesDetails(MultipartFile file, Boolean mode) {
+        List<ReceivablesDetailsImportForm> dataList;
+        List<ReceivablesDetailsImportForm> failedDataList = Collections.synchronizedList(new ArrayList<>());
+
+        try {
+            dataList = EasyExcel.read(file.getInputStream()).head(ReceivablesDetailsImportForm.class)
+                    .sheet()
+                    .doReadSync();
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+            throw new BusinessException("数据格式存在问题，无法读取");
+        }
+
+        if (CollectionUtils.isEmpty(dataList)) {
+            return ResponseDTO.userErrorParam("数据为空");
+        }
+
+        List<ReceivablesDetailsEntity> entityList = createImportList(dataList, failedDataList, mode);
+
+        int successTotal = 0;
+        if(entityList != null && !entityList.isEmpty()){
+            if (mode) {  // 追加
+                // 批量插入操作
+                List<BatchResult> insert = receivablesDetailsDao.insert(entityList);
+                for (BatchResult batchResult : insert) {
+                    successTotal += batchResult.getParameterObjects().size();
+                }
+            } else {  // 覆盖
+                // 执行批量更新操作
+                successTotal = batchUtils.doThreadInsertOrUpdate(entityList, receivablesDetailsDao, "batchUpdate", true);
+                if (successTotal != entityList.size()) {
+                    return ResponseDTO.error(SystemErrorCode.SYSTEM_ERROR, "系统出错，请联系管理员。");
+                }
+            }
+        }
+
+        String failed_data_path=null;
+        if (!failedDataList.isEmpty()) {
+            // 创建并保存失败的数据文件
+            failed_data_path = ExcelUtils.saveFailedDataToExcel(failedDataList, ReceivablesDetailsImportForm.class);
+        }
+
+        // 如果有失败的数据，导出失败记录到 Excel
+        return ResponseDTO.okMsg("总共"+dataList.size()+"条数据，成功导入" + successTotal + "条，导入失败记录有："+failedDataList.size()+"条", failed_data_path );
+
+    }
+
+    // 生成导入列表
+    private List<ReceivablesDetailsEntity> createImportList(List<ReceivablesDetailsImportForm> dataList,
+                                                    List<ReceivablesDetailsImportForm> failedDataList,
+                                                    boolean mode) {
+        // 应收物料明细
+        List<ReceivablesDetailsEntity> entityList = new ArrayList<>();
+
+        for (ReceivablesDetailsImportForm importForm : dataList) {
+            if (importForm.getOriginBillNo()==null || importForm.getMaterialCode()==null){
+                importForm.setErrorMsg("缺少相关数据");
+                failedDataList.add(importForm);
+                continue;
+            }
+            ReceivablesDetailsEntity entity = convertToEntity(importForm);
+            entityList.add(entity);
+        }
+
+        return entityList;
+    }
+
+    private ReceivablesDetailsEntity convertToEntity(ReceivablesDetailsImportForm form) {
+        ReceivablesDetailsEntity entity = new ReceivablesDetailsEntity();
+
+        entity.setOriginBillNo(form.getOriginBillNo().trim()); // 源单
+        entity.setMaterialCode(form.getMaterialCode());  // 物料编码
+        entity.setMaterialName(form.getMaterialName());  // 物料编码
+        entity.setSerialNum(form.getSerialNum());  // 序号
+        entity.setSaleUnit(form.getSaleUnit());         // 单位
+        entity.setSaleQuantity(form.getSaleQuantity()); // 数量
+
+        // 系统字段
+        entity.setCreateTime(LocalDateTime.now());
+        entity.setUpdateTime(LocalDateTime.now());
+
+        return entity;
+    }
 }

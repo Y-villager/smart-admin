@@ -5,11 +5,12 @@
     <!-- 查询结果列 -->
     <sql id="base_columns">
         v_receivables_details.id,
+        v_receivables_details.origin_bill_no,
         v_receivables_details.material_code,
         v_receivables_details.material_name,
+        v_receivables_details.serial_num,
         v_receivables_details.sale_unit,
         v_receivables_details.sale_quantity,
-        v_receivables_details.origin_bill_no,
         v_receivables_details.create_time,
         v_receivables_details.update_time
     </sql>
@@ -39,6 +40,37 @@
         sale_quantity = VALUES(sale_quantity)
     </insert>
 
+    <!--   批量更新 /-->
+    <update id="batchUpdate">
+        <foreach collection="list" item="item" separator=";">
+            UPDATE v_receivables_details
+            SET
+            <trim suffixOverrides=",">
+                <if test="item.originBillNo != null and item.originBillNo != ''">
+                    origin_bill_no = #{item.originBillNo},
+                </if>
+                <if test="item.materialCode != null and item.materialCode != ''">
+                    material_code = #{item.materialCode},
+                </if>
+                <if test="item.materialName != null and item.materialName != ''">
+                    material_name = #{item.materialName},
+                </if>
+                <if test="item.serialNum != null">
+                    serial_num = #{item.serialNum},
+                </if>
+                <if test="item.saleUnit != null and item.saleUnit != ''">
+                    sale_unit = #{item.saleUnit},
+                </if>
+                <if test="item.saleQuantity != null">
+                    sale_quantity = #{item.saleQuantity},
+                </if>
+            </trim>
+            WHERE origin_bill_no = #{item.originBillNo}
+            AND material_code = #{item.materialCode}
+            And serial_num = #{item.serialNum}
+        </foreach>
+    </update>
+
     <!-- 分页查询 -->
     <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.receivables.domain.vo.ReceivablesDetailsVO">
         SELECT
@@ -47,9 +79,16 @@
         <where>
             <!--应收单-->
             <if test="queryForm.receivablesId != null and queryForm.receivablesId != ''">
-                        AND INSTR(v_receivables_details.origin_bill_no,#{queryForm.receivablesId})
+                AND INSTR(v_receivables_details.origin_bill_no,#{queryForm.receivablesId})
+            </if>
+            <if test="queryForm.materialCode != null and queryForm.materialCode != ''">
+                AND INSTR(v_receivables_details.material_code,#{queryForm.materialCode})
+            </if>
+            <if test="queryForm.materialName != null and queryForm.materialName != ''">
+                AND INSTR(v_receivables_details.material_name,#{queryForm.materialName})
             </if>
         </where>
+        order by origin_bill_no, material_code
     </select>
 
 

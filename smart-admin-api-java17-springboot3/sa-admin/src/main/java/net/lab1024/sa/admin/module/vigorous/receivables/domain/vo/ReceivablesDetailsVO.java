@@ -1,6 +1,7 @@
 package net.lab1024.sa.admin.module.vigorous.receivables.domain.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -14,11 +15,14 @@ import java.time.LocalDateTime;
  */
 
 @Data
+@Builder
 public class ReceivablesDetailsVO {
-
 
     @Schema(description = "主键")
     private Integer id;
+
+    @Schema(description = "应收单-单据编号")
+    private String originBillNo;
 
     @Schema(description = "物料编码")
     private String materialCode;
@@ -26,14 +30,15 @@ public class ReceivablesDetailsVO {
     @Schema(description = "物料名称")
     private String materialName;
 
+    @Schema(description = "批号")
+    private String serialBatch;
+
     @Schema(description = "销售单位")
     private String saleUnit;
 
     @Schema(description = "销售数量")
     private Integer saleQuantity;
 
-    @Schema(description = "应收单-单据编号")
-    private String originBillNo;
 
     @Schema(description = "创建日期")
     private LocalDateTime createTime;

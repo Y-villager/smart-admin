@@ -49,6 +49,11 @@ public class ReceivablesDetailsEntity {
     private String originBillNo;
 
     /**
+     * 序号
+     */
+    private Integer serialNum;
+
+    /**
      * 创建日期
      */
     @TableField(fill = FieldFill.INSERT)

@@ -207,13 +207,16 @@
         <result column="sales_bill_no" property="salesBillNo"/>
         <result column="currency_type" property="currencyType"/>
 
+        <!--  客户-->
         <result column="customer_code" property="customerCode"/>
         <result column="customer_name" property="customerName"/>
         <result column="first_order_date" property="firstOrderDate"/>
         <result column="adjusted_first_order_date" property="adjustedFirstOrderDate"/>
         <result column="is_customs_declaration" property="isCustomsDeclaration"/>
         <result column="is_transfer" property="isTransfer"/>
+        <result column="customer_year_rate" property="customerYearRate"/>
 
+        <!--    销售员    -->
         <result column="salesperson_id" property="salespersonId"/>
         <result column="salesperson_name" property="salespersonName"/>
         <result column="current_salesperson_level_name" property="currentSalespersonLevelName"/>

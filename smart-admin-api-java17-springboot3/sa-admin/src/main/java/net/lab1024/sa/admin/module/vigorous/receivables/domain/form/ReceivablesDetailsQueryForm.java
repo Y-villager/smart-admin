@@ -20,4 +20,10 @@ public class ReceivablesDetailsQueryForm extends PageParam {
     @Schema(description = "应收单")
     private String receivablesId;
 
+    @Schema(description = "物料编码")
+    private String materialCode;
+
+    @Schema(description = "物料名称")
+    private String materialName;
+
 }

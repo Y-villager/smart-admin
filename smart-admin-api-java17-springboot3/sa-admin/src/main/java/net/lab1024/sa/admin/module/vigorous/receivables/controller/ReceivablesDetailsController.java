@@ -4,6 +4,7 @@ import cn.dev33.satoken.annotation.SaCheckPermission;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.form.ReceivablesDetailsAddForm;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.form.ReceivablesDetailsQueryForm;
@@ -13,8 +14,12 @@ import net.lab1024.sa.admin.module.vigorous.receivables.service.ReceivablesDetai
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
 import net.lab1024.sa.base.common.domain.ValidateList;
+import net.lab1024.sa.base.common.util.SmartExcelUtil;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.List;
 
 /**
  * 应收明细表 Controller
@@ -71,16 +76,15 @@ public class ReceivablesDetailsController {
     @PostMapping("/receivablesDetails/import")
     @SaCheckPermission("receivablesDetails:import")
     public ResponseDTO<String> importReceivablesDetails(@RequestParam MultipartFile file, @RequestParam("mode") Boolean mode ) {
-//        return receivablesDetailsService.importReceivablesDetails(file, mode);
-        return null;
+        return receivablesDetailsService.importReceivablesDetails(file, mode);
     }
 
-//    @Operation(summary = "导出")
-//    @PostMapping("/receivablesDetails/export")
-//    @SaCheckPermission("receivablesDetails:export")
-//    public void exportReceivablesDetails(HttpServletResponse response, @RequestBody @Valid ReceivablesDetailsQueryForm queryForm) throws IOException {
-//        List<ReceivablesDetailsVO> goodsList = receivablesDetailsService.exportReceivablesDetails(queryForm);
-//        SmartExcelUtil.exportExcel(response,"应收明细表.xlsx","应收明细表",ReceivablesDetailsVO.class, goodsList);
-//    }
+    @Operation(summary = "导出")
+    @PostMapping("/receivablesDetails/export")
+    @SaCheckPermission("receivablesDetails:export")
+    public void exportReceivablesDetails(HttpServletResponse response, @RequestBody @Valid ReceivablesDetailsQueryForm queryForm) throws IOException {
+        List<ReceivablesDetailsVO> goodsList = receivablesDetailsService.exportReceivablesDetails(queryForm);
+        SmartExcelUtil.exportExcel(response,"应收明细表.xlsx","应收明细表",ReceivablesDetailsVO.class, goodsList);
+    }
 
 }

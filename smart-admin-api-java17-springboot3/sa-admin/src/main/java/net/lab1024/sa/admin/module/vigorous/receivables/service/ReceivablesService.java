@@ -168,7 +168,6 @@ public class ReceivablesService {
         // 数据分类转换
         Set<ReceivablesEntity> entityList = createImportList(dataList, failedDataList, mode);
 
-
         // 应收表记录数
         int receivablesTotal = 0;
         // 物料记录数

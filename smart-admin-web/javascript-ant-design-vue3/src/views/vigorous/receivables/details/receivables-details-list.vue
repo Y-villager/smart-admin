@@ -186,13 +186,18 @@
         {
             title: '物料编码',
             dataIndex: 'materialCode',
-            ellipsis: true,
+            width: 200,
         },
         {
             title: '物料名称',
             dataIndex: 'materialName',
             ellipsis: true,
         },
+      {
+        title: '批号',
+        dataIndex: 'serialBatch',
+        ellipsis: true,
+      },
         {
             title: '销售单位',
             dataIndex: 'saleUnit',

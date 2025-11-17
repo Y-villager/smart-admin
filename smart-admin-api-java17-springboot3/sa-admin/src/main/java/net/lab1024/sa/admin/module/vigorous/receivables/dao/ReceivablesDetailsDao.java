@@ -39,6 +39,9 @@ public interface ReceivablesDetailsDao extends BaseMapper<ReceivablesDetailsEnti
    */
     int batchInsertOrUpdate(@Param("list") List<?> entityList);
 
+
+    int batchUpdate(@Param("list") List<?> entityList);
+
     Set<String> getExistingBillNo(@Param("billNos") Set<String> billNos);
 
 }

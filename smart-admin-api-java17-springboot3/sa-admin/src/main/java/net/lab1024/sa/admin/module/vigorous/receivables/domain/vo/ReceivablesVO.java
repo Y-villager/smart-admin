@@ -19,7 +19,6 @@ import java.time.LocalDate;
 @Data
 public class ReceivablesVO {
 
-
     @Schema(description = "应收表id")
     private Integer receivablesId;
 
