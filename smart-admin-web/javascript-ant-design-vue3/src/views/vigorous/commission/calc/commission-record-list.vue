@@ -381,6 +381,7 @@
     outboundDateEnd: undefined, // 出库日期 结束
     filterDateList: [],
     isContainsMaterial: false, // 是否包含物料明细
+    isTotal: false,
     pageNum: 1,
     pageSize: 10,
   };

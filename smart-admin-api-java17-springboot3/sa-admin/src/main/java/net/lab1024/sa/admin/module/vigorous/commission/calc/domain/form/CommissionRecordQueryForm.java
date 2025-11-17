@@ -54,4 +54,7 @@ public class CommissionRecordQueryForm extends PageParam {
     @Schema(description = "筛选日期列表")
     private List<DateVO> filterDateList;
 
+    @Schema(description = "筛选日期列表")
+    private Boolean isTotal;
+
 }

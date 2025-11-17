@@ -148,7 +148,6 @@
                 v_commission_record.salesperson_id = #{queryForm.salespersonId}
 
                 OR
-
                 -- 条件2：管理提成记录（上级为当前业务员）
                 (
                 v_commission_record.current_parent_id = #{queryForm.salespersonId}
@@ -239,6 +238,7 @@
         <!-- 物料明细集合 -->
         <collection property="materialItems" ofType="net.lab1024.sa.admin.module.vigorous.receivables.domain.entity.ReceivablesDetailsEntity" javaType="java.util.ArrayList">
             <result column="material_name" property="materialName"/>
+            <result column="serial_num" property="serialNum"/>
             <result column="sale_unit" property="saleUnit"/>
             <result column="sale_quantity" property="saleQuantity"/>
         </collection>
@@ -255,6 +255,7 @@
         vso.amount,
         vso_order.order_type,
         vrd.material_name,
+        vrd.serial_num,
         vrd.sale_unit,
         vrd.sale_quantity
         FROM v_commission_record
@@ -264,8 +265,19 @@
         LEFT JOIN v_receivables_details vrd ON v_commission_record.receive_bill_no = vrd.origin_bill_no
         <where>
             <!--业务员-->
-            <if test="queryForm.salespersonId != null">
-                AND v_commission_record.salesperson_id = #{queryForm.salespersonId}
+            <if test="queryForm.salespersonId != null and queryForm.commissionType == null">
+                AND (
+                -- 条件1：业务员自身记录（所有提成类型）
+                v_commission_record.salesperson_id = #{queryForm.salespersonId}
+
+                OR
+                -- 条件2：管理提成记录（上级为当前业务员）
+                (
+                v_commission_record.current_parent_id = #{queryForm.salespersonId}
+                AND
+                v_commission_record.commission_type = 2  <!-- 2代表管理提成 -->
+                )
+                )
             </if>
             <!--客户名称-->
             <if test="queryForm.customerName != null and queryForm.customerName != ''">
@@ -296,7 +308,10 @@
                 </foreach>
             </if>
         </where>
-        order by v_commission_record.order_date desc, v_commission_record.sales_bill_no
+        order by v_commission_record.commission_type asc,
+            v_commission_record.order_date desc,
+            v_commission_record.sales_bill_no,
+            vrd.serial_num asc
     </select>
 
 

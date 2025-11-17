@@ -357,7 +357,7 @@ public class CommissionRecordService {
         List<CommissionRecordExportForm> baseRecords = convertAndPrepareExport(queryForm).collect(Collectors.toList());
 
         // 转换为包含物料明细的完整数据
-        List<CommissionRecordExportWithMaterialForm> resultList = convertToMaterialVOList(baseRecords);
+        List<CommissionRecordExportWithMaterialForm> resultList = convertToMaterialVOList(baseRecords, queryForm.getIsTotal());
 
         // 按销售人员分组
         return groupAndCollectMaterial(
@@ -391,7 +391,7 @@ public class CommissionRecordService {
     /**
      * 将基础数据转换为包含物料明细的VO列表
      */
-    private List<CommissionRecordExportWithMaterialForm> convertToMaterialVOList(List<CommissionRecordExportForm> baseRecords) {
+    private List<CommissionRecordExportWithMaterialForm> convertToMaterialVOList(List<CommissionRecordExportForm> baseRecords, Boolean isTotal) {
         List<CommissionRecordExportWithMaterialForm> resultList = new ArrayList<>();
 
         for (CommissionRecordExportForm record : baseRecords) {
@@ -403,7 +403,7 @@ public class CommissionRecordService {
                 CommissionRecordExportWithMaterialForm vo = convertToMaterialVO(record, null, true);
                 resultList.add(vo);
             } else {
-                if (record.getOrderType().equals(OrderTypeEnum.ACCESSORY_SALE.getDisplayName())){ // 配件订单
+                if (record.getOrderType().equals(OrderTypeEnum.ACCESSORY_SALE.getDisplayName()) && isTotal){ // 配件订单
                     ReceivablesDetailsEntity material = new ReceivablesDetailsEntity();
                     material.setMaterialName("配件总数");
                     // 统计总数量
@@ -483,6 +483,7 @@ public class CommissionRecordService {
         // 设置物料明细数据
         if (material != null) {
             vo.setMaterialName(material.getMaterialName());
+            vo.setSerialNum(material.getSerialNum());
             vo.setSaleUnit(material.getSaleUnit());
             vo.setSalesQuantity(material.getSaleQuantity());
         }
@@ -499,7 +500,7 @@ public class CommissionRecordService {
         List<CommissionRecordExportForm> baseRecords = convertAndPrepareExport(queryForm).toList();
 
         // 转换为包含物料明细的完整数据
-        List<CommissionRecordExportWithMaterialForm> resultList = convertToMaterialVOList(baseRecords);
+        List<CommissionRecordExportWithMaterialForm> resultList = convertToMaterialVOList(baseRecords, queryForm.getIsTotal());
 
         // 按提成类型分组
         return groupAndCollectMaterial(

@@ -49,6 +49,8 @@ public class CommissionRecordExportWithMaterialForm {
     @ColumnWidth(12)
     private String receivablesNo;
 
+    @ExcelProperty("明细.序号")
+    private Integer serialNum;
     @ExcelProperty("物料名称")
     private String materialName;
     @ExcelProperty("销售单位")
