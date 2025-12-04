@@ -94,7 +94,7 @@ public class CustomerService {
     }
 
     public int batchUpdate(List<CustomerEntity> entityList){
-        return batchUtils.doThreadInsertOrUpdate(entityList, customerDao, "batchUpdateById");
+        return batchUtils.doThreadInsertOrUpdate(entityList, customerDao, "batchUpdate", true);
     }
 
     /**

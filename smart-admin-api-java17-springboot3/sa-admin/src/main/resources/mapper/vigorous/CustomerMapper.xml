@@ -162,6 +162,14 @@
             <if test="queryForm.country != null and queryForm.country != ''">
                 AND INSTR(v_customer.country,#{queryForm.country})
             </if>
+            <!-- 金蝶-创建日期 -->
+            <if test="queryForm.createDateBegin != null ">
+                AND DATE_FORMAT(v_customer.create_date, '%Y-%m-%d') &gt;= #{queryForm.createDateBegin}
+            </if>
+            <if test="queryForm.createDateEnd != null ">
+                AND DATE_FORMAT(v_customer.create_date, '%Y-%m-%d') &lt;= #{queryForm.createDateEnd}
+            </if>
+
         </where>
         order by create_date desc
     </select>

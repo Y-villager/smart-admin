@@ -403,7 +403,7 @@ public class CommissionRecordService {
                 CommissionRecordExportWithMaterialForm vo = convertToMaterialVO(record, null, true);
                 resultList.add(vo);
             } else {
-                if (record.getOrderType().equals(OrderTypeEnum.ACCESSORY_SALE.getDisplayName()) && isTotal){ // 配件订单
+                if (OrderTypeEnum.ACCESSORY_SALE.getDisplayName().equals(record.getOrderType()) && isTotal){ // 配件订单
                     ReceivablesDetailsEntity material = new ReceivablesDetailsEntity();
                     material.setMaterialName("配件总数");
                     // 统计总数量
@@ -498,6 +498,10 @@ public class CommissionRecordService {
     private Map<String, Collection<?>> exportCommissionRecordWithMaterial(CommissionRecordQueryForm queryForm) {
         // 获取基础数据
         List<CommissionRecordExportForm> baseRecords = convertAndPrepareExport(queryForm).toList();
+
+        if (baseRecords.isEmpty()){
+            return null;
+        }
 
         // 转换为包含物料明细的完整数据
         List<CommissionRecordExportWithMaterialForm> resultList = convertToMaterialVOList(baseRecords, queryForm.getIsTotal());

@@ -149,6 +149,18 @@
           </label>
         </div>
         <br/>
+        <div id="app">
+          <span>是否有物料明细：</span>
+
+          <!-- 绑定 radio 按钮 -->
+          <label>
+            <input type="radio" v-model="queryForm.hasMaterial" value="1"/> 是
+          </label>
+          <label>
+            <input type="radio" v-model="queryForm.hasMaterial" value="0"/> 否
+          </label>
+        </div>
+        <br/>
         <a-upload
             v-model:fileList="fileList"
             name="file"
@@ -267,6 +279,7 @@ const queryFormState = {
   billStatus: undefined,
   pageNum: 1,
   pageSize: 10,
+  hasMaterial: 0
 };
 // 查询表单form
 const queryForm = reactive({ ...queryFormState });
@@ -415,6 +428,7 @@ async function onImportReceivables() {
   fileList.value.forEach((file) => {
     formData.append('file', file.originFileObj);
     formData.append('mode', importMode.value);
+    formData.append('hasMaterial', queryForm.hasMaterial);
   });
 
   SmartLoading.show();

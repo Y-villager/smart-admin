@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import net.lab1024.sa.admin.module.vigorous.sales.order.domain.form.SalesOrderAddForm;
 import net.lab1024.sa.admin.module.vigorous.sales.order.domain.form.SalesOrderQueryForm;
+import net.lab1024.sa.admin.module.vigorous.sales.order.domain.vo.SalesOrderExcelVO;
 import net.lab1024.sa.admin.module.vigorous.sales.order.service.SalesOrderService;
 import net.lab1024.sa.admin.module.vigorous.sales.order.domain.form.SalesOrderUpdateForm;
 import net.lab1024.sa.admin.module.vigorous.sales.order.domain.vo.SalesOrderVO;
@@ -83,8 +84,8 @@ public class SalesOrderController {
     @PostMapping("/salesOrder/export")
     @SaCheckPermission("salesOrder:export")
     public void exportSalesOrder(HttpServletResponse response, @RequestBody @Valid SalesOrderQueryForm queryForm) throws IOException {
-        List<SalesOrderVO> goodsList = salesOrderService.exportSalesOrder(queryForm);
-        SmartExcelUtil.exportExcel(response,"销售订单表.xlsx","销售订单表",SalesOrderVO.class, goodsList);
+        List<SalesOrderExcelVO> goodsList = salesOrderService.exportSalesOrder(queryForm);
+        SmartExcelUtil.exportExcel(response,"销售订单表.xlsx","销售订单表",SalesOrderExcelVO.class, goodsList);
     }
 
 }

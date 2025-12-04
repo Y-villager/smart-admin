@@ -21,6 +21,7 @@
         material_code,
         material_name,
         origin_bill_no,
+        serial_num,
         sale_unit,
         sale_quantity
         )
@@ -30,12 +31,14 @@
             #{item.materialCode},
             #{item.materialName},
             #{item.originBillNo},
+            #{item.serialNum},
             #{item.saleUnit},
             #{item.saleQuantity}
             )
         </foreach>
         ON DUPLICATE KEY UPDATE
         material_name = VALUES(material_name),
+        serial_num = VALUES(serial_num),
         sale_unit = VALUES(sale_unit),
         sale_quantity = VALUES(sale_quantity)
     </insert>

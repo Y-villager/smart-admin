@@ -124,6 +124,8 @@ import {reactive, ref, nextTick, computed} from 'vue';
       isCustomsDeclaration: undefined, //转交情况
       firstOrderDate: undefined,
       createDate: undefined,  // 金蝶-创建日期
+      createDateBegin: undefined,  // 金蝶-创建日期
+      createDateEnd: undefined,  // 金蝶-创建日期
   };
 
   let form = reactive({ ...formDefault });

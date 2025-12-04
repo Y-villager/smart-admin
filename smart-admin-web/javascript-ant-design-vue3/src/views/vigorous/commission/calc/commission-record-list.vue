@@ -9,7 +9,10 @@
   <!---------- 查询表单form begin ----------->
   <a-form class="smart-query-form">
     <a-row class="smart-query-form-row">
-      <a-form-item label="单据编号" class="smart-query-form-item">
+      <a-form-item label="销售订单" class="smart-query-form-item">
+        <a-input style="width: 200px" v-model:value="queryForm.salesOrderBillNo" placeholder="销售订单-单据编号" />
+      </a-form-item>
+      <a-form-item label="销售出库" class="smart-query-form-item">
         <a-input style="width: 200px" v-model:value="queryForm.salesBillNo" placeholder="销售出库-单据编号" />
       </a-form-item>
       <a-form-item label="相关业务员" class="smart-query-form-item">
@@ -146,6 +149,13 @@
           </div>
         </template>
         <template v-if="column.dataIndex === 'isTransfer'">
+          <div class="smart-table-operate">
+            <a-tag :color="getTagClass(text)">
+              {{$smartEnumPlugin.getDescByValue('SYSTEM_YES_NO', text)}}
+            </a-tag>
+          </div>
+        </template>
+        <template v-if="column.dataIndex === 'isCustomsDeclaration'">
           <div class="smart-table-operate">
             <a-tag :color="getTagClass(text)">
               {{$smartEnumPlugin.getDescByValue('SYSTEM_YES_NO', text)}}
@@ -340,6 +350,12 @@
       width: '90px'
     },
     {
+      title: '是否报关',
+      dataIndex: 'isCustomsDeclaration',
+      ellipsis: true,
+      width: '90px'
+    },
+    {
       title: '上级',
       dataIndex: 'currentParentName',
       ellipsis: true,
@@ -369,6 +385,7 @@
 
   const queryFormState = {
     salesBillNo: undefined,
+    salesOrderBillNo: undefined,
     salespersonName: undefined, //业务员
     customerName: undefined, //客户名称
     isCustomsDeclaration: undefined, //客户名称

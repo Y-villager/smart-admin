@@ -15,6 +15,9 @@
       <a-form-item label="客户" class="smart-query-form-item">
         <a-input style="width: 200px" v-model:value="queryForm.customerName" placeholder="客户" />
       </a-form-item>
+      <a-form-item label="金蝶-创建日期" class="smart-query-form-item">
+        <a-range-picker v-model:value="queryForm.createDate" :presets="defaultTimeRanges" style="width: 220px" @change="onChangeCreateDate" />
+      </a-form-item>
       <a-form-item label="业务员" class="smart-query-form-item">
         <a-input style="width: 200px" v-model:value="queryForm.salespersonName" placeholder="业务员" />
       </a-form-item>
@@ -208,6 +211,7 @@
   import CustomerForm from './customer-form.vue';
   import {excelApi} from "/@/api/vigorous/excel-api.js";
   import SmartEnumSelect from "/@/components/framework/smart-enum-select/index.vue";
+  import {defaultTimeRanges} from "/@/lib/default-time-ranges.js";
 
   // ---------------------------- 表格列 ----------------------------
 
@@ -290,6 +294,8 @@
     country: undefined, //国家
     hasFirstOrder: undefined,
     transferStatus: undefined,
+    createDateBegin: undefined, // 金蝶-创建开始
+    createDateEnd: undefined,   // 金蝶-创建结束
     pageNum: 1,
     pageSize: 10,
   };
@@ -493,9 +499,17 @@
       okType: 'danger',
       onOk() {
         customerApi.initFirstOrder(selectedRowKeyList.value);
+        message.success('生成首单成功');
+        queryData();
       },
       cancelText: '取消',
       onCancel() {},
     });
+  }
+
+  //
+  function onChangeCreateDate(dates, dateStrings) {
+    queryForm.createDateBegin = dateStrings[0];
+    queryForm.createDateEnd = dateStrings[1];
   }
 </script>

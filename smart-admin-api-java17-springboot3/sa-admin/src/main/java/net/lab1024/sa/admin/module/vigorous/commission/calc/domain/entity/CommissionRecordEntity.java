@@ -27,7 +27,7 @@ public class CommissionRecordEntity {
     private Long commissionId;
 
     /**
-     * 销售出库日期/ 业务日期
+     * 销售订单/ 业务日期
      */
     private LocalDate orderDate;
 
@@ -46,6 +46,12 @@ public class CommissionRecordEntity {
      * 销售出库-单据编号
      */
     private String salesBillNo;
+
+
+    /**
+     * 销售出库-业务日期
+     */
+    private LocalDate outboundDate;
 
     /**
      * 应收表-单据编号

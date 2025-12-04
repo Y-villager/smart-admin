@@ -3,6 +3,7 @@ package
         net.lab1024.sa.admin.module.vigorous.receivables.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -90,6 +91,8 @@ public class ReceivablesEntity {
      */
     private Integer rate;
 
+
+    @TableField(exist = false)
     private List<ReceivablesDetailsEntity> materials;
 
     @Override

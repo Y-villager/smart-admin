@@ -21,14 +21,17 @@ public class SalesCommissionDto {
     @Schema(description = "销售订单-单据编号")
     private String salesOrderBillNo;
 
+    @Schema(description = "销售订单-单据日期")
+    private LocalDate orderDate;
+
     @Schema(description = "发货通知单-单据编号")
     private String fSalesBillNo;
 
     @Schema(description = "销售出库-单据编号")
     private String salesBillNo;
 
-    @Schema(description = "销售出库日期")
-    private LocalDate orderDate;
+    @Schema(description = "销售出库-单据编号")
+    private LocalDate outboundDate;
 
     @Schema(description = "销售金额")
     private BigDecimal salesAmount;

@@ -31,9 +31,11 @@
 
         -- 销售订单信息
         vso_order.bill_no as sales_order_bill_no,
+        vso_order.order_date,
 
+        -- 出库单单据
         vso.bill_no AS sales_bill_no,
-        vso.sales_bound_date as order_date,
+        vso.sales_bound_date as outbound_date,
         vso.amount AS sales_amount,
         vso.commission_flag,
         vc.customer_id,
@@ -282,6 +284,10 @@
             vs.disabled_flag
         FROM
             v_sales_outbound vso
+            -- 关联发货通知单 (v_f_sales)
+            Inner JOIN v_f_sales vfs ON vso.origin_bill_no = vfs.bill_no
+            -- 关联销售订单 (v_sales_order)
+            Inner JOIN v_sales_order vso_order ON vfs.origin_bill_no = vso_order.bill_no
             left JOIN v_receivables vr ON vso.bill_no = vr.origin_bill_no
             left JOIN v_customer vc ON vc.customer_id = vso.customer_id
             left JOIN v_salesperson vs ON vs.id = vso.salesperson_id

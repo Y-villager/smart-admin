@@ -39,4 +39,7 @@ public class ReceivablesQueryForm extends PageParam {
     @Schema(description = "收款日期")
     private LocalDate receivablesDateEnd;
 
+    @Schema(description = "是否有明细")
+    private Boolean hasMaterial;
+
 }

@@ -15,6 +15,7 @@ import net.lab1024.sa.admin.module.vigorous.receivables.domain.form.ReceivablesI
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.form.ReceivablesQueryForm;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.form.ReceivablesUpdateForm;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.vo.ReceivablesVO;
+import net.lab1024.sa.admin.module.vigorous.res.ValidationResult;
 import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
 import net.lab1024.sa.admin.util.BatchUtils;
 import net.lab1024.sa.admin.util.ExcelUtils;
@@ -34,6 +35,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -142,7 +146,7 @@ public class ReceivablesService {
      * @return 结果
      */
     @Transactional(rollbackFor = Exception.class)
-    public ResponseDTO<String> importReceivables(MultipartFile file, Boolean mode) {
+    public ResponseDTO<String> importReceivables(MultipartFile file, Boolean mode, Boolean hasMaterial) {
         List<ReceivablesImportForm> dataList;
         List<ReceivablesImportForm> failedDataList = Collections.synchronizedList(new ArrayList<>());
 
@@ -162,6 +166,7 @@ public class ReceivablesService {
 
         // 按单据编号分组
         Map<String, List<ReceivablesImportForm>> groupMap = dataList.stream()
+                .filter(form -> form.getBillNo() != null)
                 .collect(Collectors.groupingBy(ReceivablesImportForm::getBillNo));
 
 
@@ -186,18 +191,18 @@ public class ReceivablesService {
                 for (BatchResult batchResult : insert) {
                     receivablesTotal += batchResult.getParameterObjects().size();
                 }
-                if (!allMaterials.isEmpty()) {
+                if (!allMaterials.isEmpty() && hasMaterial) {
                     materialInsert = receivablesDetailsDao.insert(allMaterials);
                     for (BatchResult batchResult : materialInsert) {
-                        receivablesTotal += batchResult.getParameterObjects().size();
+                        detailsTotal += batchResult.getParameterObjects().size();
                     }
                 }
 
             } else {  // 覆盖
                 // 执行批量更新操作
-                receivablesTotal = batchUtils.doThreadInsertOrUpdate(entityList.stream().toList(), receivablesDao, "batchUpdate");
-                if (!allMaterials.isEmpty()) {
-                    detailsTotal = batchUtils.doThreadInsertOrUpdate(allMaterials, receivablesDetailsDao, "batchInsertOrUpdate");
+                receivablesTotal = batchUtils.doThreadInsertOrUpdate(entityList.stream().toList(), receivablesDao, "batchUpdate", true);
+                if (!allMaterials.isEmpty() && hasMaterial) {
+                    detailsTotal = batchUtils.doThreadInsertOrUpdate(allMaterials, receivablesDetailsDao, "batchInsertOrUpdate", true);
                 }
 //                try {
 //                    if (receivablesTotal != entityList.size()) {
@@ -277,6 +282,8 @@ public class ReceivablesService {
             try {
                 // 处理应收主表数据（取第一条，因为主表信息相同）
                 ReceivablesImportForm mainForm = billData.get(0);
+
+                // 应收实例转换
                 ReceivablesEntity receivablesEntity = convertAndValidate(mainForm, existingBillNo, salespersonMap, customerMap, currencyMap, failedDataList, mode);
 
                 // 处理物料明细数据
@@ -284,9 +291,12 @@ public class ReceivablesService {
 
                 // 设置关联关系
                 if (receivablesEntity != null) {
-                    receivablesEntity.setMaterials(billItems);
                     receivablesList.add(receivablesEntity);
+
+                    receivablesEntity.setMaterials(billItems);
                     materialList.addAll(billItems);
+                }else {
+                    failedDataList.add(mainForm);
                 }
             } catch (Exception e) {
                 // 处理失败，将所有该单据的数据加入失败列表
@@ -324,13 +334,20 @@ public class ReceivablesService {
                 failedDataList.add(form);
                 continue;
             }
+            if (form.getSerialNum() == null) {
+                form.setErrorMsg("序号不能为空");
+                failedDataList.add(form);
+                continue;
+            }
 
             ReceivablesDetailsEntity item = new ReceivablesDetailsEntity();
-            item.setOriginBillNo(billNo);   // 源单
-            item.setMaterialCode(form.getMaterialCode());   // 物料编码
-            item.setMaterialName(form.getMaterialName());   // 物料名称
-            item.setSaleQuantity(form.getSaleQuantity());   // 销售数量
-            item.setSaleUnit(form.getSaleUnit());           // 销售单位
+
+            item.setOriginBillNo(form.getBillNo().trim()); // 物料明细源单
+            item.setMaterialCode(form.getMaterialCode());  // 物料编码
+            item.setMaterialName(form.getMaterialName());  // 物料编码
+            item.setSerialNum(form.getSerialNum());  // 序号
+            item.setSaleUnit(form.getSaleUnit());         // 单位
+            item.setSaleQuantity(form.getSaleQuantity()); // 数量
 
             items.add(item);
         }
@@ -394,6 +411,27 @@ public class ReceivablesService {
             return null;
         }
 
+        // 6.转换日期格式
+        if (form.getReceivablesDate().contains("-")) {
+        } else if (form.getReceivablesDate().contains("/")) {
+        }
+
+        // 7. 检查汇率
+        if (form.getExchangeRate() == null ){
+            form.setErrorMsg("汇率不能为空");
+            return null;
+        } else if (form.getExchangeRate().compareTo(BigDecimal.ZERO) == 0) {
+            form.setErrorMsg("汇率不能为0");
+            return null;
+        }
+
+        // 8. 检查应收金额
+        ValidationResult validateAmount = ValidationUtils.validateAmount(form.getAmount(), form.getExchangeRate(), form.getFallAmount(), 2);
+        if (validateAmount.hasErrors()) {
+            form.setErrorMsg(validateAmount.getErrorMsg());
+            return null;
+        }
+
         try {
             // 转换为实体
             return convertToEntity(form, customerMap, salespersonMap, currencyMap);
@@ -416,10 +454,23 @@ public class ReceivablesService {
         entity.setSalespersonId(salespersonMap.get(form.getSalespersonName())); // 业务员编号
         entity.setCurrencyType(currencyMap.get(form.getCurrencyType())); // 币别
         entity.setAmount(form.getAmount()); // 金额
-        entity.setExchangeRate(form.getExchangeRate()); // 汇率
+
         entity.setFallAmount(form.getFallAmount()); // 本位币
+
+        entity.setExchangeRate(form.getExchangeRate()); // 汇率
         entity.setPayer(form.getPayer()); // 付款方
         entity.setRate(form.getRate()); // 应收比例
+
+        // 转换日期格式
+        if (form.getReceivablesDate().contains("-")) {
+            LocalDate date = LocalDate.parse(form.getReceivablesDate());
+            entity.setReceivablesDate(date);
+        } else if (form.getReceivablesDate().contains("/")) {
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy/M/d");
+            LocalDate date = LocalDate.parse(form.getReceivablesDate(), fmt);
+            entity.setReceivablesDate(date);
+        }
+
         return entity;
     }
 

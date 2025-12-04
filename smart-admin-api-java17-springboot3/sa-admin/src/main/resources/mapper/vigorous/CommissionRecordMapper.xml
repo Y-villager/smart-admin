@@ -36,9 +36,16 @@
     </sql>
 
     <sql id="insert_columns">
+        v_commission_record.sales_order_bill_no,
         v_commission_record.order_date,
-        v_commission_record.receive_bill_no,
+
+        v_commission_record.f_sales_bill_no,
+
         v_commission_record.sales_bill_no,
+        v_commission_record.outbound_date,
+
+        v_commission_record.receive_bill_no,
+
         v_commission_record.customer_id,
         v_commission_record.salesperson_id,
         v_commission_record.salesperson_name,
@@ -62,9 +69,16 @@
     </sql>
 
     <sql id="insert_item">
+        #{item.salesOrderBillNo},
         #{item.orderDate},
-        #{item.receiveBillNo},
+
+        #{item.fSalesBillNo},
+
         #{item.salesBillNo},
+        #{item.outboundDate},
+
+        #{item.receiveBillNo},
+
         #{item.customerId},
         #{item.salespersonId},
         #{item.salespersonName},
@@ -94,9 +108,16 @@
             (<include refid="insert_item"/>)
         </foreach>
         ON DUPLICATE KEY UPDATE
+            sales_order_bill_no = VALUES(sales_order_bill_no),
             order_date = VALUES(order_date),
-            receive_bill_no = VALUES(receive_bill_no),
+
+            f_sales_bill_no = VALUES(f_sales_bill_no),
+
             sales_bill_no = VALUES(sales_bill_no),
+            outbound_date = VALUES(outbound_date),
+
+            receive_bill_no = VALUES(receive_bill_no),
+
             customer_id = VALUES(customer_id),
             salesperson_id = VALUES(salesperson_id),
             salesperson_name = VALUES(salesperson_name),
@@ -156,10 +177,10 @@
                 )
                 )
             </if>
-            <if test="queryForm.commissionType == 1">
+            <if test="queryForm.commissionType == 1 and queryForm.salespersonId != null">
                 AND v_commission_record.salesperson_id = #{queryForm.salespersonId}
             </if>
-            <if test="queryForm.commissionType == 2">
+            <if test="queryForm.commissionType == 2 and queryForm.salespersonId != null">
                 AND v_commission_record.current_parent_id = #{queryForm.salespersonId}
             </if>
             <!--客户名称-->
@@ -179,8 +200,11 @@
             <if test="queryForm.commissionType != null">
                 AND v_commission_record.commission_type = #{queryForm.commissionType}
             </if>
-            <if test="queryForm.salesBillNo != null">
-                AND INSTR(v_commission_record.sales_order_bill_no,#{queryForm.salesBillNo})
+            <if test="queryForm.salesBillNo != null and queryForm.salesBillNo != ''">
+                AND INSTR(v_commission_record.sales_bill_no,#{queryForm.salesBillNo})
+            </if>
+            <if test="queryForm.salesOrderBillNo != null and queryForm.salesOrderBillNo != ''">
+                AND INSTR(v_commission_record.sales_order_bill_no,#{queryForm.salesOrderBillNo})
             </if>
             <if test="queryForm.filterDateList != null and queryForm.filterDateList.size() > 0">
                 And
@@ -296,8 +320,11 @@
             <if test="queryForm.commissionType != null">
                 AND v_commission_record.commission_type = #{queryForm.commissionType}
             </if>
-            <if test="queryForm.salesBillNo != null">
+            <if test="queryForm.salesBillNo != null and queryForm.salesBillNo != ''">
                 AND INSTR(v_commission_record.sales_bill_no,#{queryForm.salesBillNo})
+            </if>
+            <if test="queryForm.salesOrderBillNo != null and queryForm.salesOrderBillNo != ''">
+                AND INSTR(v_commission_record.sales_order_bill_no,#{queryForm.salesOrderBillNo})
             </if>
             <if test="queryForm.filterDateList != null and queryForm.filterDateList.size() > 0">
                 And

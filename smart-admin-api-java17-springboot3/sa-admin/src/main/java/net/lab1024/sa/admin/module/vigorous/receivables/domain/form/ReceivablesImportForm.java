@@ -62,6 +62,9 @@ public class ReceivablesImportForm {
     @ExcelProperty("物料编码")
     private String materialCode;
 
+    @ExcelProperty("明细.序号")
+    private Integer serialNum;
+
     @ExcelProperty("物料名称")
     private String materialName;
 

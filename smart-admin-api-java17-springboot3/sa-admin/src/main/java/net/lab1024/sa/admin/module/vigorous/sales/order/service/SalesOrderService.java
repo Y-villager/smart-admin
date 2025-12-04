@@ -11,6 +11,7 @@ import net.lab1024.sa.admin.module.vigorous.sales.order.domain.form.SalesOrderAd
 import net.lab1024.sa.admin.module.vigorous.sales.order.domain.form.SalesOrderImportForm;
 import net.lab1024.sa.admin.module.vigorous.sales.order.domain.form.SalesOrderQueryForm;
 import net.lab1024.sa.admin.module.vigorous.sales.order.domain.form.SalesOrderUpdateForm;
+import net.lab1024.sa.admin.module.vigorous.sales.order.domain.vo.SalesOrderExcelVO;
 import net.lab1024.sa.admin.module.vigorous.sales.order.domain.vo.SalesOrderVO;
 import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
 import net.lab1024.sa.admin.util.BatchUtils;
@@ -37,6 +38,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static cn.dev33.satoken.SaManager.log;
 
@@ -296,17 +298,23 @@ public class SalesOrderService {
      * 导出
      * 需要修改
      */
-    public List<SalesOrderVO> exportSalesOrder(SalesOrderQueryForm queryForm) {
+    public List<SalesOrderExcelVO> exportSalesOrder(SalesOrderQueryForm queryForm) {
         //List<SalesOrderVO> entityList = salesOrderDao.selectList(null);
         List<SalesOrderVO> entityList = salesOrderDao.queryPage(null,queryForm);
-//        return entityList.stream()
-//                .map(e ->
-//                        SalesOrderVO.builder()
-//                                .build()
-//                )
-//                .collect(Collectors.toList());
-        return null;
 
+        // 使用并行流进行转换，提高处理速度
+        return entityList.parallelStream()
+                .map(e -> SalesOrderExcelVO.builder()
+                        .billNo(e.getBillNo())
+                        .orderDate(e.getOrderDate())
+                        .customerCode(e.getCustomerCode())
+                        .salespersonCode(e.getSalespersonCode())
+                        .orderType(e.getOrderType())
+                        .amount(e.getAmount())
+                        .exchangeRate(e.getExchangeRate())
+                        .fallAmount(e.getFallAmount())
+                        .build()
+                ).collect(Collectors.toList());
     }
 
     private int doThreadUpdate(List<SalesOrderEntity> entityList) {
