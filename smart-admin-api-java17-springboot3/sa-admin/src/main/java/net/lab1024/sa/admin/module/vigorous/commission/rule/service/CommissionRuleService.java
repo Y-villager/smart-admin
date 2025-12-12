@@ -10,7 +10,6 @@ import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.form.Commissi
 import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.form.CommissionRuleQueryForm;
 import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.form.CommissionRuleUpdateForm;
 import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.vo.CommissionRuleVO;
-import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.dto.SalesCommissionDto;
 import net.lab1024.sa.admin.util.ExcelUtils;
 import net.lab1024.sa.admin.util.SplitListUtils;
 import net.lab1024.sa.base.common.code.SystemErrorCode;

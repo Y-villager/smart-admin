@@ -40,4 +40,6 @@ public interface FSalesDao extends BaseMapper<FSalesEntity> {
     int batchUpdate(@Param("list") List<?> entityList);
 
     Set<String> getExistingBillNo(@Param("billNos") Set<String> billNos);
+
+    List<String> queryByBillNos(Set<String> billNos);
 }

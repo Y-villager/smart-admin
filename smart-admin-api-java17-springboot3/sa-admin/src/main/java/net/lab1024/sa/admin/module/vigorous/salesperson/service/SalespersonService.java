@@ -356,4 +356,5 @@ public class SalespersonService {
     public boolean isSubordinate(Long salespersonId, Long targetId) {
         return salespersonDao.isSubordinate(salespersonId, targetId);
     }
+
 }

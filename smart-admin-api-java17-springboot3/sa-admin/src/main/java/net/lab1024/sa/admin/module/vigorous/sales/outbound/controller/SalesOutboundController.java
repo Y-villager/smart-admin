@@ -22,9 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * 销售出库 Controller
@@ -112,13 +110,13 @@ class SalesOutboundController {
         return salesOutboundService.createSelectedCommission(idList);
     }
 
-    @Operation(summary = "调整生成标识-可覆盖")
-    @PostMapping("/salesOutbound/batchUpdateCommissionFlag")
-    @SaCheckPermission("salesOutbound:update")
-    public ResponseDTO<String>  batchUpdateCommissionFlag(@RequestBody ValidateList<Long> idList) throws IOException {
-        // 转换为 Set<Long>
-        Set<Long> idSet = new HashSet<>(idList);
-        return salesOutboundService.batchUpdateCommissionFlag(idSet);
-    }
+//    @Operation(summary = "调整生成标识-可覆盖")
+//    @PostMapping("/salesOutbound/batchUpdateCommissionFlag")
+//    @SaCheckPermission("salesOutbound:update")
+//    public ResponseDTO<String>  batchUpdateCommissionFlag(@RequestBody ValidateList<Long> idList) throws IOException {
+//        // 转换为 Set<Long>
+//        Set<Long> idSet = new HashSet<>(idList);
+//        return salesOutboundService.batchUpdateCommissionFlag(idSet);
+//    }
 
 }

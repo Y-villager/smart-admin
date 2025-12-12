@@ -17,6 +17,42 @@
         v_sales_order.update_time
     </sql>
 
+    <sql id="base_commission_column">
+        -- 发货通知单信息
+        vfs.bill_no as f_sales_bill_no,
+
+        -- 销售订单信息
+        vso_order.bill_no as sales_order_bill_no,
+        vso_order.order_date,
+
+        -- 出库单单据
+        vso.bill_no AS sales_bill_no,
+        vso.sales_bound_date as outbound_date,
+        vso.amount AS sales_amount,
+        vso.commission_flag,
+        vc.customer_id,
+        vc.customer_name,
+        vc.customer_code,
+        vc.first_order_date,
+        vc.adjusted_first_order_date,
+        vc.transfer_status,
+        vc.is_customs_declaration,
+        vc.create_date as customer_create_date,
+        vc.salesperson_id as customer_salesperson_id,
+        vs.id AS salesperson_id,
+        vs.salesperson_name,
+        vsl.salesperson_level_name,
+        vsl.commission_rate as level_rate,
+        pvs.id AS p_salesperson_id,
+        pvs.salesperson_name AS p_salesperson_name,
+        pvsl.salesperson_level_name AS p_salesperson_level_name,
+        pvsl.commission_rate AS p_level_rate,
+        vr.bill_no as receive_bill_no,
+        vr.currency_type,
+        vr.exchange_rate,
+        vr.fall_amount
+    </sql>
+
     <update id="batchUpdate">
         <foreach collection="list" item="item" separator=";">
             UPDATE v_sales_order
@@ -86,6 +122,94 @@
         <foreach collection="billNos" item="billNo" open="(" close=")" separator=",">
             #{billNo}
         </foreach>
+    </select>
+
+
+    <select id="queryPageWithReceivables"
+            resultType="net.lab1024.sa.admin.module.vigorous.commission.calc.domain.dto.SalesCommissionDto">
+        <!-- 分页 连接查询   -->
+            SELECT
+            <include refid="base_commission_column"/>,
+            vc.customer_group,
+            vs.deleted_flag,
+            vs.disabled_flag
+            FROM
+            v_sales_order vso_order
+            left join v_f_sales vfs ON vfs.origin_bill_no = vso_order.bill_no
+            left join v_sales_outbound vso on  vso.origin_bill_no = vfs.bill_no
+            left JOIN v_receivables vr ON vso.bill_no = vr.origin_bill_no
+            left JOIN v_customer vc ON vc.customer_id = vso.customer_id
+            left JOIN v_salesperson vs ON vs.id = vso.salesperson_id
+            left JOIN v_salesperson_level vsl ON vs.salesperson_level_id = vsl.salesperson_level_id
+            left JOIN v_salesperson pvs ON vs.parent_id = pvs.id
+            left JOIN v_salesperson_level pvsl ON pvs.salesperson_level_id = pvsl.salesperson_level_id
+            <if test="queryForm.departmentName != null and queryForm.departmentName != '' ">
+                inner JOIN t_department d ON d.department_id = vs.department_id
+            </if>
+            <where>
+                <!--客户编码-->
+                <if test="queryForm.customerName != null">
+                    AND INSTR(vc.customer_name,#{queryForm.customerName})
+                </if>
+                <!--业务员-->
+                <if test="queryForm.salespersonName != null">
+                    AND INSTR(vs.salesperson_name,#{queryForm.salespersonName})
+                </if>
+                <if test="queryForm.billNo != null and queryForm.billNo != '' ">
+                    AND INSTR(vso.bill_no,#{queryForm.billNo})
+                </if>
+                <if test="queryForm.departmentName != null and queryForm.departmentName != '' ">
+                    AND INSTR(d.name, #{queryForm.departmentName})
+                </if>
+                <!--出库日期-->
+                <if test="queryForm.salesBoundDateBegin != null ">
+                    AND DATE_FORMAT(vso.sales_bound_date, '%Y-%m-%d') &gt;= #{queryForm.salesBoundDateBegin}
+                </if>
+                <if test="queryForm.salesBoundDateEnd != null ">
+                    AND DATE_FORMAT(vso.sales_bound_date, '%Y-%m-%d') &lt;= #{queryForm.salesBoundDateEnd}
+                </if>
+                <choose>
+                    <when test="queryForm.hasFirstOrder == 1">
+                        AND vc.first_order_date IS NOT NULL
+                    </when>
+                    <when test="queryForm.hasFirstOrder == 0">
+                        AND vc.first_order_date IS NULL
+                    </when>
+                </choose>
+                <if test="excludeForm.customerName != null and excludeForm.customerName != ''">
+                    And vc.customer_name != #{excludeForm.customerName}
+                </if>
+                <if test="excludeForm.deletedSalesmanFlag != null and excludeForm.deletedSalesmanFlag != 0">
+                    And vs.deleted_flag != #{excludeForm.deletedSalesmanFlag}
+                </if>
+                <if test="excludeForm.disabledSalesmanFlag != null and excludeForm.disabledSalesmanFlag != 0">
+                    And vs.disabled_flag != #{excludeForm.disabledSalesmanFlag}
+                </if>
+                and commission_flag != 1
+            </where>
+            order by vso.sales_bound_date DESC
+    </select>
+
+    <select id="queryByIdList"
+            resultType="net.lab1024.sa.admin.module.vigorous.commission.calc.domain.dto.SalesCommissionDto">
+        SELECT
+        <include refid="base_commission_column"/>
+        FROM
+        v_sales_order vso_order
+        left join v_f_sales vfs ON vfs.origin_bill_no = vso_order.bill_no
+        left join v_sales_outbound vso on  vso.origin_bill_no = vfs.bill_no
+        left JOIN v_receivables vr ON vso.bill_no = vr.origin_bill_no
+        inner JOIN v_customer vc ON vc.customer_id = vso.customer_id
+        left JOIN v_salesperson vs ON vs.id = vso.salesperson_id
+        left JOIN v_salesperson_level vsl ON vs.salesperson_level_id = vsl.salesperson_level_id
+        left JOIN v_salesperson pvs ON vs.parent_id = pvs.id
+        left JOIN v_salesperson_level pvsl ON pvs.salesperson_level_id = pvsl.salesperson_level_id
+        <where>
+            vso.sales_bound_id in
+            <foreach item="id" index="index" collection="idList" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </where>
     </select>
 
 

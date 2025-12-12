@@ -7,6 +7,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 销售出库 实体类
@@ -53,9 +54,10 @@ public class SalesOutboundEntity {
 
 
     /**
-     * 源单编号
+     * 源单号集合（多对多关系）
      */
-    private String originBillNo;
+    private List<String> originBillNos;
+
 
 
     /**

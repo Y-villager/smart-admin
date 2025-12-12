@@ -309,6 +309,24 @@ public class ReceivablesService {
     }
 
     /**
+     * 收集出库单-发货单多对多关系
+     */
+    private void collectReceivableRelations(
+            List<ReceivablesImportForm> forms,
+            String billNo,
+            Map<String, Set<String>> relations) {
+
+        Set<String> originBillNos = forms.stream()
+                .map(ReceivablesImportForm::getOriginBillNo)
+                .filter(org.apache.commons.lang3.StringUtils::isNotBlank)
+                .collect(Collectors.toSet());
+
+        if (!originBillNos.isEmpty()) {
+            relations.put(billNo, originBillNos);
+        }
+    }
+
+    /**
      * 转换物料明细实体列表
      */
     private List<ReceivablesDetailsEntity> convertToItemEntities(List<ReceivablesImportForm> billData, String billNo,

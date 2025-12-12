@@ -5,16 +5,24 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
 import net.lab1024.sa.admin.enumeration.CommissionTypeEnum;
 import net.lab1024.sa.admin.enumeration.OrderTypeEnum;
+import net.lab1024.sa.admin.enumeration.SystemYesNo;
+import net.lab1024.sa.admin.enumeration.TransferStatusEnum;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.dao.CommissionRecordDao;
+import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.dto.SalesCommissionDto;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.entity.CommissionRecordEntity;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.form.*;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.vo.CommissionRecordVO;
+import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.vo.CommissionRuleVO;
+import net.lab1024.sa.admin.module.vigorous.commission.rule.service.CommissionRuleCacheService;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.entity.ReceivablesDetailsEntity;
+import net.lab1024.sa.admin.module.vigorous.res.ValidationResult;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.dao.SalesOutboundDao;
+import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesCommissionExportForm;
 import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
 import net.lab1024.sa.admin.util.ExcelUtils;
 import net.lab1024.sa.admin.util.SplitListUtils;
 import net.lab1024.sa.admin.util.ThreadPoolUtils;
+import net.lab1024.sa.admin.util.ValidationUtils;
 import net.lab1024.sa.base.common.code.SystemErrorCode;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
@@ -23,7 +31,9 @@ import net.lab1024.sa.base.common.util.SmartBeanUtil;
 import net.lab1024.sa.base.common.util.SmartEnumUtil;
 import net.lab1024.sa.base.common.util.SmartPageUtil;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.executor.BatchResult;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
@@ -34,6 +44,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -65,6 +78,8 @@ public class CommissionRecordService {
     private TransactionTemplate transactionTemplate;
     @Autowired
     private SalespersonService salespersonService;
+    @Autowired
+    private CommissionRuleCacheService commissionRuleCacheService;
 
     /**
      * 分页查询
@@ -603,6 +618,350 @@ public class CommissionRecordService {
         }
         return batches;
     }
+
+
+    /**
+     * 提成分类
+     * @param dto
+     * @param commissionEntityList
+     * @param errorList 错误列表
+     */
+    public void classifyCommission(SalesCommissionDto dto,
+                                    ConcurrentLinkedQueue<CommissionRecordEntity> commissionEntityList,
+                                    ConcurrentLinkedQueue<CommissionRecordEntity> managementEntityList,
+                                    ConcurrentLinkedQueue<SalesCommissionDto> errorList) {
+        //
+        CommissionRecordEntity business = convertToCommissionEntity(dto, CommissionTypeEnum.BUSINESS);
+        CommissionRecordEntity management ;
+
+        ValidationResult remark = business.getRemark();
+        if (remark != null){  // 如果备注不为空
+            if (remark.hasErrors()){
+                dto.setErrMsg(remark.getErrorMsg());
+                errorList.add(dto);
+                return;
+            }
+            if (remark.hasReminds()){
+                dto.setRemindMsg(remark.getRemindMsg());
+//                errorList.add(dto);
+            }
+        }
+        // 没有错误信息，就加入插入列表中
+        commissionEntityList.add(business);
+        // 如果存在上级，且转交状态为自主开发，则生成上级的管理提成
+        if (dto.getPSalespersonId() != null && TransferStatusEnum.INDEPENDENTLY.getValue().equals(dto.getTransferStatus())){
+            // 有上级id
+            management = convertToCommissionEntity(dto, CommissionTypeEnum.MANAGEMENT);
+            managementEntityList.add(management);
+        }
+    }
+
+    /**
+     * 划分数据记录
+     * @param salesCommission
+     * @param commissionTypeEnum 提成类别
+     * @return
+     */
+    private CommissionRecordEntity convertToCommissionEntity(SalesCommissionDto salesCommission, CommissionTypeEnum commissionTypeEnum) {
+        CommissionRecordEntity commission = new CommissionRecordEntity();
+
+        // 设置基本信息 检查错误信息
+        ValidationResult result = checkCommissionAndSetEntity(commission, salesCommission);
+
+        if (result.hasErrors()){ // 如果有错误信息
+            commission.setRemark(result);
+            return commission;
+        }
+        if (result.hasReminds()){
+            commission.setRemark(result);
+        }
+
+        // 设置 需要动态计算的信息
+        commission.setCommissionType(commissionTypeEnum.getValue());
+        // 设置
+        setCommissionDynamicInfo(commission, salesCommission);
+        return commission;
+    }
+
+    /**
+     * 检查必须填写值，数据库保存不能为null的值
+     * @return
+     */
+    private ValidationResult checkCommissionAndSetEntity(CommissionRecordEntity entity, SalesCommissionDto dto) {
+        ValidationResult result = new ValidationResult();
+
+        // 1. 出库单信息
+        ValidationUtils.checkOutboundDate(dto, result);
+        entity.setOutboundDate(dto.getOutboundDate()); // 1.销售出库日期 / 业务日期
+
+        if (StringUtils.isBlank(dto.getSalesBillNo())) {
+            result.addError("销售出库-单据编号不能为空");
+        }
+        entity.setSalesBillNo(dto.getSalesBillNo()); // 2.销售出库-单据编号
+
+        // 2. 转交状态检查
+        ValidationUtils.checkTransferStatus(dto, result);
+        if (dto.getTransferStatus() != null){
+            entity.setIsTransfer(dto.getTransferStatus() == 0 ? 0 : 1); // 12.转交
+        }
+
+        // 3. 报关信息检查
+        ValidationUtils.checkCustomsDeclaration(dto, result);
+        entity.setIsCustomsDeclaration(dto.getIsCustomsDeclaration()); // 13.是否报关
+
+        // 4. 提成记录检查
+        ValidationUtils.checkCommissionFlag(dto, result);
+
+        // 5. 应收单编号检查
+        if (StringUtils.isBlank(dto.getReceiveBillNo())) {
+            result.addError("应收单-单据编号不能为空");
+            return result;
+        }
+        entity.setReceiveBillNo(dto.getReceiveBillNo()); // 3.应收表-单据编号
+
+        // 6. 业务员级别检查
+        if (StringUtils.isBlank(dto.getSalespersonName())) {
+            result.addError("业务员名称不能为空");
+        }
+        entity.setSalespersonId(dto.getSalespersonId());  // 5.必需：业务员id
+        entity.setSalespersonName(dto.getSalespersonName());  // 5.必需：业务员名称
+        entity.setCurrentSalespersonLevelRate(dto.getLevelRate()); // 7.当时业务员级别系数
+        entity.setCurrentSalespersonLevelName(dto.getSalespersonLevelName()); // 6.当时业务员级别
+
+        entity.setCurrentParentId(dto.getPSalespersonId()); // 9.当时上级id
+        entity.setCurrentParentName(dto.getPSalespersonName()); // 9.当时上级id
+        entity.setCurrentParentLevelName(dto.getPSalespersonLevelName()); // 10.当时上级级别
+        entity.setCurrentParentLevelRate(dto.getPLevelRate()); // 11.当时上级级别系数
+
+        // 7. 客户业务员信息检查
+        ValidationUtils.checkCustomerSalesperson(dto, result);
+
+        // 9. 销售订单信息
+        if (StringUtils.isBlank(dto.getSalesOrderBillNo())) {
+            result.addError("销售订单-单据编号不能为空");
+        }
+        entity.setOrderDate(dto.getOrderDate());
+
+        entity.setSalesOrderBillNo(dto.getSalesOrderBillNo());
+
+        // 10. 发货通知单
+        if (StringUtils.isBlank(dto.getFSalesBillNo())) {
+            result.addError("发货通知单-单据编号不能为空");
+        }
+        entity.setFSalesBillNo(dto.getFSalesBillNo());
+
+        entity.setCustomerId(dto.getCustomerId());  // 4.必需：客户id
+
+        // 11. 检查金额
+        ValidationResult validateAmount = ValidationUtils.validateAmount(dto.getSalesAmount(), dto.getExchangeRate(), dto.getFallAmount(), 2);
+        if (validateAmount.hasErrors()) {
+            result.addError(validateAmount.getErrorMsg());
+        }
+
+        entity.setSalesAmount(dto.getSalesAmount()); // 8.销售金额
+        entity.setCurrencyType(dto.getCurrencyType()); // 15.币别
+        entity.setExchangeRate(dto.getExchangeRate()); // 15. 汇率
+        entity.setFallAmount(dto.getFallAmount()); // 15. 税收合计本位币
+
+        return result;
+    }
+
+
+    /**
+     * 设置提成动态信息
+     * @param entity
+     * @param salesCommission
+     */
+    private void setCommissionDynamicInfo(CommissionRecordEntity entity, SalesCommissionDto salesCommission) {
+        BigDecimal hundred = BigDecimal.valueOf(100);
+
+        // 查询提成规则
+        CommissionRuleVO commissionRule =
+                commissionRuleCacheService.getCommissionRuleFromCache(entity.getCommissionType(), salesCommission.getTransferStatus(), salesCommission.getIsCustomsDeclaration());
+
+        // 1.计算客户合作年数
+        Integer customerYear = calculateCooperationYears(salesCommission, LocalDate.now());
+        entity.setCustomerYear(customerYear); // 客户合作年数
+
+        // 2.计算客户合作年份系数
+        BigDecimal customerYearRate = calcCustomerYearRate(customerYear); // 客户年份系数
+        entity.setCustomerYearRate(customerYearRate);
+
+        // 计算百分比时使用 hundred 的倒数
+        BigDecimal hundredInverse = BigDecimal.ONE.divide(hundred, 4, RoundingMode.HALF_UP);
+
+        BigDecimal amount = Optional.ofNullable(salesCommission.getFallAmount())
+                .orElse(BigDecimal.ZERO);   // 税收合计本位币
+        BigDecimal levelRate = salesCommission.getLevelRate();  // 业务员提成级别系数
+        BigDecimal pLevelRate = salesCommission.getPLevelRate();    // 上级提成级别
+
+        BigDecimal commissionRate;  // 最总提成系数
+        BigDecimal commissionAmount;      // 提成金额
+        // 3.业务提成
+        if (entity.getCommissionType().equals(CommissionTypeEnum.BUSINESS.getValue())) {
+            // 是否是动态计算
+            if (commissionRule.getUseDynamicFormula() != null && commissionRule.getUseDynamicFormula().equals(1)) {
+                // 动态计算 系数=当前业务级别 * 客户年份系数
+                BigDecimal resRate = levelRate.multiply(customerYearRate);
+                commissionRate = resRate;
+            } else { // 规则表 固定系数
+                commissionRate = commissionRule.getCommissionRate();
+            }
+            commissionAmount = amount.multiply(commissionRate).multiply(hundredInverse);
+            entity.setCommissionRate(commissionRate);
+            entity.setCommissionAmount(commissionAmount);
+        } else if (entity.getCommissionType().equals(CommissionTypeEnum.MANAGEMENT.getValue())) {
+            if (commissionRule.getUseDynamicFormula().equals(1)) {
+                // 动态计算：（上级系数-自身系数）* 客户年份系数
+                if (salesCommission.getPLevelRate() != null) {
+                    // 如果存在上级id，计算 管理提成
+                    if (pLevelRate.compareTo(levelRate) > 0) { // 上级系数不能比自身小
+                        // 管理提成比例：客户年份系数 * （上级 - 自身系数）
+                        commissionRate = customerYearRate.multiply(pLevelRate.subtract(levelRate));
+                    } else {
+                        throw new RuntimeException("上级级别不能小于业务员");
+                    }
+                }else {
+                    throw new RuntimeException("计算管理提成，但缺少上级id");
+                }
+            } else {
+                // 固定系数 * 客户系数
+                commissionRate = customerYearRate.multiply(commissionRule.getCommissionRate());
+            }
+
+            commissionAmount = amount.multiply(commissionRate).multiply(hundredInverse);
+            entity.setCommissionRate(commissionRate);
+            entity.setCommissionAmount(commissionAmount);
+        }else {
+            throw new RuntimeException("系统提成计算出错，缺少提成类别信息，请查看代码");
+        }
+
+    }
+
+    /**
+     * 计算客户合作年数
+     * @param dto
+     * @param today
+     * @return
+     */
+    public static int calculateCooperationYears(SalesCommissionDto dto, LocalDate today) {
+        if (dto.getFirstOrderDate() == null){
+            throw new RuntimeException("缺少客户首单日期");
+        }
+        LocalDate startDate = dto.getFirstOrderDate();
+        if (dto.getAdjustedFirstOrderDate() != null){
+            startDate = dto.getAdjustedFirstOrderDate();
+        }
+        // 计算开始日期与今天的日期差距
+        Period period = Period.between(startDate, today);
+
+        // 通过年数判断合作年数
+        if (period.getYears() > 0) {
+            return period.getYears() + 1; // 已经完成某年数，并加1
+        } else if (period.getMonths() == 0 && period.getDays() == 0) {
+            // 如果正好一年，返回合作的第1年
+            return 1;
+        } else {
+            return 0; // 不满1年的合作
+        }
+    }
+
+    /**
+     * 计算客户年份系数
+     *
+     * @param year
+     * @return
+     */
+    public static BigDecimal calcCustomerYearRate(Integer year) {
+        if (year == null) {
+            return BigDecimal.ZERO;
+        }
+        return BigDecimal.valueOf(1.0 - Math.max(0, year - 1) * 0.1);
+    }
+
+
+    /**
+     * 创建提成记录
+     * @param list
+     * @param commissionRecordVOList
+     * @param managementRecordVOList
+     * @param errorList
+     * @return
+     */
+    @Transactional
+    @NotNull
+    public ResponseDTO<String> insertAndGetStringResponseDTO(List<SalesCommissionDto> list,
+                                                             ConcurrentLinkedQueue<CommissionRecordEntity> commissionRecordVOList,
+                                                             ConcurrentLinkedQueue<CommissionRecordEntity> managementRecordVOList,
+                                                             ConcurrentLinkedQueue<SalesCommissionDto> errorList) {
+        int inserted = batchInsertCommissionRecordAndUpdate(List.copyOf(commissionRecordVOList));
+        int insertedOfManage = batchInsertCommissionRecordAndUpdate(List.copyOf(managementRecordVOList));
+
+        String message = getCreatedResult(list, inserted, insertedOfManage, errorList);
+
+        List<SalesCommissionExportForm> salesCommissionDTOs = convertListToSalesCommission(List.copyOf(errorList));
+
+        String failedPath = ExcelUtils.saveFailedDataToExcel(salesCommissionDTOs, SalesCommissionExportForm.class );
+
+        return ResponseDTO.okMsg(message, failedPath);
+    }
+
+    /**
+     * 格式化输出
+     * @param list
+     * @param inserted
+     * @param insertedOfManage
+     * @param errorList
+     * @return
+     */
+    private static @NotNull String getCreatedResult(List<?> list,
+                                                    int inserted,
+                                                    int insertedOfManage,
+                                                    ConcurrentLinkedQueue<?> errorList) {
+        int totalRecords = list.size();
+        int failedRecords = errorList.size();
+        return String.format("%d条记录。成功生成: %d条。%d条记录生成失败。生成%d条管理提成。", totalRecords, inserted, failedRecords, insertedOfManage);
+    }
+
+
+    public ResponseDTO<String> batchUpdateCommissionFlag(Set<Long> idList) {
+        if (CollectionUtils.isEmpty(idList)) {
+            return ResponseDTO.ok();
+        }
+        salesOutboundDao.batchUpdateCommissionFlag(idList, 2);
+        return ResponseDTO.ok();
+    }
+
+    /**
+     * 转换Dto成销售提成
+     * @param salesCommissionDtos
+     * @return
+     */
+    private List<SalesCommissionExportForm> convertListToSalesCommission(List<SalesCommissionDto> salesCommissionDtos) {
+        // 使用并行流进行转换，提高处理速度
+        return salesCommissionDtos.parallelStream()
+                .map(e -> SalesCommissionExportForm.builder()
+                        .orderDate(e.getOrderDate())
+                        .salesOrderBillNo(e.getSalesOrderBillNo())
+                        .fSalesBillNo(e.getFSalesBillNo())
+                        .salesBillNo(e.getSalesBillNo())
+                        .receiveBillNo(e.getReceiveBillNo())
+                        .salesAmount(e.getSalesAmount())
+                        .currencyType(e.getCurrencyType())
+                        .customerCode(e.getCustomerCode())
+                        .customerName(e.getCustomerName())
+                        .levelRate(e.getLevelRate())
+                        .firstOrderDate(e.getFirstOrderDate())
+                        .adjustedFirstOrderDate(e.getAdjustedFirstOrderDate())
+                        .salespersonName(e.getSalespersonName())
+                        .currentParentName(e.getPSalespersonName())
+                        .transferStatus(SmartEnumUtil.getEnumDescByValue(e.getTransferStatus(), TransferStatusEnum.class))
+                        .isDeclared(SmartEnumUtil.getEnumDescByValue(e.getIsCustomsDeclaration(), SystemYesNo.class))
+                        .errMsg(e.getErrMsg())
+                        .build()
+                ).collect(Collectors.toList());
+    }
+
 
 
 }

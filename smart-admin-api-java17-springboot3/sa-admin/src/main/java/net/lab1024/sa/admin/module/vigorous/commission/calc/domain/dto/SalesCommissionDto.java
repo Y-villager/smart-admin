@@ -1,4 +1,4 @@
-package net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.dto;
+package net.lab1024.sa.admin.module.vigorous.commission.calc.domain.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

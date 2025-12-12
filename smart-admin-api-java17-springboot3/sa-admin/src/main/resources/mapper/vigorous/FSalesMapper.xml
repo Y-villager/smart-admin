@@ -72,10 +72,18 @@
     <select id="getExistingBillNo" resultType="java.lang.String">
         select bill_no
         from v_f_sales
-        where bill_no IN
-        <foreach collection="billNos" item="billNo" open="(" close=")" separator=",">
-            #{billNo}
-        </foreach>
+        <where>
+            <if test="billNos != null and billNos.size() > 0">
+                bill_no IN
+                <foreach collection="billNos" item="billNo" open="(" close=")" separator=",">
+                    #{billNo}
+                </foreach>
+            </if>
+            <!-- 如果列表为空，可以添加一个永假条件 -->
+            <if test="billNos == null or billNos.size() == 0">
+                1 = 0
+            </if>
+        </where>
     </select>
 
 </mapper>

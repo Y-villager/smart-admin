@@ -6,7 +6,6 @@
     <sql id="base_columns">
         v_sales_outbound.sales_bound_id,
         v_sales_outbound.bill_no,
-        v_sales_outbound.origin_bill_no,
         v_sales_outbound.sales_bound_date,
         v_sales_outbound.customer_id,
         v_sales_outbound.salesperson_id,
@@ -61,6 +60,15 @@
         vr.fall_amount
     </sql>
 
+<!--  插入多对多关系  -->
+    <insert id="batchInsertRelations" parameterType="java.util.List">
+        insert into v_f_outbound_rel (f_sales_no, outbound_no)
+        values
+        <foreach collection="relations" item="item" separator=",">
+            (#{item.fSalesNo}, #{item.outboundNo})
+        </foreach>
+    </insert>
+
     <update id="batchUpdateCommissionFlag" parameterType="java.util.List">
         UPDATE v_sales_outbound
         SET commission_flag = #{flag}
@@ -87,9 +95,6 @@
                 <if test="item.billNo != null and item.billNo != ''">
                     bill_no = #{item.billNo},
                 </if>
-                <if test="item.originBillNo != null and item.originBillNo != ''">
-                    origin_bill_no = #{item.originBillNo},
-                </if>
                 <if test="item.salesBoundDate != null">
                     sales_bound_date = #{item.salesBoundDate},
                 </if>
@@ -109,6 +114,19 @@
             WHERE bill_no = #{item.billNo}
         </foreach>
     </update>
+
+    <!--  删除已存在的关系  -->
+    <delete id="deleteExistingRelations">
+        DELETE FROM v_f_outbound_rel
+        WHERE f_sales_no IN
+        <foreach collection="list" item="item" open="(" close=")" separator=",">
+            #{item.fSalesNo}
+        </foreach>
+        AND outbound_no IN
+        <foreach collection="list" item="item" open="(" close=")" separator=",">
+            #{item.outboundNo}
+        </foreach>
+    </delete>
 
     <resultMap id="salesOutboundVO2Map" type="net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.vo.SalesOutboundVO2">
         <id property="salesBoundId" column="sales_bound_id"/>
@@ -276,7 +294,7 @@
 
     <!-- 分页 连接查询   -->
     <select id="queryPageWithReceivables"
-            resultType="net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.dto.SalesCommissionDto">
+            resultType="net.lab1024.sa.admin.module.vigorous.commission.calc.domain.dto.SalesCommissionDto">
         SELECT
             <include refid="base_commission_column"/>,
             vc.customer_group,
@@ -380,7 +398,7 @@
     </select>
 
     <select id="queryByIdList"
-            resultType="net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.dto.SalesCommissionDto">
+            resultType="net.lab1024.sa.admin.module.vigorous.commission.calc.domain.dto.SalesCommissionDto">
         SELECT
             <include refid="base_commission_column"/>
         FROM

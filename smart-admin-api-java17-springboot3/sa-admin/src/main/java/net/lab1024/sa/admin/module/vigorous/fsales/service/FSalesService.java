@@ -331,4 +331,12 @@ public class FSalesService {
         }
         return 0;
     }
+
+    public List<String> queryByBillNos(Set<String> billNos) {
+        return fSalesDao.queryByBillNos(billNos);
+    }
+
+    public Set<String> getExistingBillNo(Set<String> billNos) {
+        return fSalesDao.getExistingBillNo(billNos);
+    }
 }

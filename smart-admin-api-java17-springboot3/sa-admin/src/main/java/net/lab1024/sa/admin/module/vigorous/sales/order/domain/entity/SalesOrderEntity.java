@@ -3,7 +3,9 @@ package
         net.lab1024.sa.admin.module.vigorous.sales.order.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -19,6 +21,8 @@ import java.time.LocalDateTime;
 
 @Data
 @TableName("v_sales_order")
+@AllArgsConstructor
+@NoArgsConstructor
 public class SalesOrderEntity {
 
     /**

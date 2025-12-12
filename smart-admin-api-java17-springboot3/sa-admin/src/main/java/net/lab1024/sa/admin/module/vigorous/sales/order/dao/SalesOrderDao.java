@@ -2,9 +2,12 @@ package net.lab1024.sa.admin.module.vigorous.sales.order.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import net.lab1024.sa.admin.module.vigorous.sales.order.domain.form.SalesOrderQueryForm;
+import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.dto.SalesCommissionDto;
 import net.lab1024.sa.admin.module.vigorous.sales.order.domain.entity.SalesOrderEntity;
+import net.lab1024.sa.admin.module.vigorous.sales.order.domain.form.SalesOrderExcludeForm;
+import net.lab1024.sa.admin.module.vigorous.sales.order.domain.form.SalesOrderQueryForm;
 import net.lab1024.sa.admin.module.vigorous.sales.order.domain.vo.SalesOrderVO;
+import net.lab1024.sa.base.common.domain.ValidateList;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Component;
@@ -42,4 +45,8 @@ public interface SalesOrderDao extends BaseMapper<SalesOrderEntity> {
     int batchUpdate(@Param("list") List<?> entityList);
 
     Set<String> getExistingBillNo(@Param("billNos") Set<String> billNos);
+
+    List<SalesCommissionDto> queryPageWithReceivables(Object o, SalesOrderQueryForm queryForm, SalesOrderExcludeForm excludeForm);
+
+    List<SalesCommissionDto> queryByIdList(ValidateList<Long> idList);
 }

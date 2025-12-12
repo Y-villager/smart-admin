@@ -2,8 +2,9 @@ package net.lab1024.sa.admin.module.vigorous.sales.outbound.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.dto.SalesCommissionDto;
 import net.lab1024.sa.admin.module.vigorous.customer.domain.entity.CustomerEntity;
-import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.dto.SalesCommissionDto;
+import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.entity.FOutboundRelEntity;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.entity.SalesOutboundEntity;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutboundExcludeForm;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesOutboundQueryForm;
@@ -79,4 +80,11 @@ public interface SalesOutboundDao extends BaseMapper<SalesOutboundEntity> {
     List<SalesCommissionDto> queryByIdList(@Param("idList") ValidateList<Long> idList);
 
     Set<CustomerEntity> queryFirstOrdersByCustomerId(@Param("list") List<Long> customerIdList);
+
+    /**
+     * 删除存在的关系
+     */
+    int deleteExistingRelations(@Param("list") List<FOutboundRelEntity> relation);
+
+    int batchInsertRelations(@Param("relations") List<FOutboundRelEntity> relations);
 }
