@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -39,6 +40,8 @@ public class ReceivablesDetailsVO {
     @Schema(description = "销售数量")
     private Integer saleQuantity;
 
+    @Schema(description = "销售数量")
+    private BigDecimal saleAmount;
 
     @Schema(description = "创建日期")
     private LocalDateTime createTime;

@@ -3,6 +3,7 @@ package net.lab1024.sa.admin.module.vigorous.receivables.domain.entity;
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -42,6 +43,11 @@ public class ReceivablesDetailsEntity {
      * 销售数量
      */
     private Integer saleQuantity;
+
+    /**
+     * 销售价格
+     */
+    private BigDecimal saleAmount;
 
     /**
      * 应收单id

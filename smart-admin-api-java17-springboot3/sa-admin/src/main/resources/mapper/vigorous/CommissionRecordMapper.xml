@@ -265,6 +265,7 @@
             <result column="serial_num" property="serialNum"/>
             <result column="sale_unit" property="saleUnit"/>
             <result column="sale_quantity" property="saleQuantity"/>
+            <result column="material_price" property="saleAmount"/>
         </collection>
     </resultMap>
 
@@ -281,7 +282,8 @@
         vrd.material_name,
         vrd.serial_num,
         vrd.sale_unit,
-        vrd.sale_quantity
+        vrd.sale_quantity,
+        vrd.sale_amount as material_price
         FROM v_commission_record
         left join v_customer vc on v_commission_record.customer_id = vc.customer_id
         left join v_sales_outbound vso on v_commission_record.sales_bill_no = vso.bill_no

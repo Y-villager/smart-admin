@@ -437,6 +437,7 @@ public class CommissionRecordService {
 
                     material.setSaleQuantity(totalQuantity);
 
+                    // 转换输出实体
                     CommissionRecordExportWithMaterialForm vo = convertToMaterialVO(record, material, true);
 
                     resultList.add(vo);
@@ -510,6 +511,7 @@ public class CommissionRecordService {
             vo.setSerialNum(material.getSerialNum());
             vo.setSaleUnit(material.getSaleUnit());
             vo.setSalesQuantity(material.getSaleQuantity());
+            vo.setMaterialPrice(material.getSaleAmount());
         }
 
         return vo;
@@ -638,29 +640,33 @@ public class CommissionRecordService {
     public void classifyCommission(SalesCommissionDto dto,
                                     ConcurrentLinkedQueue<CommissionRecordEntity> commissionEntityList,
                                     ConcurrentLinkedQueue<CommissionRecordEntity> managementEntityList,
-                                    ConcurrentLinkedQueue<SalesCommissionDto> errorList) {
+                                    ConcurrentLinkedQueue<SalesCommissionDto> errorList,
+                                   Boolean force) {
         // 生成业务提成
-        CommissionRecordEntity business = convertToCommissionEntity(dto, CommissionTypeEnum.BUSINESS);
+        CommissionRecordEntity business = convertToCommissionEntity(dto, CommissionTypeEnum.BUSINESS, force);
         CommissionRecordEntity management ;
 
         ValidationResult remark = business.getRemark();
-        if (remark != null){  // 如果备注不为空
-            if (remark.hasErrors()){
-                dto.setErrMsg(remark.getErrorMsg());
-                errorList.add(dto);
-                return;
-            }
-            if (remark.hasReminds()){
-                dto.setRemindMsg(remark.getRemindMsg());
+        if (!force){
+            if (remark != null){  // 如果备注不为空
+                if (remark.hasErrors()){
+                    dto.setErrMsg(remark.getErrorMsg());
+                    errorList.add(dto);
+                    return;
+                }
+                if (remark.hasReminds()){
+                    dto.setRemindMsg(remark.getRemindMsg());
 //                errorList.add(dto);
+                }
             }
         }
+
         // 没有错误信息，就加入插入列表中
         commissionEntityList.add(business);
         // 如果存在上级，且转交状态为自主开发，则生成上级的管理提成
         if (dto.getPSalespersonId() != null && TransferStatusEnum.INDEPENDENTLY.getValue().equals(dto.getTransferStatus())){
             // 有上级id
-            management = convertToCommissionEntity(dto, CommissionTypeEnum.MANAGEMENT);
+            management = convertToCommissionEntity(dto, CommissionTypeEnum.MANAGEMENT, force);
             managementEntityList.add(management);
         }
     }
@@ -671,15 +677,19 @@ public class CommissionRecordService {
      * @param commissionTypeEnum 提成类别
      * @return
      */
-    private CommissionRecordEntity convertToCommissionEntity(SalesCommissionDto salesCommission, CommissionTypeEnum commissionTypeEnum) {
+    private CommissionRecordEntity convertToCommissionEntity(SalesCommissionDto salesCommission,
+                                                             CommissionTypeEnum commissionTypeEnum,
+                                                             Boolean force) {
         CommissionRecordEntity commission = new CommissionRecordEntity();
 
         // 设置基本信息 检查错误信息
         ValidationResult result = checkCommissionAndSetEntity(commission, salesCommission);
 
-        if (result.hasErrors()){ // 如果有错误信息
-            commission.setRemark(result);
-            return commission;
+        if (!force){
+            if (result.hasErrors()){ // 如果有错误信息
+                commission.setRemark(result);
+                return commission;
+            }
         }
         if (result.hasReminds()){
             commission.setRemark(result);
@@ -984,7 +994,8 @@ public class CommissionRecordService {
      * @return
      */
     @Transactional
-    public ResponseDTO<String> createCommission(SalesOrderQueryForm queryForm, SalesOrderExcludeForm excludeForm) {
+    public ResponseDTO<String> createCommission(SalesOrderQueryForm queryForm,
+                                                SalesOrderExcludeForm excludeForm) {
 
         // 需要生成业绩提成 的列表
         List<SalesCommissionDto> list = salesOrderDao.queryPageWithReceivables(null, queryForm, excludeForm);
@@ -1012,7 +1023,7 @@ public class CommissionRecordService {
             threadPoolExecutor.submit(() -> {
                 try {
                     // 提成分类
-                    classifyCommission(dto, commissionRecordVOList, managementRecordVOList, errorList);
+                    classifyCommission(dto, commissionRecordVOList, managementRecordVOList, errorList, false);
                 } finally {
                     latch.countDown();  // 完成一个任务后，CountDownLatch 的计数减一
                 }
@@ -1101,9 +1112,10 @@ public class CommissionRecordService {
      * @return
      */
     @Transactional
-    public ResponseDTO<String> createSelectedCommission(SalesOrderDao dao, ValidateList<Long> idList, String queryMethodName) {
+    public ResponseDTO<String> createSelectedCommission(SalesOrderDao dao,
+                                                        ValidateList<Long> idList,
+                                                        Boolean force) {
         // 使用反射调用DAO查询方法
-//        List<SalesCommissionDto> list = invokeDaoQuery(dao, queryMethodName, idList);
         List<SalesCommissionDto> list = dao.queryByIdList(idList);
 
         // 分组处理数据
@@ -1115,7 +1127,7 @@ public class CommissionRecordService {
 
         // 分类提成
         for (SalesCommissionDto dto : list) {
-            classifyCommission(dto, commissionEntityList,managementEntityList, errorList);
+            classifyCommission(dto, commissionEntityList,managementEntityList, errorList, force);
         }
         //
         return insertAndGetStringResponseDTO(list, commissionEntityList, managementEntityList, errorList);

@@ -420,7 +420,7 @@ public class SalesOutboundService {
 
         // 分类提成
         for (SalesCommissionDto dto : list) {
-            commissionRecordService.classifyCommission(dto, commissionEntityList,managementEntityList, errorList);
+            commissionRecordService.classifyCommission(dto, commissionEntityList,managementEntityList, errorList, false);
         }
         //
         return commissionRecordService.insertAndGetStringResponseDTO(list, commissionEntityList, managementEntityList, errorList);
@@ -457,7 +457,7 @@ public class SalesOutboundService {
             threadPoolExecutor.submit(() -> {
                 try {
                     // 提成分类
-                    commissionRecordService.classifyCommission(dto, commissionRecordVOList, managementRecordVOList, errorList);
+                    commissionRecordService.classifyCommission(dto, commissionRecordVOList, managementRecordVOList, errorList, false);
                 } finally {
                     latch.countDown();  // 完成一个任务后，CountDownLatch 的计数减一
                 }

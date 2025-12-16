@@ -11,6 +11,7 @@
         v_receivables_details.serial_num,
         v_receivables_details.sale_unit,
         v_receivables_details.sale_quantity,
+        v_receivables_details.sale_amount,
         v_receivables_details.create_time,
         v_receivables_details.update_time
     </sql>
@@ -23,7 +24,8 @@
         origin_bill_no,
         serial_num,
         sale_unit,
-        sale_quantity
+        sale_quantity,
+         sale_amount
         )
         VALUES
         <foreach collection="list" item="item" separator=",">
@@ -33,14 +35,16 @@
             #{item.originBillNo},
             #{item.serialNum},
             #{item.saleUnit},
-            #{item.saleQuantity}
+            #{item.saleQuantity},
+            #{item.saleAmount}
             )
         </foreach>
         ON DUPLICATE KEY UPDATE
         material_name = VALUES(material_name),
         serial_num = VALUES(serial_num),
         sale_unit = VALUES(sale_unit),
-        sale_quantity = VALUES(sale_quantity)
+        sale_quantity = VALUES(sale_quantity),
+        sale_amount = VALUES(sale_amount)
     </insert>
 
     <!--   批量更新 /-->
@@ -49,23 +53,17 @@
             UPDATE v_receivables_details
             SET
             <trim suffixOverrides=",">
-                <if test="item.originBillNo != null and item.originBillNo != ''">
-                    origin_bill_no = #{item.originBillNo},
-                </if>
-                <if test="item.materialCode != null and item.materialCode != ''">
-                    material_code = #{item.materialCode},
-                </if>
                 <if test="item.materialName != null and item.materialName != ''">
                     material_name = #{item.materialName},
-                </if>
-                <if test="item.serialNum != null">
-                    serial_num = #{item.serialNum},
                 </if>
                 <if test="item.saleUnit != null and item.saleUnit != ''">
                     sale_unit = #{item.saleUnit},
                 </if>
                 <if test="item.saleQuantity != null">
                     sale_quantity = #{item.saleQuantity},
+                </if>
+                <if test="item.saleAmount != null">
+                    sale_amount = #{item.saleAmount},
                 </if>
             </trim>
             WHERE origin_bill_no = #{item.originBillNo}
@@ -101,6 +99,16 @@
         where bill_no IN
         <foreach collection="billNos" item="billNo" open="(" close=")" separator=",">
             #{billNo}
+        </foreach>
+    </select>
+
+    <select id="getExistingUniqueKeys" resultType="java.lang.String">
+        SELECT
+        CONCAT(origin_bill_no, '|', material_code, '|', serial_num) as unique_key
+        FROM v_receivables_details
+        WHERE origin_bill_no IN
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item.originBillNo}
         </foreach>
     </select>
 </mapper>

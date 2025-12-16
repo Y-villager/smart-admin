@@ -65,6 +65,15 @@
             </template>
             生成全部
           </a-button>
+          <a-button  class="smart-margin-left20" @click="onForceCreateCommission"
+                     :disabled="selectedRowKeyList.length === 0"
+                     v-privilege="'salesOutbound:createCommission'"
+                     :loading="initDisabled">
+            <template #icon>
+              <ExportOutlined />
+            </template>
+            强制生成
+          </a-button>
           <a-button  @click="downloadFailedCommission" type="link" v-show="failedCommissionPath!==undefined && failedCommissionPath!==null">
             下载生成失败数据
           </a-button>
@@ -534,7 +543,24 @@
     }
 
     // 生成所有提成
-    async function onExportAllCommission() {
+    async function onForceCreateCommission() {
+      initDisabled.value = true;
+      try{
+        failedCommissionPath.value = undefined
+        console.log(selectedRowKeyList.value)
+        let res = await salesOrderApi.forceCreateCommission(selectedRowKeyList.value);
+        failedCommissionPath.value = res.data
+        message.success(res.msg)
+      }catch (error){
+        console.log("错误：", error)
+      }finally {
+        initDisabled.value = false;
+        await queryData()
+      }
+    }
+
+    // 强制生成
+    async function onExportAllCommission(){
       initDisabled.value = true;
       try {
         failedCommissionPath.value = undefined

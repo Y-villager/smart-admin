@@ -65,4 +65,8 @@ export const salesOrderApi = {
         return postRequest('/salesOrder/createSelectedCommission', idList);
     },
 
+    forceCreateCommission(idList) {
+        return postRequest('/salesOrder/forceCreateCommission', idList);
+
+    }
 };

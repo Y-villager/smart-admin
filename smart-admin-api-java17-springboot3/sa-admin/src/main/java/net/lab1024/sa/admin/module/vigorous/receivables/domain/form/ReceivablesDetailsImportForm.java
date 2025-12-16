@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
@@ -29,6 +31,9 @@ public class ReceivablesDetailsImportForm {
 
     @ExcelProperty("销售数量")
     private Integer saleQuantity;
+
+    @ExcelProperty("不含税金额")
+    private BigDecimal salesAmount;
 
     private String errorMsg;
 }

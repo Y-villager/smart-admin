@@ -97,7 +97,7 @@ public class SalesOrderController {
     @Operation(summary = "生成所有业绩提成")
     @PostMapping("/salesOrder/createAllCommission")
     @SaCheckPermission("salesOrder:createCommission")
-    public ResponseDTO<String>  exportAllCommission(HttpServletResponse response,@RequestBody @Valid SalesOrderRequestDTO requestDTO) throws IOException {
+    public ResponseDTO<String>  createAllCommission(HttpServletResponse response,@RequestBody @Valid SalesOrderRequestDTO requestDTO) throws IOException {
         SalesOrderQueryForm queryForm = requestDTO.getQueryForm();
         SalesOrderExcludeForm excludeForm = requestDTO.getExcludeForm();
         return commissionRecordService.createCommission(queryForm, excludeForm);
@@ -106,8 +106,15 @@ public class SalesOrderController {
     @Operation(summary = "生成选中业绩提成")
     @PostMapping("/salesOrder/createSelectedCommission")
     @SaCheckPermission("salesOrder:createCommission")
-    public ResponseDTO<String>  exportSelectedCommission(@RequestBody ValidateList<Long> idList) throws IOException {
-        return salesOrderService.createSelectedCommission(idList);
+    public ResponseDTO<String>  createSelectedCommission(@RequestBody ValidateList<Long> idList) throws IOException {
+        return salesOrderService.createSelectedCommission(idList, false);
+    }
+
+    @Operation(summary = "强制生成")
+    @PostMapping("/salesOrder/forceCreateCommission")
+    @SaCheckPermission("salesOrder:createCommission")
+    public ResponseDTO<String>  forceCreateCommission(@RequestBody ValidateList<Long> idList) throws IOException {
+        return salesOrderService.createSelectedCommission(idList, true);
     }
 
 }

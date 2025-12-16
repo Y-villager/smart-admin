@@ -26,9 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static cn.dev33.satoken.SaManager.log;
@@ -179,24 +177,52 @@ public class ReceivablesDetailsService {
 
     }
 
-    // 生成导入列表
+    /**
+     *
+     * @param dataList
+     * @param failedDataList
+     * @param mode 0 False覆盖; 1 True追加
+     * @return
+     */
     private List<ReceivablesDetailsEntity> createImportList(List<ReceivablesDetailsImportForm> dataList,
                                                     List<ReceivablesDetailsImportForm> failedDataList,
                                                     boolean mode) {
         // 应收物料明细
         List<ReceivablesDetailsEntity> entityList = new ArrayList<>();
+//        receivablesDetailsDao.getExistingBillNo()
+        // 1. 先查询数据库中已存在的记录
+        List<String> existingKeys = receivablesDetailsDao.getExistingUniqueKeys(dataList);
+        Set<String> existingKeySet = new HashSet<>(existingKeys);
 
         for (ReceivablesDetailsImportForm importForm : dataList) {
-            if (importForm.getOriginBillNo()==null || importForm.getMaterialCode()==null){
+            if (importForm.getOriginBillNo()==null || importForm.getMaterialCode()==null || importForm.getSerialNum()==null){
                 importForm.setErrorMsg("缺少相关数据");
                 failedDataList.add(importForm);
                 continue;
             }
+            // 生成唯一键
+            String uniqueKey = generateUniqueKey(
+                    importForm.getOriginBillNo(),
+                    importForm.getMaterialCode(),
+                    importForm.getSerialNum()
+            );
+            // 数据库存在唯一键
+            if (existingKeySet.contains(uniqueKey) && mode){
+                importForm.setErrorMsg("【追加】数据库已存在，不允许插入");
+                failedDataList.add(importForm);
+                continue;
+            }
+
             ReceivablesDetailsEntity entity = convertToEntity(importForm);
             entityList.add(entity);
         }
 
         return entityList;
+    }
+
+    // 生成唯一键的方法
+    private String generateUniqueKey(String originBillNo, String materialCode, Integer serialNum) {
+        return originBillNo + "|" + materialCode + "|" + serialNum;
     }
 
     private ReceivablesDetailsEntity convertToEntity(ReceivablesDetailsImportForm form) {
@@ -208,6 +234,7 @@ public class ReceivablesDetailsService {
         entity.setSerialNum(form.getSerialNum());  // 序号
         entity.setSaleUnit(form.getSaleUnit());         // 单位
         entity.setSaleQuantity(form.getSaleQuantity()); // 数量
+        entity.setSaleAmount(form.getSalesAmount()); // 数量
 
         // 系统字段
         entity.setCreateTime(LocalDateTime.now());

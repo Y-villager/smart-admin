@@ -12,6 +12,12 @@
             <a-form-item label="应收单" class="smart-query-form-item">
                 <a-input style="width: 200px" v-model:value="queryForm.receivablesId" placeholder="应收单" />
             </a-form-item>
+          <a-form-item label="物料编码" class="smart-query-form-item">
+            <a-input style="width: 200px" v-model:value="queryForm.materialCode" placeholder="物料编码" />
+          </a-form-item>
+          <a-form-item label="物料名称" class="smart-query-form-item">
+            <a-input style="width: 200px" v-model:value="queryForm.materialName" placeholder="物料名称" />
+          </a-form-item>
             <a-form-item class="smart-query-form-item">
                 <a-button type="primary" @click="onSearch" v-privilege="'receivablesDetails:query'">
                     <template #icon>
@@ -208,6 +214,11 @@
             dataIndex: 'saleQuantity',
             ellipsis: true,
         },
+      {
+        title: '销售金额',
+        dataIndex: 'saleAmount',
+        ellipsis: true,
+      },
         {
             title: '创建日期',
             dataIndex: 'createTime',

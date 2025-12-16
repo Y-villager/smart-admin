@@ -3,6 +3,7 @@ package net.lab1024.sa.admin.module.vigorous.receivables.dao;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.entity.ReceivablesDetailsEntity;
+import net.lab1024.sa.admin.module.vigorous.receivables.domain.form.ReceivablesDetailsImportForm;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.form.ReceivablesDetailsQueryForm;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.vo.ReceivablesDetailsVO;
 import org.apache.ibatis.annotations.Mapper;
@@ -44,4 +45,5 @@ public interface ReceivablesDetailsDao extends BaseMapper<ReceivablesDetailsEnti
 
     Set<String> getExistingBillNo(@Param("billNos") Set<String> billNos);
 
+    List<String> getExistingUniqueKeys(@Param("list") List<ReceivablesDetailsImportForm> dataList);
 }

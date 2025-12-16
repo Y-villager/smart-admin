@@ -53,10 +53,12 @@ public class CommissionRecordExportWithMaterialForm {
     private Integer serialNum;
     @ExcelProperty("物料名称")
     private String materialName;
-    @ExcelProperty("销售单位")
-    private String saleUnit;
     @ExcelProperty("销售数量")
     private Integer salesQuantity;
+    @ExcelProperty("销售单位")
+    private String saleUnit;
+    @ExcelProperty("销售金额")
+    private BigDecimal materialPrice;
 
     @ExcelProperty("销售员id")
     @ExcelIgnore

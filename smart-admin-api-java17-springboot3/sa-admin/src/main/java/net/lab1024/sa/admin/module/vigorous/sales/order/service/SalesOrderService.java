@@ -351,7 +351,7 @@ public class SalesOrderService {
     }
 
 
-    public ResponseDTO<String> createSelectedCommission(ValidateList<Long> idList) {
-        return commissionRecordService.createSelectedCommission(salesOrderDao, idList, "queryByIdList");
+    public ResponseDTO<String> createSelectedCommission(ValidateList<Long> idList, Boolean force) {
+        return commissionRecordService.createSelectedCommission(salesOrderDao, idList, force);
     }
 }
