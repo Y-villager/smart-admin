@@ -22,16 +22,19 @@ public class SalesOrderQueryForm extends PageParam {
     @Schema(description = "销售订单")
     private String billNo;
 
+    @Schema(description = "客户名称")
+    private String customerName;
+
+    @Schema(description = "业务员名称")
+    private String salespersonName;
+
+    @Schema(description = "部门名称")
+    private String departmentName;
+
     @Schema(description = "单据日期开始")
     private LocalDate orderDateBegin;
 
     @Schema(description = "单据日期结束")
     private LocalDate orderDateEnd;
-
-    @Schema(description = "客户编码")
-    private String customerCode;
-
-    @Schema(description = "业务员")
-    private String salespersonCode;
 
 }

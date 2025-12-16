@@ -46,7 +46,9 @@ public interface SalesOrderDao extends BaseMapper<SalesOrderEntity> {
 
     Set<String> getExistingBillNo(@Param("billNos") Set<String> billNos);
 
-    List<SalesCommissionDto> queryPageWithReceivables(Object o, SalesOrderQueryForm queryForm, SalesOrderExcludeForm excludeForm);
+    List<SalesCommissionDto> queryPageWithReceivables(Object o,
+                                                      @Param("queryForm") SalesOrderQueryForm queryForm,
+                                                      @Param("excludeForm") SalesOrderExcludeForm excludeForm);
 
-    List<SalesCommissionDto> queryByIdList(ValidateList<Long> idList);
+    List<SalesCommissionDto> queryByIdList(@Param("idList") ValidateList<Long> idList);
 }

@@ -389,7 +389,7 @@ public class ReceivablesService {
                                           Map<String, Long> customerMap,
                                           Map<String, String> currencyMap,
                                           List<ReceivablesImportForm> failedDataList,
-                                              boolean mode) {
+                                              Boolean mode) {
         List<String> errorMessages = new ArrayList<>();
 
         // 1. 验证单据编号
@@ -444,7 +444,7 @@ public class ReceivablesService {
         }
 
         // 8. 检查应收金额
-        ValidationResult validateAmount = ValidationUtils.validateAmount(form.getAmount(), form.getExchangeRate(), form.getFallAmount(), 2);
+        ValidationResult validateAmount = ValidationUtils.validateAmount(form.getAmount(), form.getExchangeRate(), form.getFallAmount(), true);
         if (validateAmount.hasErrors()) {
             form.setErrorMsg(validateAmount.getErrorMsg());
             return null;

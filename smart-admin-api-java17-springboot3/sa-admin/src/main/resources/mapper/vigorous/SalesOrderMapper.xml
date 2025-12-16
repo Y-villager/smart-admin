@@ -18,17 +18,17 @@
     </sql>
 
     <sql id="base_commission_column">
-        -- 发货通知单信息
-        vfs.bill_no as f_sales_bill_no,
-
         -- 销售订单信息
         vso_order.bill_no as sales_order_bill_no,
         vso_order.order_date,
+        vso_order.amount AS sales_amount,
+
+        -- 发货通知单信息
+        vfs.bill_no as f_sales_bill_no,
 
         -- 出库单单据
         vso.bill_no AS sales_bill_no,
         vso.sales_bound_date as outbound_date,
-        vso.amount AS sales_amount,
         vso.commission_flag,
         vc.customer_id,
         vc.customer_name,
@@ -47,10 +47,10 @@
         pvs.salesperson_name AS p_salesperson_name,
         pvsl.salesperson_level_name AS p_salesperson_level_name,
         pvsl.commission_rate AS p_level_rate,
+#         应收
         vr.bill_no as receive_bill_no,
         vr.currency_type,
-        vr.exchange_rate,
-        vr.fall_amount
+        vr.exchange_rate
     </sql>
 
     <update id="batchUpdate">
@@ -90,8 +90,13 @@
     <!-- 分页查询 -->
     <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.sales.order.domain.vo.SalesOrderVO">
         SELECT
-        <include refid="base_columns"/>
+        <include refid="base_columns"/>,
+        vc.customer_name,
+        d.name
         FROM v_sales_order
+        left join v_customer vc on v_sales_order.customer_code = vc.customer_code
+            left join v_salesperson vs on vs.salesperson_code = v_sales_order.salesperson_code
+            left join t_department d on d.department_id = vs.department_id
         <where>
             <!--单据编号-->
             <if test="queryForm.billNo != null and queryForm.billNo != ''">
@@ -104,13 +109,17 @@
             <if test="queryForm.orderDateEnd != null">
                 AND v_sales_order.order_date &lt;= #{queryForm.orderDateEnd}
             </if>
-            <!--客户编码-->
-            <if test="queryForm.customerCode != null and queryForm.customerCode != ''">
-                        AND INSTR(v_sales_order.customer_code,#{queryForm.customerCode})
+            <!--客户-->
+            <if test="queryForm.customerName != null and queryForm.customerName != ''">
+                AND INSTR(vc.customer_name,#{queryForm.customerName})
+            </if>
+            <!--部门-->
+            <if test="queryForm.departmentName != null and queryForm.departmentName != ''">
+                AND INSTR(d.name,#{queryForm.departmentName})
             </if>
             <!--业务员-->
-            <if test="queryForm.salespersonCode != null and queryForm.salespersonCode != ''">
-                        AND INSTR(v_sales_order.salesperson_code,#{queryForm.salespersonCode})
+            <if test="queryForm.salespersonName != null and queryForm.salespersonName != ''">
+                AND INSTR(v_sales_order.salesperson_name,#{queryForm.salespersonName})
             </if>
         </where>
     </select>
@@ -130,52 +139,62 @@
         <!-- 分页 连接查询   -->
             SELECT
             <include refid="base_commission_column"/>,
-            vc.customer_group,
             vs.deleted_flag,
-            vs.disabled_flag
+            -- 应收单编号列表（去重）
+            GROUP_CONCAT(DISTINCT vr.bill_no ORDER BY vr.bill_no SEPARATOR ', ') as receive_bill_no,
+            -- 应收金额汇总（对不同的应收单去重后求和）
+            (
+            SELECT SUM(DISTINCT vr2.amount)
+            FROM v_f_sales vfs2
+            LEFT JOIN v_f_outbound_rel vfo2 ON vfo2.f_sales_no = vfs2.bill_no
+            LEFT JOIN v_sales_outbound vso2 ON vso2.bill_no = vfo2.outbound_no
+            LEFT JOIN v_receivables vr2 ON vso2.bill_no = vr2.origin_bill_no
+            WHERE vfs2.origin_bill_no = vso_order.bill_no
+            AND vr2.bill_no IS NOT NULL
+            ) as receive_amount
             FROM
             v_sales_order vso_order
             left join v_f_sales vfs ON vfs.origin_bill_no = vso_order.bill_no
-            left join v_sales_outbound vso on  vso.origin_bill_no = vfs.bill_no
+            left join v_f_outbound_rel vfo on vfo.f_sales_no = vfs.bill_no
+            left join v_sales_outbound vso on  vso.bill_no = vfo.outbound_no
             left JOIN v_receivables vr ON vso.bill_no = vr.origin_bill_no
-            left JOIN v_customer vc ON vc.customer_id = vso.customer_id
-            left JOIN v_salesperson vs ON vs.id = vso.salesperson_id
+            left JOIN v_customer vc ON vc.customer_code = vso_order.customer_code
+            left JOIN v_salesperson vs ON vs.salesperson_code = vso_order.salesperson_code
             left JOIN v_salesperson_level vsl ON vs.salesperson_level_id = vsl.salesperson_level_id
             left JOIN v_salesperson pvs ON vs.parent_id = pvs.id
             left JOIN v_salesperson_level pvsl ON pvs.salesperson_level_id = pvsl.salesperson_level_id
-            <if test="queryForm.departmentName != null and queryForm.departmentName != '' ">
-                inner JOIN t_department d ON d.department_id = vs.department_id
-            </if>
+            left JOIN t_department d ON d.department_id = vs.department_id
             <where>
                 <!--客户编码-->
-                <if test="queryForm.customerName != null">
+                <if test="queryForm.customerName != null and queryForm.customerName != '' ">
                     AND INSTR(vc.customer_name,#{queryForm.customerName})
                 </if>
                 <!--业务员-->
-                <if test="queryForm.salespersonName != null">
+                <if test="queryForm.salespersonName != null and queryForm.salespersonName != '' ">
                     AND INSTR(vs.salesperson_name,#{queryForm.salespersonName})
                 </if>
+                <!--销售订单-->
                 <if test="queryForm.billNo != null and queryForm.billNo != '' ">
-                    AND INSTR(vso.bill_no,#{queryForm.billNo})
+                    AND INSTR(vso_order.bill_no,#{queryForm.billNo})
                 </if>
                 <if test="queryForm.departmentName != null and queryForm.departmentName != '' ">
                     AND INSTR(d.name, #{queryForm.departmentName})
                 </if>
-                <!--出库日期-->
-                <if test="queryForm.salesBoundDateBegin != null ">
-                    AND DATE_FORMAT(vso.sales_bound_date, '%Y-%m-%d') &gt;= #{queryForm.salesBoundDateBegin}
+                <!--销售订单开始日期-->
+                <if test="queryForm.orderDateBegin != null ">
+                    AND DATE_FORMAT(vso_order.order_date, '%Y-%m-%d') &gt;= #{queryForm.orderDateBegin}
                 </if>
-                <if test="queryForm.salesBoundDateEnd != null ">
-                    AND DATE_FORMAT(vso.sales_bound_date, '%Y-%m-%d') &lt;= #{queryForm.salesBoundDateEnd}
+                <if test="queryForm.orderDateBegin != null ">
+                    AND DATE_FORMAT(vso_order.order_date, '%Y-%m-%d') &lt;= #{queryForm.orderDateEnd}
                 </if>
-                <choose>
-                    <when test="queryForm.hasFirstOrder == 1">
-                        AND vc.first_order_date IS NOT NULL
-                    </when>
-                    <when test="queryForm.hasFirstOrder == 0">
-                        AND vc.first_order_date IS NULL
-                    </when>
-                </choose>
+<!--                <choose>-->
+<!--                    <when test="queryForm.hasFirstOrder == 1">-->
+<!--                        AND vc.first_order_date IS NOT NULL-->
+<!--                    </when>-->
+<!--                    <when test="queryForm.hasFirstOrder == 0">-->
+<!--                        AND vc.first_order_date IS NULL-->
+<!--                    </when>-->
+<!--                </choose>-->
                 <if test="excludeForm.customerName != null and excludeForm.customerName != ''">
                     And vc.customer_name != #{excludeForm.customerName}
                 </if>
@@ -185,31 +204,45 @@
                 <if test="excludeForm.disabledSalesmanFlag != null and excludeForm.disabledSalesmanFlag != 0">
                     And vs.disabled_flag != #{excludeForm.disabledSalesmanFlag}
                 </if>
-                and commission_flag != 1
             </where>
+            GROUP BY vso_order.bill_no
             order by vso.sales_bound_date DESC
     </select>
 
     <select id="queryByIdList"
             resultType="net.lab1024.sa.admin.module.vigorous.commission.calc.domain.dto.SalesCommissionDto">
         SELECT
-        <include refid="base_commission_column"/>
+            <include refid="base_commission_column"/>,
+            -- 应收单编号列表（去重）
+            GROUP_CONCAT(DISTINCT vr.bill_no ORDER BY vr.bill_no SEPARATOR ', ') as receive_bill_no,
+            -- 应收金额汇总（对不同的应收单去重后求和）
+            (
+            SELECT SUM(DISTINCT vr2.amount)
+            FROM v_f_sales vfs2
+            LEFT JOIN v_f_outbound_rel vfo2 ON vfo2.f_sales_no = vfs2.bill_no
+            LEFT JOIN v_sales_outbound vso2 ON vso2.bill_no = vfo2.outbound_no
+            LEFT JOIN v_receivables vr2 ON vso2.bill_no = vr2.origin_bill_no
+            WHERE vfs2.origin_bill_no = vso_order.bill_no
+            AND vr2.bill_no IS NOT NULL
+            ) as receive_amount
         FROM
-        v_sales_order vso_order
-        left join v_f_sales vfs ON vfs.origin_bill_no = vso_order.bill_no
-        left join v_sales_outbound vso on  vso.origin_bill_no = vfs.bill_no
-        left JOIN v_receivables vr ON vso.bill_no = vr.origin_bill_no
-        inner JOIN v_customer vc ON vc.customer_id = vso.customer_id
-        left JOIN v_salesperson vs ON vs.id = vso.salesperson_id
-        left JOIN v_salesperson_level vsl ON vs.salesperson_level_id = vsl.salesperson_level_id
-        left JOIN v_salesperson pvs ON vs.parent_id = pvs.id
-        left JOIN v_salesperson_level pvsl ON pvs.salesperson_level_id = pvsl.salesperson_level_id
+            v_sales_order vso_order
+            left join v_f_sales vfs ON vfs.origin_bill_no = vso_order.bill_no
+            left join v_f_outbound_rel vfo on vfo.f_sales_no = vfs.bill_no
+            left join v_sales_outbound vso on  vso.bill_no = vfo.outbound_no
+            left JOIN v_receivables vr ON vso.bill_no = vr.origin_bill_no
+            left JOIN v_customer vc ON vc.customer_code = vso_order.customer_code
+            left JOIN v_salesperson vs ON vs.id = vso.salesperson_id
+            left JOIN v_salesperson_level vsl ON vs.salesperson_level_id = vsl.salesperson_level_id
+            left JOIN v_salesperson pvs ON vs.parent_id = pvs.id
+            left JOIN v_salesperson_level pvsl ON pvs.salesperson_level_id = pvsl.salesperson_level_id
         <where>
-            vso.sales_bound_id in
+            vso_order.sales_order_id in
             <foreach item="id" index="index" collection="idList" open="(" separator="," close=")">
                 #{id}
             </foreach>
         </where>
+        GROUP BY vso_order.bill_no
     </select>
 
 

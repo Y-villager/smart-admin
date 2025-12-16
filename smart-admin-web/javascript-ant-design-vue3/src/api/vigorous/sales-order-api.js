@@ -53,6 +53,16 @@ export const salesOrderApi = {
     // 导出
     exportSalesOrder : (data) =>{
         return postDownload('/salesOrder/export', data);
-    }
+    },
+
+    // 生成业绩提成
+    createAllCommission : (param) =>{
+        return postRequest('/salesOrder/createAllCommission', param);
+    },
+
+    // 生成选中的业绩提成
+    createSelectedCommission : (idList) =>{
+        return postRequest('/salesOrder/createSelectedCommission', idList);
+    },
 
 };

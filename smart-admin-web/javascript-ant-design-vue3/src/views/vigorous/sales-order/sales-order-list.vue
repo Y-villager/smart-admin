@@ -15,12 +15,15 @@
             <a-form-item label="单据日期" class="smart-query-form-item">
               <a-range-picker v-model:value="queryForm.orderDate" :presets="defaultTimeRanges" style="width: 220px" @change="onChangeOrderDate" />
             </a-form-item>
-            <a-form-item label="客户编码" class="smart-query-form-item">
-                <a-input style="width: 200px" v-model:value="queryForm.customerCode" placeholder="客户编码" />
-            </a-form-item>
-            <a-form-item label="业务员" class="smart-query-form-item">
-                <a-input style="width: 200px" v-model:value="queryForm.salespersonCode" placeholder="业务员" />
-            </a-form-item>
+          <a-form-item label="客户名称" class="smart-query-form-item">
+            <a-input style="width: 200px" v-model:value="queryForm.customerName" placeholder="客户名称" />
+          </a-form-item>
+          <a-form-item label="部门名称" class="smart-query-form-item">
+            <a-input style="width: 200px" v-model:value="queryForm.departmentName" placeholder="部门名称" />
+          </a-form-item>
+          <a-form-item label="销售员" class="smart-query-form-item">
+            <a-input style="width: 200px" v-model:value="queryForm.salespersonName" placeholder="销售员" />
+          </a-form-item>
             <a-form-item class="smart-query-form-item">
                 <a-button type="primary" @click="onSearch" v-privilege="'salesOrder:query'">
                     <template #icon>
@@ -34,8 +37,48 @@
                     </template>
                     重置
                 </a-button>
+              <a-button class="smart-margin-left20" @click="moreCreateCondition = !moreCreateCondition">
+                <template #icon>
+                  <MoreOutlined />
+                </template>
+                {{ moreCreateCondition ? '收起' : '展开' }}
+              </a-button>
             </a-form-item>
         </a-row>
+
+      <!--  多次生成情况   -->
+      <a-row class="smart-query-form-row" v-show="moreCreateCondition">
+        <a-form-item label="生成提成方式" class="smart-query-form-item">
+          <a-button  @click="onExportSelectedCommission"
+                     type="primary"
+                     :disabled="selectedRowKeyList.length === 0"
+                     v-privilege="'salesOutbound:createCommission'"
+                     :loading="initDisabled">
+            <template #icon>
+              <ExportOutlined />
+            </template>
+            生成选中部分
+          </a-button>
+          <a-button class="smart-margin-left20" @click="onExportAllCommission" danger v-privilege="'salesOutbound:createCommission'" :loading="initDisabled">
+            <template #icon>
+              <ExportOutlined />
+            </template>
+            生成全部
+          </a-button>
+          <a-button  @click="downloadFailedCommission" type="link" v-show="failedCommissionPath!==undefined && failedCommissionPath!==null">
+            下载生成失败数据
+          </a-button>
+        </a-form-item>
+      </a-row>
+      <a-row class="smart-query-form-row" v-show="moreCreateCondition">
+        <a-form-item label="排除" class="smart-query-form-item">
+          <a-checkbox-group :default-value="selectedValues"  @change="handleSelectionChange">
+            <a-checkbox value="customerName" >个人客户</a-checkbox>
+            <a-checkbox value="deletedSalesman" >已删除业务员</a-checkbox>
+            <a-checkbox value="disabledSalesman">已禁用业务员</a-checkbox>
+          </a-checkbox-group>
+        </a-form-item>
+      </a-row>
     </a-form>
     <!---------- 查询表单form end ----------->
 
@@ -183,6 +226,7 @@
 
     import SalesOrderForm from './sales-order-form.vue';
     import { defaultTimeRanges } from '/@/lib/default-time-ranges';
+    import {salesOutboundApi} from "/@/api/vigorous/sales-outbound-api.js";
     //import FilePreview from '/@/components/support/file-preview/index.vue'; // 图片预览组件
 
     // ---------------------------- 表格列 ----------------------------
@@ -253,8 +297,9 @@
         orderDate: undefined,
         orderDateBegin: undefined, //单据日期-开始
         orderDateEnd: undefined, //单据日期-结束
-        customerCode: undefined, //客户编码
-        salespersonCode: undefined, //业务员
+        customerName: undefined, //客户
+        salespersonName: undefined, //业务员
+        departmentName: undefined, //部门
         pageNum: 1,
         pageSize: 10,
     };
@@ -266,11 +311,18 @@
     const tableData = ref([]);
     // 总数
     const total = ref(0);
+    const excludeFormState = {
+      customerName: '个人',
+      deletedSalesmanFlag: 1,
+      disabledSalesmanFlag: 1
+    };
+    const excludeForm = reactive({ ...excludeFormState });
 
     // 重置查询条件
     function resetQuery() {
         let pageSize = queryForm.pageSize;
         Object.assign(queryForm, queryFormState);
+        Object.assign(excludeForm, excludeFormState);
         queryForm.pageSize = pageSize;
         queryData();
     }
@@ -376,80 +428,80 @@
         }
     }
 
-// ------------------------------- 导出和导入 ---------------------------------
-// 导入弹窗
-const importModalShowFlag = ref(false);
+  // ------------------------------- 导出和导入 ---------------------------------
+  // 导入弹窗
+  const importModalShowFlag = ref(false);
 
-const fileList = ref([]);
+  const fileList = ref([]);
 
-// 显示导入
-function showImportModal() {
-  fileList.value = [];
-  importModalShowFlag.value = true;
-}
-
-// 关闭 导入
-function hideImportModal() {
-  importModalShowFlag.value = false;
-}
-
-// 导出excel文件
-const exportLoading = ref(false);
-async function onExportSalesOrder() {
-  exportLoading.value = true
-  await salesOrderApi.exportSalesOrder(queryForm);
-  exportLoading.value = false
-}
-
-function handleRemove(file) {
-  const index = fileList.value.indexOf(file);
-  const newFileList = fileList.value.slice();
-  newFileList.splice(index, 1);
-  fileList.value = newFileList;
-}
-
-function beforeUpload(file) {
-  fileList.value = [...(fileList.value || []), file];
-  return false;
-}
-// 下载模板
-function downloadExcel() {
-}
-
-const importMode = ref(1)
-// 导入文件
-async function onImportSalesOrder() {
-  const formData = new FormData();
-  fileList.value.forEach((file) => {
-    formData.append('file', file.originFileObj);
-    formData.append('mode', importMode.value);
-  });
-
-  SmartLoading.show();
-  try {
-    let res = await salesOrderApi.importSalesOrder(formData);
-    failed_import_data.value = res.data;
-    message.success(res.msg);
-  } catch (e) {
-    smartSentry.captureError(e);
-  } finally {
-    SmartLoading.hide();
+  // 显示导入
+  function showImportModal() {
+    fileList.value = [];
+    importModalShowFlag.value = true;
   }
-}
 
-// 下载导入失败数据
-const failed_import_data = ref();
-function downloadFailedData(){
-  if (failed_import_data.value != null){
-    try{
-      excelApi.downloadFailedImportData();
-    }catch (e){
-      smartSentry.captureError(e)
+  // 关闭 导入
+  function hideImportModal() {
+    importModalShowFlag.value = false;
+  }
+
+  // 导出excel文件
+  const exportLoading = ref(false);
+  async function onExportSalesOrder() {
+    exportLoading.value = true
+    await salesOrderApi.exportSalesOrder(queryForm);
+    exportLoading.value = false
+  }
+
+  function handleRemove(file) {
+    const index = fileList.value.indexOf(file);
+    const newFileList = fileList.value.slice();
+    newFileList.splice(index, 1);
+    fileList.value = newFileList;
+  }
+
+  function beforeUpload(file) {
+    fileList.value = [...(fileList.value || []), file];
+    return false;
+  }
+  // 下载模板
+  function downloadExcel() {
+  }
+
+  const importMode = ref(1)
+  // 导入文件
+  async function onImportSalesOrder() {
+    const formData = new FormData();
+    fileList.value.forEach((file) => {
+      formData.append('file', file.originFileObj);
+      formData.append('mode', importMode.value);
+    });
+
+    SmartLoading.show();
+    try {
+      let res = await salesOrderApi.importSalesOrder(formData);
+      failed_import_data.value = res.data;
+      message.success(res.msg);
+    } catch (e) {
+      smartSentry.captureError(e);
+    } finally {
+      SmartLoading.hide();
     }
-  }else {
-    message.error("当前没有导入失败数据")
   }
-}
+
+  // 下载导入失败数据
+  const failed_import_data = ref();
+  function downloadFailedData(){
+    if (failed_import_data.value != null){
+      try{
+        excelApi.downloadFailedImportData();
+      }catch (e){
+        smartSentry.captureError(e)
+      }
+    }else {
+      message.error("当前没有导入失败数据")
+    }
+  }
 
 // 日期范围修改
     // ---------------------出库日期选择 事件--------------------------
@@ -457,4 +509,61 @@ function downloadFailedData(){
       queryForm.orderDateBegin = dateStrings[0];
       queryForm.orderDateEnd = dateStrings[1];
     }
+
+    // 生成提成情况
+    const moreCreateCondition = ref(true);
+    const selectedValues = ref(['customerName', 'deletedSalesman', 'disabledSalesman']);
+
+    // 生成提成失败路径
+    const failedCommissionPath = ref();
+    const initDisabled = ref(false);
+
+    // 生成选中部分的提成
+    async function onExportSelectedCommission(){
+      try{
+        failedCommissionPath.value = undefined
+        console.log(selectedRowKeyList.value)
+        let res = await salesOrderApi.createSelectedCommission(selectedRowKeyList.value);
+        failedCommissionPath.value = res.data
+        message.success(res.msg)
+      }catch (error){
+        console.log("错误：", error)
+      }finally {
+        await queryData()
+      }
+    }
+
+    // 生成所有提成
+    async function onExportAllCommission() {
+      initDisabled.value = true;
+      try {
+        failedCommissionPath.value = undefined
+        let res = await salesOrderApi.createAllCommission({
+          queryForm: queryForm,
+          excludeForm: excludeForm
+        });
+        failedCommissionPath.value = res.data
+        initDisabled.value = false;
+        message.success(res.msg)
+      } catch (error) {
+        console.log('错误:', error);
+        initDisabled.value = false;
+      }finally {
+        await queryData()
+      }
+    }
+
+    // 下载失败
+    function downloadFailedCommission(){
+      try {
+        const path = failedCommissionPath.value;
+        if (path !== undefined && path != null){
+          console.log(path)
+          excelApi.downloadFailedImportData(path);
+        }
+      } catch (e) {
+        smartSentry.captureError(e);
+      }
+    }
+
 </script>

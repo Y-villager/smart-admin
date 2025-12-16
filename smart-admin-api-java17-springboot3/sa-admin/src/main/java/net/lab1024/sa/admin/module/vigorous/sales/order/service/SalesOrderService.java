@@ -4,17 +4,21 @@ import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
 import net.lab1024.sa.admin.convert.LocalDateConverter;
-import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.dto.SalesCommissionDto;
-import net.lab1024.sa.admin.module.vigorous.commission.calc.domain.entity.CommissionRecordEntity;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.service.CommissionRecordService;
 import net.lab1024.sa.admin.module.vigorous.customer.service.CustomerService;
 import net.lab1024.sa.admin.module.vigorous.sales.order.dao.SalesOrderDao;
 import net.lab1024.sa.admin.module.vigorous.sales.order.domain.entity.SalesOrderEntity;
-import net.lab1024.sa.admin.module.vigorous.sales.order.domain.form.*;
+import net.lab1024.sa.admin.module.vigorous.sales.order.domain.form.SalesOrderAddForm;
+import net.lab1024.sa.admin.module.vigorous.sales.order.domain.form.SalesOrderImportForm;
+import net.lab1024.sa.admin.module.vigorous.sales.order.domain.form.SalesOrderQueryForm;
+import net.lab1024.sa.admin.module.vigorous.sales.order.domain.form.SalesOrderUpdateForm;
 import net.lab1024.sa.admin.module.vigorous.sales.order.domain.vo.SalesOrderExcelVO;
 import net.lab1024.sa.admin.module.vigorous.sales.order.domain.vo.SalesOrderVO;
 import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
-import net.lab1024.sa.admin.util.*;
+import net.lab1024.sa.admin.util.BatchUtils;
+import net.lab1024.sa.admin.util.ExcelUtils;
+import net.lab1024.sa.admin.util.SplitListUtils;
+import net.lab1024.sa.admin.util.ValidationUtils;
 import net.lab1024.sa.base.common.code.SystemErrorCode;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
@@ -32,7 +36,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static cn.dev33.satoken.SaManager.log;
@@ -343,80 +350,8 @@ public class SalesOrderService {
         return 0;
     }
 
-    /**
-     * 生成业绩提成
-     *
-     * @param queryForm 查询条件
-     * @return
-     */
-    public ResponseDTO<String> createCommission(SalesOrderQueryForm queryForm, SalesOrderExcludeForm excludeForm) {
 
-        // 需要生成业绩提成 的列表
-        List<SalesCommissionDto> list = salesOrderDao.queryPageWithReceivables(null, queryForm, excludeForm);
-
-        if (list.isEmpty()) {
-            return ResponseDTO.okMsg("没有需要生成的提成。");
-        }
-
-        // 创建自定义线程池
-        ThreadPoolExecutor threadPoolExecutor = ThreadPoolUtils.createThreadPool();
-
-        // 使用 CountDownLatch 来同步线程
-        CountDownLatch latch = new CountDownLatch(list.size());
-
-        // 数据列表
-        ConcurrentLinkedQueue<SalesCommissionDto> errorList = new ConcurrentLinkedQueue<>();
-        ConcurrentLinkedQueue<CommissionRecordEntity> commissionRecordVOList = new ConcurrentLinkedQueue<>();
-        ConcurrentLinkedQueue<CommissionRecordEntity> managementRecordVOList = new ConcurrentLinkedQueue<>();
-
-        // 提交任务到线程池
-        for (SalesCommissionDto dto : list) {
-            threadPoolExecutor.submit(() -> {
-                try {
-                    // 提成分类
-                    commissionRecordService.classifyCommission(dto, commissionRecordVOList, managementRecordVOList, errorList);
-                } finally {
-                    latch.countDown();  // 完成一个任务后，CountDownLatch 的计数减一
-                }
-            });
-        }
-
-        // 等待所有线程完成
-        try {
-            latch.await();  // 等待所有线程完成
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        // 关闭线程池
-        threadPoolExecutor.shutdown();
-
-        // 转换为不可变列表
-        return commissionRecordService.insertAndGetStringResponseDTO(list, commissionRecordVOList, managementRecordVOList, errorList );
-    }
-
-
-    /**
-     * 生成选中出库单 提成
-     *
-     * @param idList
-     * @return
-     */
     public ResponseDTO<String> createSelectedCommission(ValidateList<Long> idList) {
-        List<SalesCommissionDto> list = salesOrderDao.queryByIdList(idList);
-
-        ConcurrentLinkedQueue<SalesCommissionDto> errorList = new ConcurrentLinkedQueue<>();
-        ConcurrentLinkedQueue<CommissionRecordEntity> commissionEntityList = new ConcurrentLinkedQueue<>();
-        ConcurrentLinkedQueue<CommissionRecordEntity> managementEntityList = new ConcurrentLinkedQueue<>();
-
-        // 分类提成
-        for (SalesCommissionDto dto : list) {
-            commissionRecordService.classifyCommission(dto, commissionEntityList,managementEntityList, errorList);
-        }
-        //
-        return commissionRecordService.insertAndGetStringResponseDTO(list, commissionEntityList, managementEntityList, errorList);
+        return commissionRecordService.createSelectedCommission(salesOrderDao, idList, "queryByIdList");
     }
-
-
-
 }

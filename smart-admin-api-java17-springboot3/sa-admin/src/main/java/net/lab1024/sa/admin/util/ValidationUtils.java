@@ -69,19 +69,19 @@ public class ValidationUtils {
      * 校验销售金额 * 汇率 ≈ 税收合计本位币
      * @param salesAmount 销售金额
      * @param exchangeRate 汇率
-     * @param fallAmount 税收合计本位币
+     * @param receiveAmount 税收合计本位币
      * @param scale 小数精度（默认为2）
      * @return 校验结果
      */
     public static ValidationResult validateAmount(BigDecimal salesAmount,
                                                   BigDecimal exchangeRate,
-                                                  BigDecimal fallAmount,
-                                                  int scale) {
+                                                  BigDecimal receiveAmount,
+                                                  Boolean mode) {
         ValidationResult result = new ValidationResult();
         BigDecimal ALLOWED_ERROR = new BigDecimal("0.05");
 
         // 1. 基础非空校验
-        if (salesAmount == null && fallAmount != null && BigDecimal.ZERO.compareTo(fallAmount) != 0 ) {
+        if (salesAmount == null && receiveAmount != null && BigDecimal.ZERO.compareTo(receiveAmount) != 0 ) {
             result.addError("销售金额不能为空");
             return result; // 立即返回，无需继续检查
         }else if (salesAmount == null) {
@@ -91,23 +91,31 @@ public class ValidationUtils {
         if (exchangeRate == null) {
             result.addError("汇率不能为空");
         }
-        // salesAmount是0，fallAmount需要调整为0
-        if (salesAmount.compareTo(BigDecimal.ZERO) == 0 && fallAmount == null) {
-            fallAmount = BigDecimal.ZERO; // 自动调整为0
+        // salesAmount是0，receiveAmount需要调整为0
+        if (salesAmount.compareTo(BigDecimal.ZERO) == 0 && receiveAmount == null) {
+            receiveAmount = BigDecimal.ZERO; // 自动调整为0
         }
-        if (fallAmount == null) {
-            result.addError("税收合计本位币不能为空");
+        if (receiveAmount == null) {
+            result.addError("应收金额不能为空");
             return result;
         }
+        BigDecimal difference = null;
+        if (mode){
+            // 2. 计算期望值：销售金额 * 汇率
+            BigDecimal expectedAmount = receiveAmount.divide(exchangeRate, 2, RoundingMode.HALF_UP);
 
-        // 2. 计算期望值：销售金额 * 汇率
-        BigDecimal expectedAmount = fallAmount.divide(exchangeRate, scale, RoundingMode.HALF_UP);
+            // 3. 实际值四舍五入到相同精度
+            BigDecimal actualAmount = salesAmount.setScale(2, RoundingMode.HALF_UP);
 
-        // 3. 实际值四舍五入到相同精度
-        BigDecimal actualAmount = salesAmount.setScale(scale, RoundingMode.HALF_UP);
+            difference = expectedAmount.subtract(actualAmount).abs();
+
+        }else {
+            difference = salesAmount.subtract(receiveAmount).abs();
+        }
+
+
 
         // 4. 计算绝对误差
-        BigDecimal difference = expectedAmount.subtract(actualAmount).abs();
 
         // 5. 校验误差是否在允许范围内
         if (difference.compareTo(ALLOWED_ERROR) > 0) {
@@ -120,6 +128,8 @@ public class ValidationUtils {
 
         return result;
     }
+
+
 
     // 销售出库-日期检查
     public static void checkOutboundDate(SalesCommissionDto dto, ValidationResult result) {

@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import net.lab1024.sa.admin.module.vigorous.commission.calc.service.CommissionRecordService;
 import net.lab1024.sa.admin.module.vigorous.sales.order.domain.dto.SalesOrderRequestDTO;
 import net.lab1024.sa.admin.module.vigorous.sales.order.domain.form.SalesOrderAddForm;
 import net.lab1024.sa.admin.module.vigorous.sales.order.domain.form.SalesOrderExcludeForm;
@@ -18,6 +19,7 @@ import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
 import net.lab1024.sa.base.common.domain.ValidateList;
 import net.lab1024.sa.base.common.util.SmartExcelUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,6 +40,8 @@ public class SalesOrderController {
 
     @Resource
     private SalesOrderService salesOrderService;
+    @Autowired
+    private CommissionRecordService commissionRecordService;
 
     @Operation(summary = "分页查询 @author yxz")
     @PostMapping("/salesOrder/queryPage")
@@ -96,15 +100,14 @@ public class SalesOrderController {
     public ResponseDTO<String>  exportAllCommission(HttpServletResponse response,@RequestBody @Valid SalesOrderRequestDTO requestDTO) throws IOException {
         SalesOrderQueryForm queryForm = requestDTO.getQueryForm();
         SalesOrderExcludeForm excludeForm = requestDTO.getExcludeForm();
-        return salesOrderService.createCommission(queryForm, excludeForm);
+        return commissionRecordService.createCommission(queryForm, excludeForm);
     }
 
-//    @Operation(summary = "生成选中业绩提成")
-//    @PostMapping("/salesOrder/createSelectedCommission")
-//    @SaCheckPermission("salesOrder:createCommission")
-//    public ResponseDTO<String>  exportSelectedCommission(@RequestBody ValidateList<Long> idList) throws IOException {
-//        return salesOrderService.
-//        (idList);
-//    }
+    @Operation(summary = "生成选中业绩提成")
+    @PostMapping("/salesOrder/createSelectedCommission")
+    @SaCheckPermission("salesOrder:createCommission")
+    public ResponseDTO<String>  exportSelectedCommission(@RequestBody ValidateList<Long> idList) throws IOException {
+        return salesOrderService.createSelectedCommission(idList);
+    }
 
 }

@@ -16,6 +16,9 @@ import net.lab1024.sa.admin.module.vigorous.commission.rule.domain.vo.Commission
 import net.lab1024.sa.admin.module.vigorous.commission.rule.service.CommissionRuleCacheService;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.entity.ReceivablesDetailsEntity;
 import net.lab1024.sa.admin.module.vigorous.res.ValidationResult;
+import net.lab1024.sa.admin.module.vigorous.sales.order.dao.SalesOrderDao;
+import net.lab1024.sa.admin.module.vigorous.sales.order.domain.form.SalesOrderExcludeForm;
+import net.lab1024.sa.admin.module.vigorous.sales.order.domain.form.SalesOrderQueryForm;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.dao.SalesOutboundDao;
 import net.lab1024.sa.admin.module.vigorous.sales.outbound.domain.form.SalesCommissionExportForm;
 import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
@@ -26,6 +29,7 @@ import net.lab1024.sa.admin.util.ValidationUtils;
 import net.lab1024.sa.base.common.code.SystemErrorCode;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
+import net.lab1024.sa.base.common.domain.ValidateList;
 import net.lab1024.sa.base.common.exception.BusinessException;
 import net.lab1024.sa.base.common.util.SmartBeanUtil;
 import net.lab1024.sa.base.common.util.SmartEnumUtil;
@@ -43,6 +47,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -80,6 +86,9 @@ public class CommissionRecordService {
     private SalespersonService salespersonService;
     @Autowired
     private CommissionRuleCacheService commissionRuleCacheService;
+    @Qualifier("salesOrderDao")
+    @Autowired
+    private SalesOrderDao salesOrderDao;
 
     /**
      * 分页查询
@@ -630,7 +639,7 @@ public class CommissionRecordService {
                                     ConcurrentLinkedQueue<CommissionRecordEntity> commissionEntityList,
                                     ConcurrentLinkedQueue<CommissionRecordEntity> managementEntityList,
                                     ConcurrentLinkedQueue<SalesCommissionDto> errorList) {
-        //
+        // 生成业务提成
         CommissionRecordEntity business = convertToCommissionEntity(dto, CommissionTypeEnum.BUSINESS);
         CommissionRecordEntity management ;
 
@@ -753,15 +762,20 @@ public class CommissionRecordService {
         entity.setCustomerId(dto.getCustomerId());  // 4.必需：客户id
 
         // 11. 检查金额
-        ValidationResult validateAmount = ValidationUtils.validateAmount(dto.getSalesAmount(), dto.getExchangeRate(), dto.getFallAmount(), 2);
+        if (dto.getReceiveBillNo() == null){
+            result.addError("缺少应收，不能生成");
+        }
+        ValidationResult validateAmount = ValidationUtils.validateAmount(dto.getSalesAmount(), dto.getExchangeRate(), dto.getReceiveAmount(), false);
         if (validateAmount.hasErrors()) {
-            result.addError(validateAmount.getErrorMsg());
+            if (dto.getReceiveAmount().compareTo(dto.getSalesAmount()) >0 ){
+                result.addError("应收金额大于销售，数据错误");
+            }
         }
 
         entity.setSalesAmount(dto.getSalesAmount()); // 8.销售金额
         entity.setCurrencyType(dto.getCurrencyType()); // 15.币别
         entity.setExchangeRate(dto.getExchangeRate()); // 15. 汇率
-        entity.setFallAmount(dto.getFallAmount()); // 15. 税收合计本位币
+        entity.setFallAmount(dto.getReceiveAmount()); // 15. 应收金额
 
         return result;
     }
@@ -790,8 +804,8 @@ public class CommissionRecordService {
         // 计算百分比时使用 hundred 的倒数
         BigDecimal hundredInverse = BigDecimal.ONE.divide(hundred, 4, RoundingMode.HALF_UP);
 
-        BigDecimal amount = Optional.ofNullable(salesCommission.getFallAmount())
-                .orElse(BigDecimal.ZERO);   // 税收合计本位币
+        BigDecimal amount = Optional.ofNullable(salesCommission.getReceiveAmount())
+                .orElse(BigDecimal.ZERO);   // 应收金额
         BigDecimal levelRate = salesCommission.getLevelRate();  // 业务员提成级别系数
         BigDecimal pLevelRate = salesCommission.getPLevelRate();    // 上级提成级别
 
@@ -962,6 +976,232 @@ public class CommissionRecordService {
                 ).collect(Collectors.toList());
     }
 
+
+    /**
+     * 生成业绩提成
+     *
+     * @param queryForm 查询条件
+     * @return
+     */
+    @Transactional
+    public ResponseDTO<String> createCommission(SalesOrderQueryForm queryForm, SalesOrderExcludeForm excludeForm) {
+
+        // 需要生成业绩提成 的列表
+        List<SalesCommissionDto> list = salesOrderDao.queryPageWithReceivables(null, queryForm, excludeForm);
+
+        if (list.isEmpty()) {
+            return ResponseDTO.okMsg("没有需要生成的提成。");
+        }
+
+        // 分组和处理数据
+//        List<SalesCommissionDto> list = groupAndMergeCommission(data);
+
+        // 创建自定义线程池
+        ThreadPoolExecutor threadPoolExecutor = ThreadPoolUtils.createThreadPool();
+
+        // 使用 CountDownLatch 来同步线程
+        CountDownLatch latch = new CountDownLatch(list.size());
+
+        // 数据列表
+        ConcurrentLinkedQueue<SalesCommissionDto> errorList = new ConcurrentLinkedQueue<>();
+        ConcurrentLinkedQueue<CommissionRecordEntity> commissionRecordVOList = new ConcurrentLinkedQueue<>();
+        ConcurrentLinkedQueue<CommissionRecordEntity> managementRecordVOList = new ConcurrentLinkedQueue<>();
+
+        // 提交任务到线程池
+        for (SalesCommissionDto dto : list) {
+            threadPoolExecutor.submit(() -> {
+                try {
+                    // 提成分类
+                    classifyCommission(dto, commissionRecordVOList, managementRecordVOList, errorList);
+                } finally {
+                    latch.countDown();  // 完成一个任务后，CountDownLatch 的计数减一
+                }
+            });
+        }
+
+        // 等待所有线程完成
+        try {
+            latch.await();  // 等待所有线程完成
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // 关闭线程池
+        threadPoolExecutor.shutdown();
+
+        // 转换为不可变列表
+        return insertAndGetStringResponseDTO(list, commissionRecordVOList, managementRecordVOList, errorList );
+    }
+
+    /**
+     * 分组处理提成数据
+     * @param data
+     * @return
+     */
+    private List<SalesCommissionDto> groupAndMergeCommission(List<SalesCommissionDto> data) {
+        // 使用Map按销售订单号分组
+        Map<String, SalesCommissionDto> mergedMap = new LinkedHashMap<>();
+        for (SalesCommissionDto dto : data) {
+            String salesOrderBillNo = dto.getSalesOrderBillNo();
+            if (!mergedMap.containsKey(salesOrderBillNo)) {
+                // 第一条记录，初始话
+                mergedMap.put(salesOrderBillNo, dto);
+                if (dto.getReceiveBillNo() != null ){
+                    Set<String> billNos = new LinkedHashSet<>();
+                    billNos.add(dto.getReceiveBillNo());
+                    dto.setReceiveBillNoList(new ArrayList<>(billNos));
+                    dto.setReceiveBillNo(String.join(", ", billNos));
+                }
+            }else {
+                // 合并到现有记录
+                SalesCommissionDto mergedDto = mergedMap.get(salesOrderBillNo);
+                mergeCommissionDto(mergedDto, dto);
+            }
+        }
+        return new ArrayList<>(mergedMap.values());
+    }
+
+    private void mergeCommissionDto(SalesCommissionDto target, SalesCommissionDto source) {
+        // 1. 合并应收单编号列表
+        if (source.getReceiveBillNo() != null) {
+            Set<String> billNoSet = new LinkedHashSet<>();
+
+            // 添加已有的
+            if (target.getReceiveBillNoList() != null) {
+                billNoSet.addAll(target.getReceiveBillNoList());
+            }
+
+            // 添加新的
+            billNoSet.add(source.getReceiveBillNo());
+
+            target.setReceiveBillNoList(new ArrayList<>(billNoSet));
+            target.setReceiveBillNo(String.join(", ", billNoSet));
+        }
+
+        // 2. 合并应收金额（去重后求和）
+        if (source.getReceiveAmount() != null) {
+            if (target.getReceiveAmount() == null) {
+                // 如果目标金额为空，直接赋值
+                target.setReceiveAmount(source.getReceiveAmount());
+            } else {
+                // 如果目标金额不为空，相加
+                target.setReceiveAmount(
+                        target.getReceiveAmount().add(source.getReceiveAmount())
+                );
+            }
+            System.out.println(target.getReceiveAmount());
+        }
+    }
+
+
+    /**
+     * 生成选中出库单 提成
+     *
+     * @param idList
+     * @return
+     */
+    @Transactional
+    public ResponseDTO<String> createSelectedCommission(SalesOrderDao dao, ValidateList<Long> idList, String queryMethodName) {
+        // 使用反射调用DAO查询方法
+//        List<SalesCommissionDto> list = invokeDaoQuery(dao, queryMethodName, idList);
+        List<SalesCommissionDto> list = dao.queryByIdList(idList);
+
+        // 分组处理数据
+//        List<SalesCommissionDto> list = groupAndMergeCommission(data);
+
+        ConcurrentLinkedQueue<SalesCommissionDto> errorList = new ConcurrentLinkedQueue<>();
+        ConcurrentLinkedQueue<CommissionRecordEntity> commissionEntityList = new ConcurrentLinkedQueue<>();
+        ConcurrentLinkedQueue<CommissionRecordEntity> managementEntityList = new ConcurrentLinkedQueue<>();
+
+        // 分类提成
+        for (SalesCommissionDto dto : list) {
+            classifyCommission(dto, commissionEntityList,managementEntityList, errorList);
+        }
+        //
+        return insertAndGetStringResponseDTO(list, commissionEntityList, managementEntityList, errorList);
+    }
+
+    /**
+     * 反射调用DAO查询方法
+     */
+    private List<SalesCommissionDto> invokeDaoQuery(Object dao, String methodName, ValidateList<Long> idList) {
+        try {
+            // 先打印调试信息
+            System.out.println("调用的DAO类: " + dao.getClass().getName());
+            System.out.println("方法名: " + methodName);
+            System.out.println("参数ID列表: " + idList);
+            System.out.println("ID列表大小: " + (idList != null ? idList.size() : "null"));
+            if (idList != null && !idList.isEmpty()) {
+                System.out.println("第一个ID值: " + idList.get(0));
+                System.out.println("所有ID值: " + idList.toString());
+            }
+
+            // 获取方法
+            Method queryMethod = dao.getClass().getDeclaredMethod(methodName, ValidateList.class);
+            queryMethod.setAccessible(true);
+
+            // 调用方法
+            Object result = queryMethod.invoke(dao, idList);
+
+            System.out.println("查询结果: " + result);
+            System.out.println("结果类型: " + (result != null ? result.getClass().getName() : "null"));
+            if (result instanceof List) {
+                List<?> listResult = (List<?>) result;
+                System.out.println("结果列表大小: " + listResult.size());
+                return (List<SalesCommissionDto>) result;
+            } else {
+                throw new RuntimeException("DAO查询方法返回类型不是List: " + methodName);
+            }
+
+        } catch (Exception e) {
+            // 详细的异常处理
+            e.printStackTrace();
+            return tryAlternativeQueryMethods(dao, methodName, idList);
+        }
+    }
+
+
+
+    /**
+     * 尝试其他可能的参数类型
+     */
+    @SuppressWarnings("unchecked")
+    private List<SalesCommissionDto> tryAlternativeQueryMethods(Object dao, String methodName, ValidateList<Long> idList) {
+        try {
+            // 尝试List<Long>参数类型
+            Method queryMethod = dao.getClass().getDeclaredMethod(methodName, List.class);
+            queryMethod.setAccessible(true);
+
+            // 将ValidateList转换为List
+            List<Long> idArrayList = new ArrayList<>(idList);
+            Object result = queryMethod.invoke(dao, idArrayList);
+
+            if (result instanceof List) {
+                return (List<SalesCommissionDto>) result;
+            }
+
+        } catch (NoSuchMethodException e1) {
+            try {
+                // 尝试数组参数类型
+                Method queryMethod = dao.getClass().getDeclaredMethod(methodName, Long[].class);
+                queryMethod.setAccessible(true);
+
+                Long[] idArray = idList.toArray(new Long[0]);
+                Object result = queryMethod.invoke(dao, (Object) idArray);
+
+                if (result instanceof List) {
+                    return (List<SalesCommissionDto>) result;
+                }
+
+            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e2) {
+                throw new RuntimeException("找不到合适的DAO查询方法: " + methodName, e2);
+            }
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException("反射调用DAO方法失败: " + methodName, e);
+        }
+
+        throw new RuntimeException("DAO查询方法返回类型不是List: " + methodName);
+    }
 
 
 }

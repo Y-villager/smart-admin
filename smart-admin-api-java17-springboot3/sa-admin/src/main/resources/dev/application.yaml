@@ -23,3 +23,7 @@ spring:
   # 显示SQL语句
   jpa:
     show-sql: true
+
+mybatis:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

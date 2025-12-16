@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * 销售-应收 类
@@ -41,10 +42,11 @@ public class SalesCommissionDto {
 
     @Schema(description = "应收单-单据编号")
     private String receiveBillNo;
+    private List<String> receiveBillNoList;
 
     private String receiveRate;
     private BigDecimal exchangeRate;
-    private BigDecimal fallAmount;
+    private BigDecimal receiveAmount;
 
     @Schema(description = "客户id")
     private Long customerId;
