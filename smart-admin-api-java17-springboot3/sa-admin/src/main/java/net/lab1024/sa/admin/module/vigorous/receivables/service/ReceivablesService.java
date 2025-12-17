@@ -10,10 +10,7 @@ import net.lab1024.sa.admin.module.vigorous.receivables.dao.ReceivablesDao;
 import net.lab1024.sa.admin.module.vigorous.receivables.dao.ReceivablesDetailsDao;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.entity.ReceivablesDetailsEntity;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.entity.ReceivablesEntity;
-import net.lab1024.sa.admin.module.vigorous.receivables.domain.form.ReceivablesAddForm;
-import net.lab1024.sa.admin.module.vigorous.receivables.domain.form.ReceivablesImportForm;
-import net.lab1024.sa.admin.module.vigorous.receivables.domain.form.ReceivablesQueryForm;
-import net.lab1024.sa.admin.module.vigorous.receivables.domain.form.ReceivablesUpdateForm;
+import net.lab1024.sa.admin.module.vigorous.receivables.domain.form.*;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.vo.ReceivablesVO;
 import net.lab1024.sa.admin.module.vigorous.res.ValidationResult;
 import net.lab1024.sa.admin.module.vigorous.salesperson.service.SalespersonService;
@@ -496,15 +493,18 @@ public class ReceivablesService {
      * 导出
      * 需要修改
      */
-    public List<ReceivablesVO> getAllReceivables() {
+    public List<ReceivablesExportForm> getAllReceivables() {
         List<ReceivablesEntity> entityList = receivablesDao.selectList(null);
-//        return entityList.stream()
-//                .map(e ->
-//                        ReceivablesVO.builder()
-//                                .build()
-//                )
-//                .collect(Collectors.toList());
-        return null;
+        return entityList.stream()
+                .map(e ->
+                        ReceivablesExportForm.builder()
+                                .billNo(e.getBillNo())
+                                .originBillNo(e.getOriginBillNo())
+                                .receivablesDate(String.valueOf(e.getReceivablesDate()))
+                                .salespersonName(e.getReceivablesId().toString())
+                                .build()
+                )
+                .collect(Collectors.toList());
 
     }
 }

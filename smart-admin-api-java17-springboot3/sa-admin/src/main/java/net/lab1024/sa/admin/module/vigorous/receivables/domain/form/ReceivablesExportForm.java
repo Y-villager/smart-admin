@@ -1,0 +1,81 @@
+package net.lab1024.sa.admin.module.vigorous.receivables.domain.form;
+
+import com.alibaba.excel.annotation.ExcelProperty;
+import com.alibaba.excel.annotation.format.DateTimeFormat;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Builder;
+import lombok.Data;
+
+import java.math.BigDecimal;
+
+/**
+ * 应收单 新建表单
+ *
+ * @Author yxz
+ * @Date 2024-12-12 14:46:31
+ * @Copyright yxz
+ */
+@Builder
+@Data
+public class ReceivablesExportForm {
+
+    @NotBlank(message = "单据编号不能为空")
+    @ExcelProperty("单据编号")
+    private String billNo;
+
+    @ExcelProperty("源单编号")
+    private String originBillNo;
+
+    @ExcelProperty("业务日期")
+    @NotBlank(message = "业务日期不能为空")
+    @DateTimeFormat("yyyy-mm-dd")
+    private String receivablesDate;
+
+    @ExcelProperty("销售员")
+    @NotBlank(message = "销售员不能为空")
+    private String salespersonName;
+
+    @ExcelProperty("客户")
+    @NotBlank(message = "客户名称不能为空")
+    private String customerName;
+
+    @ExcelProperty("价税合计")
+    @NotBlank(message = "价税合计不能为空")
+    private BigDecimal amount;
+
+    @ExcelProperty("币别")
+    @NotBlank(message = "币别不能为空")
+    private String currencyType;
+
+    @ExcelProperty("汇率")
+    @NotBlank(message = "汇率不能为空")
+    private BigDecimal exchangeRate;
+
+    @ExcelProperty("价税合计本位币")
+    private BigDecimal fallAmount;
+
+    @ExcelProperty("付款方")
+    private String payer;
+
+    @ExcelProperty("应收比例(%)")
+    private Integer rate;
+
+    @ExcelProperty("物料编码")
+    private String materialCode;
+
+    @ExcelProperty("明细.序号")
+    private Integer serialNum;
+
+    @ExcelProperty("物料名称")
+    private String materialName;
+
+    @ExcelProperty("销售单位")
+    private String saleUnit;
+
+    @ExcelProperty("销售数量")
+    private Integer saleQuantity;
+
+    @ExcelProperty("错误信息")
+    private String errorMsg;
+
+}

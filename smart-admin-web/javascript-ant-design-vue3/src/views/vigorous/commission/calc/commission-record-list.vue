@@ -266,8 +266,8 @@
       width: '110px'
     },
     {
-      title: '销售出库',
-      dataIndex: 'salesBillNo',
+      title: '应收单据',
+      dataIndex: 'receiveBillNo',
       ellipsis: true,
       width: '110px'
     },

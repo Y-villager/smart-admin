@@ -13,13 +13,13 @@ import java.time.LocalDate;
 @Data
 public class CommissionRecordExportForm {
 
-    @ExcelProperty("出库单日期")
+    @ExcelProperty("销售订单日期")
     private LocalDate orderDate;
 
-    @ExcelProperty("销售出库-单据编号")
-    private String salesBillNo;
+    @ExcelProperty("销售订单")
+    private String salesOrderBillNo;
 
-    @ExcelProperty("应收单-单据编号")
+    @ExcelProperty("下游应收单")
     private String receiveBillNo;
 
     @ExcelProperty("销售金额")

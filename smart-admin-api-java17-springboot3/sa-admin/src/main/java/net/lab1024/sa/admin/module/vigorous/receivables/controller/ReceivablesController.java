@@ -7,6 +7,7 @@ import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.form.ReceivablesAddForm;
+import net.lab1024.sa.admin.module.vigorous.receivables.domain.form.ReceivablesExportForm;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.form.ReceivablesQueryForm;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.form.ReceivablesUpdateForm;
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.vo.ReceivablesVO;
@@ -86,8 +87,8 @@ public class ReceivablesController {
     @GetMapping("/receivables/export")
     @SaCheckPermission("receivables:export")
     public void exportReceivables(HttpServletResponse response) throws IOException {
-        List<ReceivablesVO> goodsList = receivablesService.getAllReceivables();
-        SmartExcelUtil.exportExcel(response,"应收单.xlsx","应收单",ReceivablesVO.class, goodsList);
+        List<ReceivablesExportForm> goodsList = receivablesService.getAllReceivables();
+        SmartExcelUtil.exportExcel(response,"应收单.xlsx","应收单",ReceivablesExportForm.class, goodsList);
     }
 
 }

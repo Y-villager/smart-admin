@@ -38,14 +38,14 @@ public class CommissionRecordExportWithMaterialForm {
     private LocalDate orderDate;
 
     @ExcelProperty("订单类型")
-    @ColumnWidth(18)
+    @ColumnWidth(16)
     private String orderType;
 
-    @ExcelProperty("销售出库-单据编号")
-    @ColumnWidth(12)
-    private String salesBillNo;
+//    @ExcelProperty("销售出库-单据编号")
+//    @ColumnWidth(12)
+//    private String salesBillNo;
 
-    @ExcelProperty("应收单-单据编号")
+    @ExcelProperty("下游应收单")
     @ColumnWidth(12)
     private String receivablesNo;
 

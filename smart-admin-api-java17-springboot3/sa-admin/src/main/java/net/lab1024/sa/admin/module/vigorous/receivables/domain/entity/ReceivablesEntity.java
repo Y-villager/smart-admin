@@ -59,7 +59,7 @@ public class ReceivablesEntity {
     /**
      * 单据类型
      */
-    private String receivablesType;
+//    private String receivablesType;
 
     /**
      * 税收合计

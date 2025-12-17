@@ -242,4 +242,19 @@ public class ReceivablesDetailsService {
 
         return entity;
     }
+
+    public Map<String, List<ReceivablesDetailsEntity>> queryByBillNos(Set<String> allBillNos) {
+       List<ReceivablesDetailsEntity> list = receivablesDetailsDao.queryByBillNos(allBillNos);
+
+        // 2. 在Java中按originBillNo分组
+        if (CollectionUtils.isEmpty(list)) {
+            return Collections.emptyMap();
+        }
+        return list.stream()
+                .collect(Collectors.groupingBy(
+                        ReceivablesDetailsEntity::getOriginBillNo,
+                        LinkedHashMap::new,  // 保持插入顺序
+                        Collectors.toList()
+                ));
+    }
 }

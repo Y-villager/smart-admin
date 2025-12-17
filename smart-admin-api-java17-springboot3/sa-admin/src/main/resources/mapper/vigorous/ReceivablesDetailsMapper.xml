@@ -111,4 +111,34 @@
             #{item.originBillNo}
         </foreach>
     </select>
+
+    <resultMap id="receivablesDetailsMap"
+               type="net.lab1024.sa.admin.module.vigorous.receivables.domain.entity.ReceivablesDetailsEntity">
+        <result property="originBillNo" column="origin_bill_no"/>
+        <result property="materialCode" column="material_code"/>
+        <result property="serialNum" column="serial_num"/>
+        <result property="materialName" column="material_name"/>
+        <result property="saleUnit" column="sale_unit"/>
+        <result property="saleQuantity" column="sale_quantity"/>
+        <result property="saleAmount" column="sale_amount"/>
+    </resultMap>
+
+    <select id="queryByBillNos"
+            resultType="net.lab1024.sa.admin.module.vigorous.receivables.domain.entity.ReceivablesDetailsEntity">
+        SELECT
+            origin_bill_no,
+            material_code,
+            serial_num,
+            material_name,
+            sale_unit,
+            sale_quantity,
+            sale_amount
+        FROM v_receivables_details
+        WHERE origin_bill_no IN
+        <foreach collection="set" item="billNo" open="(" separator="," close=")">
+            #{billNo}
+        </foreach>
+        ORDER BY origin_bill_no DESC, serial_num
+    </select>
+
 </mapper>

@@ -46,7 +46,10 @@ public class SalesCommissionDto {
 
     private String receiveRate;
     private BigDecimal exchangeRate;
+    // 应收金额
     private BigDecimal receiveAmount;
+    // 应收本位币
+    private BigDecimal fallAmount;
 
     @Schema(description = "客户id")
     private Long customerId;

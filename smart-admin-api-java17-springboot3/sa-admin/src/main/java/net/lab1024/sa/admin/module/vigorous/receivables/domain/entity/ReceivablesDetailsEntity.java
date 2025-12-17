@@ -1,7 +1,9 @@
 package net.lab1024.sa.admin.module.vigorous.receivables.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -15,6 +17,8 @@ import java.time.LocalDateTime;
  */
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 @TableName("v_receivables_details")
 public class ReceivablesDetailsEntity {
 

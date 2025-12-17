@@ -46,4 +46,6 @@ public interface ReceivablesDetailsDao extends BaseMapper<ReceivablesDetailsEnti
     Set<String> getExistingBillNo(@Param("billNos") Set<String> billNos);
 
     List<String> getExistingUniqueKeys(@Param("list") List<ReceivablesDetailsImportForm> dataList);
+
+    List<ReceivablesDetailsEntity> queryByBillNos(@Param("set") Set<String> allBillNos);
 }
