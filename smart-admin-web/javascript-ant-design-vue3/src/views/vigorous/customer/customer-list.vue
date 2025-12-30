@@ -7,7 +7,7 @@
 -->
 <template>
   <!---------- 查询表单form begin ----------->
-  <a-form class="smart-query-form">
+  <a-form class="smart-query-form" @keyup.enter="onSearch">
     <a-row class="smart-query-form-row">
       <a-form-item label="客户编码" class="smart-query-form-item">
         <a-input style="width: 200px" v-model:value="queryForm.customerCode" placeholder="客户编码" />
