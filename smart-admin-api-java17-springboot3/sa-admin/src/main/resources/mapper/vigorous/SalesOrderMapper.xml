@@ -22,7 +22,6 @@
         vso_order.bill_no as sales_order_bill_no,
         vso_order.order_date,
         vso_order.amount AS sales_amount,
-        vso_order.fall_amount,
 
         -- 发货通知单信息
         vfs.bill_no as f_sales_bill_no,
@@ -49,7 +48,6 @@
         pvsl.salesperson_level_name AS p_salesperson_level_name,
         pvsl.commission_rate AS p_level_rate,
 #         应收
-#         vr.bill_no as receive_bill_no,
         vr.currency_type,
         vr.exchange_rate
     </sql>

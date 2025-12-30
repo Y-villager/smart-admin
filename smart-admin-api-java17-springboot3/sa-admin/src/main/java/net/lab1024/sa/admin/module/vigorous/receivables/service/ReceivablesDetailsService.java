@@ -12,7 +12,6 @@ import net.lab1024.sa.admin.module.vigorous.receivables.domain.form.ReceivablesD
 import net.lab1024.sa.admin.module.vigorous.receivables.domain.vo.ReceivablesDetailsVO;
 import net.lab1024.sa.admin.util.BatchUtils;
 import net.lab1024.sa.admin.util.ExcelUtils;
-import net.lab1024.sa.base.common.code.SystemErrorCode;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
 import net.lab1024.sa.base.common.exception.BusinessException;
@@ -160,9 +159,9 @@ public class ReceivablesDetailsService {
             } else {  // 覆盖
                 // 执行批量更新操作
                 successTotal = batchUtils.doThreadInsertOrUpdate(entityList, receivablesDetailsDao, "batchUpdate", true);
-                if (successTotal != entityList.size()) {
-                    return ResponseDTO.error(SystemErrorCode.SYSTEM_ERROR, "系统出错，请联系管理员。");
-                }
+//                if (successTotal != entityList.size()) {
+//                    return ResponseDTO.error(SystemErrorCode.SYSTEM_ERROR, "系统出错，请联系管理员。");
+//                }
             }
         }
 

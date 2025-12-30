@@ -152,6 +152,7 @@
     <select id="queryPage" resultType="net.lab1024.sa.admin.module.vigorous.commission.calc.domain.vo.CommissionRecordVO">
         SELECT
         <include refid="base_columns"/>,
+            vso_order.order_type,
             vc.customer_name,
             vc.customer_code,
             vc.first_order_date,
@@ -161,6 +162,8 @@
         FROM v_commission_record
             left join v_customer vc on v_commission_record.customer_id = vc.customer_id
             left join v_sales_outbound vso on v_commission_record.sales_bill_no = vso.bill_no
+            left join v_sales_order vso_order on vso_order.bill_no = v_commission_record.sales_order_bill_no
+
         <where>
             <!--业务员-->
             <if test="queryForm.salespersonId != null and queryForm.commissionType == null">
@@ -215,7 +218,7 @@
                 </foreach>
             </if>
         </where>
-        order by v_commission_record.order_date desc, v_commission_record.sales_bill_no
+        order by v_commission_record.outbound_date desc, v_commission_record.sales_bill_no
     </select>
 
 
@@ -339,7 +342,7 @@
             </if>
         </where>
         order by v_commission_record.commission_type asc,
-            v_commission_record.order_date desc,
+            v_commission_record.outbound_date desc,
             v_commission_record.sales_bill_no,
             vrd.serial_num asc
     </select>

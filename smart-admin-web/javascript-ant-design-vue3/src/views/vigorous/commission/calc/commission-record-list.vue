@@ -254,6 +254,24 @@
 
   const columns = ref([
     {
+      title: '提成类型',
+      dataIndex: 'commissionType',
+      ellipsis: true,
+      width: '90px'
+    },
+    {
+      title: '销售出库',
+      dataIndex: 'salesBillNo',
+      ellipsis: true,
+      width: '110px'
+    },
+    {
+      title: '出库日期',
+      dataIndex: 'outboundDate',
+      ellipsis: true,
+      width: '110px'
+    },
+    {
       title: '销售订单',
       dataIndex: 'salesOrderBillNo',
       ellipsis: true,
@@ -289,12 +307,7 @@
       ellipsis: true,
       width: '150px'
     },
-    {
-      title: '提成类型',
-      dataIndex: 'commissionType',
-      ellipsis: true,
-      width: '90px'
-    },
+
     {
       title: '首单日期',
       dataIndex: 'firstOrderDate',

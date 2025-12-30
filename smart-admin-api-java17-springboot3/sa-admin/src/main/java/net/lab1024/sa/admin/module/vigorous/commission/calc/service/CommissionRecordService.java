@@ -4,7 +4,6 @@ import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
 import net.lab1024.sa.admin.enumeration.CommissionTypeEnum;
-import net.lab1024.sa.admin.enumeration.OrderTypeEnum;
 import net.lab1024.sa.admin.enumeration.SystemYesNo;
 import net.lab1024.sa.admin.enumeration.TransferStatusEnum;
 import net.lab1024.sa.admin.module.vigorous.commission.calc.dao.CommissionRecordDao;
@@ -242,49 +241,58 @@ public class CommissionRecordService {
     /**
      * 公共转换方法
      */
-    private Stream<CommissionRecordExportForm> convertAndPrepareExport(CommissionRecordQueryForm queryForm) {
-        List<CommissionRecordVO> commissionList =  commissionRecordDao.queryPage(null, queryForm);
+    private  List<CommissionRecordExportForm> convertAndPrepareExport(CommissionRecordQueryForm queryForm) {
+        List<CommissionRecordVO> commissionList = commissionRecordDao.queryPage(null, queryForm);
         if (Boolean.TRUE.equals(queryForm.getIsContainsMaterial()) ){
             fillMaterialDetails(commissionList);
         }
+
         return commissionList.stream()
-                .map(e -> CommissionRecordExportForm.builder()
-                        .orderDate(e.getOrderDate())
-                        .salesOrderBillNo(e.getSalesOrderBillNo())
-                        .salesBillNo(e.getSalesBillNo())
-                        .receiveBillNo(e.getReceiveBillNo())
+                .map(this::buildExportForm)
+                .collect(Collectors.toList());
+    }
 
-                        .customerName(e.getCustomerName())
-                        .customerCode(e.getCustomerCode())
-                        .firstOrderDate(e.getFirstOrderDate())
-                        .adjustedFirstOrderDate(e.getAdjustedFirstOrderDate())
-                        .customerYear(e.getCustomerYear())
-                        .customerYearRate(e.getCustomerYearRate())
-                        .isCustomsDeclaration(e.getIsCustomsDeclaration() == 0 ? "不报关" : "报关")
-                        .isTransfer(e.getIsTransfer() == 0 ? "非转交" : "转交")
+    /**
+     * 构建导出表单（提取为独立方法，便于复用）
+     */
+    private CommissionRecordExportForm buildExportForm(CommissionRecordVO e) {
+        return CommissionRecordExportForm.builder()
+//                .orderDate(e.getOrderDate())
+                .salesOrderBillNo(e.getSalesOrderBillNo())
+                .salesBillNo(e.getSalesBillNo())
+                .outboundDate(e.getOutboundDate())
+                .receiveBillNo(e.getReceiveBillNo())
 
-                        .salespersonId(e.getSalespersonId())
-                        .currentParentId(e.getCurrentParentId())
-                        .salespersonName(e.getSalespersonName())
-                        .salespersonLevelName(e.getCurrentSalespersonLevelName())
-                        .salespersonLevelRate(e.getCurrentSalespersonLevelRate())
-                        .currentParentName(e.getCurrentParentName())
-                        .currentParentLevelName(e.getCurrentParentLevelName())
-                        .currentParentLevelRate(e.getCurrentParentLevelRate())
+                .customerName(e.getCustomerName())
+                .customerCode(e.getCustomerCode())
+                .firstOrderDate(e.getFirstOrderDate())
+                .adjustedFirstOrderDate(e.getAdjustedFirstOrderDate())
+                .customerYear(e.getCustomerYear())
+                .customerYearRate(e.getCustomerYearRate())
+                .isCustomsDeclaration(e.getIsCustomsDeclaration() == 0 ? "不报关" : "报关")
+                .isTransfer(e.getIsTransfer() == 0 ? "非转交" : "转交")
 
-                        .salesAmount(e.getSalesAmount())
-                        .currencyType(e.getCurrencyType())
-                        .commissionRate(e.getCommissionRate())
-                        .commissionAmount(e.getCommissionAmount())
+                .salespersonId(e.getSalespersonId())
+                .currentParentId(e.getCurrentParentId())
+                .salespersonName(e.getSalespersonName())
+                .salespersonLevelName(e.getCurrentSalespersonLevelName())
+                .salespersonLevelRate(e.getCurrentSalespersonLevelRate())
+                .currentParentName(e.getCurrentParentName())
+                .currentParentLevelName(e.getCurrentParentLevelName())
+                .currentParentLevelRate(e.getCurrentParentLevelRate())
 
-                        .commissionType(SmartEnumUtil.getEnumDescByValue(e.getCommissionType(), CommissionTypeEnum.class))
-                        .exchangeRate(e.getExchangeRate())
-                        .fallAmount(e.getFallAmount())
+                .salesAmount(e.getSalesAmount())
+                .currencyType(e.getCurrencyType())
+                .commissionRate(e.getCommissionRate())
+                .commissionAmount(e.getCommissionAmount())
 
-                        .materialItems(e.getMaterialItems())
-                        .orderType(e.getOrderType())
-                        .build()
-                );
+                .commissionType(SmartEnumUtil.getEnumDescByValue(e.getCommissionType(), CommissionTypeEnum.class))
+                .exchangeRate(e.getExchangeRate())
+                .fallAmount(e.getFallAmount())
+
+                .materialItems(e.getMaterialItems())
+                .orderType(e.getOrderType())
+                .build();
     }
 
     /**
@@ -323,18 +331,19 @@ public class CommissionRecordService {
             Set<String> receiveBillNo = receiveMap.get(orderNo);
 
             if (receiveBillNo != null && !receiveBillNo.isEmpty()) {
-                List<ReceivablesDetailsEntity> materials = new ArrayList<>();
 
+                // 应收->物料列表 集合表
+                HashMap<String,  List<ReceivablesDetailsEntity>> materialsMap = new HashMap<>();
                 // 收集所有关联的物料
                 for (String billNo : receiveBillNo) {
                     List<ReceivablesDetailsEntity> billMaterials = billToMaterials.get(billNo);
+                    List<ReceivablesDetailsEntity> materials = new ArrayList<>();
                     if (billMaterials != null) {
                         materials.addAll(billMaterials);
                     }
+                    materialsMap.put(billNo,materials);
                 }
-
-                commission.setMaterialItems(materials);
-
+                commission.setMaterialItems(materialsMap);
             }
         }
     }
@@ -386,127 +395,155 @@ public class CommissionRecordService {
         return result;
     }
 
-    // 工具方法：格式化分组键
-    private String formatKey(String name, Long id) {
-        return name != null ? String.format("%s (%d)", name, id) : String.valueOf(id);
-    }
+
 
     /**
      * 按提成类型导出
      */
     public Map<String, Collection<?>> exportCommissionRecord(CommissionRecordQueryForm queryForm) {
-        return groupAndCollect(
-                convertAndPrepareExport(queryForm),
-                e -> {
-                    String type = e.getCommissionType();
-                    if (CommissionTypeEnum.BUSINESS.getDesc().equals(type)) {
-                        return CommissionTypeEnum.BUSINESS.getDesc();
-                    } else if (CommissionTypeEnum.MANAGEMENT.getDesc().equals(type)) {
-                        return CommissionTypeEnum.MANAGEMENT.getDesc();
-                    }
-                    return "其他、未知";
-                }
-        );
+        // 1. 获取数据
+        List<CommissionRecordExportForm> allRecords = convertAndPrepareExport(queryForm);
+
+        if (queryForm.getIsContainsMaterial()) {
+            List<CommissionRecordExportWithMaterialForm> resultList = convertToMaterialVOList(allRecords);
+            return groupByCommissionType(resultList);
+        }
+
+        return groupByCommissionType(allRecords);
     }
+
+
+    /**
+     * 通用的分组方法 - 使用通配符避免类型转换
+     */
+    private <T> Map<String, Collection<?>> groupByCommissionType(List<T> records) {
+        Map<String, Collection<T>> resultMap = new HashMap<>();
+
+        for (T record : records) {
+            String commissionType = null;
+            if (record instanceof CommissionRecordExportForm) {
+                commissionType = ((CommissionRecordExportForm) record).getCommissionType();
+            } else if (record instanceof CommissionRecordExportWithMaterialForm) {
+                commissionType = ((CommissionRecordExportWithMaterialForm) record).getCommissionType();
+            }
+
+            String groupKey = null;
+            if (CommissionTypeEnum.BUSINESS.getDesc().equals(commissionType)) {
+                groupKey = CommissionTypeEnum.BUSINESS.getDesc();
+            } else if (CommissionTypeEnum.MANAGEMENT.getDesc().equals(commissionType)) {
+                groupKey = CommissionTypeEnum.MANAGEMENT.getDesc();
+            }
+
+            resultMap.computeIfAbsent(groupKey, k -> new ArrayList<>()).add(record);
+        }
+
+        return new HashMap<>(resultMap);
+    }
+
 
     /**
      * 按销售人员导出
      */
     public Map<String, Collection<?>> exportCommissionRecordBySalesperson(CommissionRecordQueryForm queryForm) {
-        return groupAndCollect(
-                convertAndPrepareExport(queryForm),
-                e -> {
-                    if (e.getCommissionType().equals(CommissionTypeEnum.BUSINESS.getDesc())) {
-                        String name = e.getSalespersonName();
-                        Long id = e.getSalespersonId();
-                        return formatKey(name, id);
-                    } else if (e.getCommissionType().equals(CommissionTypeEnum.MANAGEMENT.getDesc())) {
-                        String parentName = e.getCurrentParentName();
-                        Long id = e.getCurrentParentId();
-                        return formatKey(parentName, id);
-                    } else {
-                        return "错误数据";
-                    }
-                }
-        );
+        // 1. 获取数据
+        List<CommissionRecordExportForm> allRecords = convertAndPrepareExport(queryForm);
+
+        if (queryForm.getIsContainsMaterial()) {
+            List<CommissionRecordExportWithMaterialForm> resultList = convertToMaterialVOList(allRecords);
+            return groupBySalesperson(resultList);
+        }
+        return groupBySalesperson(allRecords);
     }
 
+    // 工具方法：格式化分组键
+    private String formatKey(String name, Long id) {
+        return name != null ? String.format("%s (%d)", name, id) : String.valueOf(id);
+    }
     /**
-     * 按销售人员导出（包含物料明细）
+     * 按销售员分组
      */
-    private Map<String, Collection<?>> exportCommissionRecordBySalespersonWithMaterial(CommissionRecordQueryForm queryForm) {
-        // 获取基础数据
-        List<CommissionRecordExportForm> baseRecords = convertAndPrepareExport(queryForm).collect(Collectors.toList());
+    private <T> Map<String, Collection<?>> groupBySalesperson(List<T> records) {
+        Map<String, Collection<T>> resultMap = new HashMap<>();
 
-        // 转换为包含物料明细的完整数据
-        List<CommissionRecordExportWithMaterialForm> resultList = convertToMaterialVOList(baseRecords, queryForm.getIsTotal());
+        for (T record : records) {
+            String commissionType = null;
+            String groupKey = null;
 
-        // 按销售人员分组
-        return groupAndCollectMaterial(
-                resultList,
-                e -> {
-                    if (e.getCommissionType().equals(CommissionTypeEnum.BUSINESS.getDesc())) {
-                        String name = e.getSalespersonName();
-                        Long id = e.getSalespersonId();
-                        return formatKey(name, id);
-                    } else if (e.getCommissionType().equals(CommissionTypeEnum.MANAGEMENT.getDesc())) {
-                        String parentName = e.getCurrentParentName();
-                        Long id = e.getCurrentParentId();
-                        return formatKey(parentName, id);
-                    } else {
-                        return "错误数据";
-                    }
+            if (record instanceof CommissionRecordExportForm) {
+                commissionType = ((CommissionRecordExportForm) record).getCommissionType();
+                if (CommissionTypeEnum.BUSINESS.getDesc().equals(commissionType)) {
+                    String name = ((CommissionRecordExportForm) record).getSalespersonName();
+                    Long id = ((CommissionRecordExportForm) record).getSalespersonId();
+                    groupKey = formatKey(name, id);
+                } else if (CommissionTypeEnum.MANAGEMENT.getDesc().equals(commissionType)) {
+                    String parentName = ((CommissionRecordExportForm) record).getCurrentParentName();
+                    Long id = ((CommissionRecordExportForm) record).getCurrentParentId();
+                    groupKey = formatKey(parentName, id);
+                } else {
+                    groupKey = "错误数据";
                 }
-        );
+            } else if (record instanceof CommissionRecordExportWithMaterialForm) {
+                commissionType = ((CommissionRecordExportWithMaterialForm) record).getCommissionType();
+                if (CommissionTypeEnum.BUSINESS.getDesc().equals(commissionType)) {
+                    String name = ((CommissionRecordExportWithMaterialForm) record).getSalespersonName();
+                    Long id = ((CommissionRecordExportWithMaterialForm) record).getSalespersonId();
+                    groupKey = formatKey(name, id);
+                } else if (CommissionTypeEnum.MANAGEMENT.getDesc().equals(commissionType)) {
+                    String parentName = ((CommissionRecordExportWithMaterialForm) record).getCurrentParentName();
+                    Long id = ((CommissionRecordExportWithMaterialForm) record).getCurrentParentId();
+                    groupKey = formatKey(parentName, id);
+                } else {
+                    groupKey = "错误数据";
+                }
+            }
+
+            resultMap.computeIfAbsent(groupKey, k -> new ArrayList<>()).add(record);
+        }
+
+        return new HashMap<>(resultMap);
     }
 
-    /**
-     * 分组收集方法（用于包含物料明细的数据）
-     */
-    private Map<String, Collection<?>> groupAndCollectMaterial(List<CommissionRecordExportWithMaterialForm> records,
-                                                               Function<CommissionRecordExportWithMaterialForm, String> classifier) {
-        return records.stream()
-                .collect(Collectors.groupingBy(classifier,
-                        Collectors.collectingAndThen(Collectors.toList(), ArrayList::new)));
-    }
 
     /**
      * 将基础数据转换为包含物料明细的VO列表
      */
-    private List<CommissionRecordExportWithMaterialForm> convertToMaterialVOList(List<CommissionRecordExportForm> baseRecords, Boolean hasMaterial) {
+    private List<CommissionRecordExportWithMaterialForm> convertToMaterialVOList(List<CommissionRecordExportForm> baseRecords) {
         List<CommissionRecordExportWithMaterialForm> resultList = new ArrayList<>();
-
         for (CommissionRecordExportForm record : baseRecords) {
+            int count = 0;
             // 获取物料明细
-            List<ReceivablesDetailsEntity> materialDetails = record.getMaterialItems();
-
-            if (materialDetails == null) {
-                // 如果没有物料明细，仍然导出基础数据
-                CommissionRecordExportWithMaterialForm vo = convertToMaterialVO(record, null, true);
-                resultList.add(vo);
-            } else {
-
-                if (OrderTypeEnum.ACCESSORY_SALE.getDisplayName().equals(record.getOrderType()) && hasMaterial){ // 配件订单
-                    ReceivablesDetailsEntity material = new ReceivablesDetailsEntity();
-                    material.setMaterialName("配件总数");
-                    // 统计总数量
-                    int totalQuantity = materialDetails.stream()
-                            .mapToInt(ReceivablesDetailsEntity::getSaleQuantity)
-                            .sum();
-
-                    material.setSaleQuantity(totalQuantity);
-
-                    // 转换输出实体
-                    CommissionRecordExportWithMaterialForm  vo = convertToMaterialVO(record, material, true);
+            for (String key : record.getMaterialItems().keySet()) {
+                List<ReceivablesDetailsEntity> materialDetails = record.getMaterialItems().get(key);
+                if (materialDetails == null || materialDetails.isEmpty()) {
+                    // 如果没有物料明细，仍然导出基础数据
+                    CommissionRecordExportWithMaterialForm vo = convertToMaterialVO(record, null, true);
                     resultList.add(vo);
-                } else { // 整车订单 和 其他
+                } else {
                     for (int i = 0; i < materialDetails.size(); i++) {
-                        boolean showBaseData = (i == 0);
+                        boolean showBaseData = (count == 0);
                         ReceivablesDetailsEntity material = materialDetails.get(i);
-                        CommissionRecordExportWithMaterialForm  vo  = convertToMaterialVO(record, material, showBaseData);
+                        CommissionRecordExportWithMaterialForm  vo  = convertToMaterialVO(record, material, showBaseData );
                         resultList.add(vo);
+                        count++;
                     }
+//                    if (OrderTypeEnum.ACCESSORY_SALE.getDisplayName().equals(record.getOrderType())){ // 配件订单
+//                        ReceivablesDetailsEntity material = new ReceivablesDetailsEntity();
+//                        material.setMaterialName("配件总数");
+//                        // 统计总数量
+//                        int totalQuantity = materialDetails.stream()
+//                                .mapToInt(ReceivablesDetailsEntity::getSaleQuantity)
+//                                .sum();
+//
+//                        material.setSaleQuantity(totalQuantity);
+//
+//                        // 转换输出实体
+//                        CommissionRecordExportWithMaterialForm  vo = convertToMaterialVO(record, material, true);
+//                        resultList.add(vo);
+//                    } else { // 整车订单 和 其他
+//
+//                    }
                 }
+                count++;
             }
         }
 
@@ -532,11 +569,12 @@ public class CommissionRecordService {
         if (showBaseData) {// 设置基础数据
             // 单据
             vo.setSalesOrderBillNo(record.getSalesOrderBillNo());
-            vo.setOrderDate(record.getOrderDate());
+//            vo.setOrderDate(record.getOrderDate());
             vo.setOrderType(record.getOrderType());
 
-//            vo.setSalesBillNo(record.getSalesBillNo());
-            vo.setReceivablesNo(record.getReceiveBillNo());
+            vo.setSalesBillNo(record.getSalesBillNo());
+            vo.setOutboundDate(record.getOutboundDate());
+            vo.setReceivablesNo(material.getOriginBillNo());
 
             // 业务员
             vo.setSalespersonLevelName(record.getSalespersonLevelName());
@@ -564,44 +602,18 @@ public class CommissionRecordService {
 
         // 设置物料明细数据
         if (material != null) {
+//            vo.setReceivablesNo(material.getOriginBillNo());
             vo.setMaterialName(material.getMaterialName());
             vo.setSerialNum(material.getSerialNum());
             vo.setSaleUnit(material.getSaleUnit());
             vo.setSalesQuantity(material.getSaleQuantity());
             vo.setMaterialPrice(material.getSaleAmount());
+            if (Integer.valueOf(1).equals(material.getSerialNum())) {
+                vo.setReceivablesNo(material.getOriginBillNo());
+            }
         }
 
         return vo;
-    }
-
-
-    /**
-     * 按提成类型导出（包含物料明细）
-     */
-    private Map<String, Collection<?>> exportCommissionRecordWithMaterial(CommissionRecordQueryForm queryForm) {
-        // 获取基础数据
-        List<CommissionRecordExportForm> baseRecords = convertAndPrepareExport(queryForm).toList();
-
-        if (baseRecords.isEmpty()){
-            return null;
-        }
-
-        // 转换为包含物料明细的完整数据
-        List<CommissionRecordExportWithMaterialForm> resultList = convertToMaterialVOList(baseRecords, queryForm.getIsTotal());
-
-        // 按提成类型分组
-        return groupAndCollectMaterial(
-                resultList,
-                e -> {
-                    String type = e.getCommissionType();
-                    if (CommissionTypeEnum.BUSINESS.getDesc().equals(type)) {
-                        return CommissionTypeEnum.BUSINESS.getDesc();
-                    } else if (CommissionTypeEnum.MANAGEMENT.getDesc().equals(type)) {
-                        return CommissionTypeEnum.MANAGEMENT.getDesc();
-                    }
-                    return "其他、未知";
-                }
-        );
     }
 
 
@@ -713,7 +725,6 @@ public class CommissionRecordService {
                 }
                 if (remark.hasReminds()){
                     dto.setRemindMsg(remark.getRemindMsg());
-//                errorList.add(dto);
                 }
             }
         }
@@ -832,12 +843,7 @@ public class CommissionRecordService {
         if (dto.getReceiveBillNo() == null){
             result.addError("缺少应收，不能生成");
         }
-        ValidationResult validateAmount = ValidationUtils.validateAmount(dto.getSalesAmount(), dto.getExchangeRate(), dto.getReceiveAmount(), false);
-        if (validateAmount.hasErrors()) {
-            if (dto.getReceiveAmount().compareTo(dto.getSalesAmount()) >0 ){
-                result.addError("应收金额大于销售，数据错误");
-            }
-        }
+        entity.setFallAmount(dto.getFallAmount());
 
         entity.setSalesAmount(dto.getSalesAmount()); // 8.销售金额
         entity.setCurrencyType(dto.getCurrencyType()); // 15.币别
@@ -879,13 +885,17 @@ public class CommissionRecordService {
         // 计算百分比时使用 hundred 的倒数
         BigDecimal hundredInverse = BigDecimal.ONE.divide(hundred, 4, RoundingMode.HALF_UP);
 
-        BigDecimal amount = Optional.ofNullable(salesCommission.getReceiveAmount())
-                .orElse(BigDecimal.ZERO);   // 应收金额
+        BigDecimal amount = Optional.ofNullable(salesCommission.getSalesAmount())
+                .orElse(BigDecimal.ZERO);   // 销售金额
+        amount = amount.multiply(salesCommission.getExchangeRate());
+        entity.setFallAmount(amount);
+
         BigDecimal levelRate = salesCommission.getLevelRate();  // 业务员提成级别系数
         BigDecimal pLevelRate = salesCommission.getPLevelRate();    // 上级提成级别
 
         BigDecimal commissionRate;  // 最总提成系数
         BigDecimal commissionAmount;      // 提成金额
+
         // 3.业务提成
         if (entity.getCommissionType().equals(CommissionTypeEnum.BUSINESS.getValue())) {
             // 是否是动态计算
@@ -896,6 +906,7 @@ public class CommissionRecordService {
             } else { // 规则表 固定系数
                 commissionRate = commissionRule.getCommissionRate();
             }
+            // 提成金额 = 本位币 * 提成系数 * 0,。01
             commissionAmount = amount.multiply(commissionRate).multiply(hundredInverse);
             entity.setCommissionRate(commissionRate);
             entity.setCommissionAmount(commissionAmount);
@@ -1065,6 +1076,7 @@ public class CommissionRecordService {
         // 需要生成业绩提成 的列表
         List<SalesCommissionDto> list = salesOrderDao.queryPageWithReceivables(null, queryForm, excludeForm);
 
+
         if (list.isEmpty()) {
             return ResponseDTO.okMsg("没有需要生成的提成。");
         }
@@ -1109,33 +1121,6 @@ public class CommissionRecordService {
         return insertAndGetStringResponseDTO(list, commissionRecordVOList, managementRecordVOList, errorList );
     }
 
-    /**
-     * 分组处理提成数据
-     * @param data
-     * @return
-     */
-    private List<SalesCommissionDto> groupAndMergeCommission(List<SalesCommissionDto> data) {
-        // 使用Map按销售订单号分组
-        Map<String, SalesCommissionDto> mergedMap = new LinkedHashMap<>();
-        for (SalesCommissionDto dto : data) {
-            String salesOrderBillNo = dto.getSalesOrderBillNo();
-            if (!mergedMap.containsKey(salesOrderBillNo)) {
-                // 第一条记录，初始话
-                mergedMap.put(salesOrderBillNo, dto);
-                if (dto.getReceiveBillNo() != null ){
-                    Set<String> billNos = new LinkedHashSet<>();
-                    billNos.add(dto.getReceiveBillNo());
-                    dto.setReceiveBillNoList(new ArrayList<>(billNos));
-                    dto.setReceiveBillNo(String.join(", ", billNos));
-                }
-            }else {
-                // 合并到现有记录
-                SalesCommissionDto mergedDto = mergedMap.get(salesOrderBillNo);
-                mergeCommissionDto(mergedDto, dto);
-            }
-        }
-        return new ArrayList<>(mergedMap.values());
-    }
 
     private void mergeCommissionDto(SalesCommissionDto target, SalesCommissionDto source) {
         // 1. 合并应收单编号列表

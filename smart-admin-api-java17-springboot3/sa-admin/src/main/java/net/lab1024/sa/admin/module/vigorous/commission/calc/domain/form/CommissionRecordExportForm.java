@@ -11,6 +11,7 @@ import net.lab1024.sa.admin.module.vigorous.receivables.domain.entity.Receivable
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 业务提成记录 新建表单
@@ -28,14 +29,15 @@ public class CommissionRecordExportForm {
     @ExcelProperty("提成类别")
     private String commissionType;
 
-    @ExcelProperty("业务日期")
-    private LocalDate orderDate;
+    @ExcelProperty("销售出库日期")
+    private LocalDate outboundDate;
+
+    @ExcelProperty("销售出库-单据编号")
+    private String salesBillNo;
 
     @ExcelProperty("销售订单")
     private String salesOrderBillNo;
 
-    @ExcelProperty("销售出库-单据编号")
-    private String salesBillNo;
 
     @ExcelProperty("应收单-单据编号")
     private String receiveBillNo;
@@ -113,6 +115,6 @@ public class CommissionRecordExportForm {
     private String orderType;
 
 //    @ExcelIgnore
-    private List<ReceivablesDetailsEntity> materialItems;
+    private Map<String, List<ReceivablesDetailsEntity>> materialItems;
 
 }

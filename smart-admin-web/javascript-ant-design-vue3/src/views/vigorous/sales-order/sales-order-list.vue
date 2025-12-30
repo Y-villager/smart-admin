@@ -308,7 +308,7 @@
         orderDateEnd: undefined, //单据日期-结束
         customerName: undefined, //客户
         salespersonName: undefined, //业务员
-        departmentName: undefined, //部门
+        departmentName: "外贸", //部门
         pageNum: 1,
         pageSize: 10,
     };

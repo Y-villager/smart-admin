@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 业务提成记录 列表VO
@@ -139,6 +140,6 @@ public class CommissionRecordVO {
     @Schema(description = "备注")
     private String remark;
 
-    private List<ReceivablesDetailsEntity> materialItems;
+    private Map<String, List<ReceivablesDetailsEntity>> materialItems;
 
 }

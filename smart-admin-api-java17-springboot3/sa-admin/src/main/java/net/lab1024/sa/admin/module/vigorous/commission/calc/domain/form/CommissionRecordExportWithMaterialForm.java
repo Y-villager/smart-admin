@@ -29,13 +29,17 @@ public class CommissionRecordExportWithMaterialForm {
     @ExcelProperty("提成类别")
     private String commissionType;
 
+    @ExcelProperty("销售出库")
+    @ColumnWidth(12)
+    private String salesBillNo;
+
+    @ExcelProperty("出库日期")
+    @ColumnWidth(12)
+    private LocalDate outboundDate;
+
     @ExcelProperty("销售订单")
     @ColumnWidth(12)
     private String salesOrderBillNo;
-
-    @ExcelProperty("订单日期")
-    @ColumnWidth(12)
-    private LocalDate orderDate;
 
     @ExcelProperty("订单类型")
     @ColumnWidth(16)
@@ -101,7 +105,7 @@ public class CommissionRecordExportWithMaterialForm {
     @ExcelProperty("客户年份系数")
     private BigDecimal customerYearRate ;
 
-    @ExcelProperty("税收合计")
+    @ExcelProperty("应收金额")
     private BigDecimal salesAmount;
 
     @ExcelProperty("应收-币别")
@@ -110,7 +114,7 @@ public class CommissionRecordExportWithMaterialForm {
     @ExcelProperty("汇率")
     private BigDecimal exchangeRate;
 
-    @ExcelProperty("税收合计本位币")
+    @ExcelProperty("应收金额本位币")
     private BigDecimal fallAmount;
 
     @ExcelProperty("是否为转交客户")
