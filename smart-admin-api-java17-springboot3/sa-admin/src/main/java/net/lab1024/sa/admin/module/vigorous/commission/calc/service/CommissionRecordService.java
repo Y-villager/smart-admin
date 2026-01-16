@@ -310,25 +310,32 @@ public class CommissionRecordService {
         Set<String> allBillNos = new HashSet<>();
 
         for (CommissionRecordVO commission : commissionList) {
-            if (StringUtils.isNotBlank(commission.getReceiveBillNo())) {
-                Set<String> billSet = splitBillNos(commission.getReceiveBillNo());
-                if (!billSet.isEmpty()) {
-                    receiveMap.put(commission.getSalesOrderBillNo(), billSet);
-                    allBillNos.addAll(billSet);
+            String receiveBillNo = commission.getReceiveBillNo();
+            String orderNo = commission.getSalesBillNo();
+            if (StringUtils.isNotBlank(receiveBillNo)) {
+                allBillNos.add(receiveBillNo);
+                if (receiveMap.containsKey(orderNo)) {
+                    receiveMap.get(orderNo).add(receiveBillNo);
+                }else {
+                    Set<String> set = new HashSet<>();
+                    set.add(receiveBillNo);
+                    receiveMap.put(orderNo, set);
                 }
             }
         }
+
         if (allBillNos.isEmpty()) {
             log.warn("没有找到有效的应收单号");
             return;
         }
+
         // 2. 批量查询物料信息
         Map<String, List<ReceivablesDetailsEntity>> billToMaterials = receivablesDetailsService.queryByBillNos(allBillNos);
 
         // 3. 为每个提成记录填充物料
         for (CommissionRecordVO commission : commissionList) {
-            String orderNo = commission.getSalesOrderBillNo();
-            Set<String> receiveBillNo = receiveMap.get(orderNo);
+            String billNO = commission.getSalesBillNo();
+            Set<String> receiveBillNo = receiveMap.get(billNO);
 
             if (receiveBillNo != null && !receiveBillNo.isEmpty()) {
 

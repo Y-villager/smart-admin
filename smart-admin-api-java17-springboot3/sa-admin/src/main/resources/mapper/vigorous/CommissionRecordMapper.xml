@@ -163,7 +163,6 @@
             left join v_customer vc on v_commission_record.customer_id = vc.customer_id
             left join v_sales_outbound vso on v_commission_record.sales_bill_no = vso.bill_no
             left join v_sales_order vso_order on vso_order.bill_no = v_commission_record.sales_order_bill_no
-
         <where>
             <!--业务员-->
             <if test="queryForm.salespersonId != null and queryForm.commissionType == null">
